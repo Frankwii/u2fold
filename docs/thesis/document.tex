@@ -1,0 +1,133 @@
+\documentclass[twocolumn,twoside,a4paper,10pt]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[noadjust]{cite}
+    \renewcommand{\citepunct}{,\penalty\citepunctpenalty\,}
+    \renewcommand{\citedash}{--}
+\usepackage{lipsum}
+\usepackage{url}
+\usepackage{graphicx}
+% ADD THE PACKAGES YOU MIGHT NEED
+
+
+
+
+
+% % % % % % % % % % % % % % % % % %
+%     EDIT THE THESIS' DETAILS    %
+% % % % % % % % % % % % % % % % % %
+
+
+\usepackage[english]{babel}     % Use either `english`, `catalan` or `spanish` to change titles and other template text
+\title{Untitled thesis}
+\author{Frank William Hammond Espinosa}
+\email{frank.william.hammond@gmail.com}
+\tutors{Julia Navarro Oliver and Ana Belén Petro Balaguer}
+\specialization{Artificial Intelligence}
+\academicyear{2024/25}
+\keywords{Underwater imaging, Applied mathematics}
+% \showedisslogo  % Uncomment this command if you are an EDISS student.
+
+\begin{document}
+
+\include{titlepage}
+\maketitle
+
+
+
+% % % % % % % % % % % % % % % %
+%     EDIT THE MANUSCRIPT     %
+% % % % % % % % % % % % % % % %
+
+\begin{abstract}
+\noindent This is a very abstract abstractionary abstract.
+\end{abstract}
+
+\section{Abstract}
+
+
+
+
+\section{Fundamental Rules \label{sec:fund}} 
+
+\subsection{Body, Font, and Line Styles}
+
+The body style, font, and line style cannot be modified. The body is divided into two columns. The text is in Times font and size 10 points. The text must be justified on both margins. On the last page, the columns must be balanced. A new paragraph is indicated by indenting the first word.
+
+\subsection{Figures and Tables}
+
+Figures and tables may be placed within a column or within the body. In both cases, the figure or table is centered within the column or body. Both environments are numbered independently. The figure caption begins with \emph{Figure n:}, uses regular text at 10 points, and is placed below the figure. In contrast, the table caption is located above the table. Figure \ref{fig:fig1} shows a figure within the column, while Figure \ref{fig:fig2} is an example of a figure placed within the body. Table \ref{tab:table1} provides an example of a table that spans both columns.
+
+\begin{figure}[!ht]
+    \begin{center}
+    	\includegraphics[width = \linewidth]{figures/example1.png}
+    \end{center}
+    \caption{Figure within the column.}
+    \label{fig:fig1}
+\end{figure}
+
+\begin{figure*}[!ht]
+    \begin{center}
+    	\includegraphics[width = \linewidth]{figures/example2.png}
+    \end{center}
+    \caption{Figure within the body. Source: phdcomics.} 
+    \label{fig:fig2}
+\end{figure*}
+
+If the object is within a column, it can be placed anywhere in the column; however, if it spans both columns, it can only be placed at the top or bottom of the page.
+
+
+\begin{table*}[!ht]
+	\caption{Some Courses from the MUSI Master's Program.}
+	\label{tab:table1}
+	\begin{center}
+	\begin{tabular}{ccc}
+		\textbf{Course}                               & \textbf{ECTS}     & \textbf{Specialization} \\\hline
+		Scientific Research Methodology               & 3                 & Research and Innovation Fundamentals \\\hline
+		Machine Learning                              & 6                 & Applied Artificial Intelligence \\\hline
+		Data Storage and Retrieval                    & 6                 & Data Science \\\hline
+		Computer Vision and 3D Reconstruction         & 6                 & Computer Vision \\\hline
+		Sensorization and Control of Mobile Robots    & 6                 & Mobile Robotics \\\hline
+		Distributed and Domotic Embedded Systems      & 6                 & Internet of Things \\\hline
+	\end{tabular}
+	\end{center}
+\end{table*}
+
+\subsection{Length}
+
+The maximum number of pages for the work is 20, including the bibliography but excluding the cover page.
+
+
+
+\section{Bibliografía}
+
+The style to be used is \textit{abbrv}. References are ordered alphabetically by the surname of the first author. In the text, the reference number is used in brackets. If multiple references appear together, a single pair of brackets should be used, and they should be in ascending numerical order.
+
+Using BibTeX is highly recommended. Examples of referencing:~\cite{Cre93,McCPit88} or simply~\cite{Wei91}.
+
+
+
+\section{Conclusions}
+
+This document contains all the styles you need, already defined in accordance with the rules described here.
+
+
+
+
+\section{Appendix}
+
+Only if deemed necessary.
+
+
+
+
+The following filler text has been added to better visualize the placement of the table and figure on the next page.
+
+\lipsum[3-6]
+
+
+\bibliographystyle{abbrv}
+\bibliography{bibliography} % EDIT THE FILE `bibliography.bib` WITH YOUR REFERENCES
+
+\end{document}

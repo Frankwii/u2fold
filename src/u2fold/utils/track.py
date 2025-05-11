@@ -1,0 +1,67 @@
+from collections import defaultdict
+from logging import getLogger
+from typing import Union, cast
+
+logger = getLogger("tracking_logger")
+
+NestedDict = dict[str, Union["NestedDict", type]]
+_TRACKED: NestedDict = defaultdict(dict)
+
+def _split_group_and_level(tag: str) -> tuple[list[str], str]:
+    parts = tag.split("/")
+
+    return parts[:-1], parts[-1]
+
+def _get_last_level(levels: list[str]) -> dict[str, type]:
+    global _TRACKED
+
+    logger.debug(f"Attempting to access tracking level {levels}.")
+
+    curlevel = _TRACKED
+    for level in levels:
+        curlevel = cast(NestedDict, curlevel)
+        curlevel = curlevel.get(level)
+
+    logger.debug(f"Tracked at levels {levels}: {curlevel}.")
+
+    return cast(dict[str, type], curlevel)
+
+def _set_last_level(
+        levels: list[str],
+        name: str,
+        cls: type
+    ) -> None:
+    global _TRACKED
+
+    logger.debug(f"Setting tracking levels {levels} to {name}.")
+
+    curlevel = _TRACKED
+    for level in levels:
+        curlevel = cast(NestedDict, curlevel)
+        if level in curlevel.keys():
+            curlevel = curlevel[level]
+        else:
+            curlevel[level] = {}
+            curlevel = curlevel[level]
+
+    curlevel = cast(NestedDict, curlevel)
+    curlevel[name] = cls
+
+    logger.debug(f"Finished setting tracking levels {levels} to {name}.")
+
+def track(tag: str):
+    global _TRACKED
+
+    def decorator(cls: type):
+        levels, name = _split_group_and_level(tag)
+        logger.info(f"Tracking element of group {levels}: {name}.")
+
+        _set_last_level(levels, name, cls)
+
+        return cls
+
+    return decorator
+
+def get_tracked_group(group_tag: str) -> dict[str, type]:
+
+    return _get_last_level(group_tag.split("/")).copy()
