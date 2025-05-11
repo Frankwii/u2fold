@@ -1,0 +1,28 @@
+\documentclass{article}
+
+\begin{document}
+  The Underwater Image Formation Model proposes that an underwater image $I$ is obtained from the ``original'' image $J$ via the following equation:
+  \[
+    I(x) = J(x)\cdot t(x) + B\left(1 - t(x)\right) + \left((J\cdot t)\ast g\right)(x) + n(x)
+  ,\]
+
+where $t$ is the medium transmission, $g$ is the point-spread function, $B$ is the underwater background light and $n$ is random noise.
+
+This equation is decomposed into $I = I_1 + I_2$, where
+\[
+  I_1(x) = J(x)\cdot t(x) + B\left(1 - t(x)\right)
+\]
+
+and
+\[
+  I_2(x) = \left(\left(J\cdot t)\right) \ast g\right)(x) + n(x)
+.\]
+
+$I_1$ is first estimated via analytic means, which also yield an estimation for $t$. Then, $I_2$ is taken as $I_2 = J - I_1$. Finally $J$ and $g$ are estimated variationally. Define
+
+\[
+  
+.\]
+
+
+\end{document}
