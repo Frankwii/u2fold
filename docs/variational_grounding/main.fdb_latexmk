@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1746983787.18507 "main.tex" "main.pdf" "main" 1746983787.42935 0
+["pdflatex"] 1747244982.4956 "main.tex" "main.pdf" "main" 1747244982.76978 0
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1742685315 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1742685315 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1742685315 32762 224316ccc9ad3ca0423a14971cfa7fc1 ""
@@ -10,8 +10,8 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1742685315 42087 b0f9697c952c8f5a8eede4134282cb0d ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1743488672 5314599 0b5da616e8ff14614a47569acfa7a4d9 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1743488635 2723343 b960aee5c31d245bff5e5c68814b4441 ""
-  "main.aux" 1746983787.41029 32 3985256e7290058c681f74d7a3565a19 "pdflatex"
-  "main.tex" 1746983785.84251 638 e914e540e70c799c96348242e9e1139d ""
+  "main.aux" 1747244982.74229 32 3985256e7290058c681f74d7a3565a19 "pdflatex"
+  "main.tex" 1747244956.91713 868 62171f7c65655f39b5ab5250fc66359c ""
   (generated)
   "main.aux"
   "main.log"

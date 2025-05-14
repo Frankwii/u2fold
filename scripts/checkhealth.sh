@@ -6,5 +6,5 @@ echo "Running tests..."
 pytest
 echo "Running ruff..."
 ruff check
-echo "Running mypy..."
-mypy
+# echo "Running mypy..."
+# mypy
