@@ -1,10 +1,10 @@
 from pathlib import Path
 
 from u2fold.cli_parsing.cli_argument import CLIArgument
-from u2fold.utils.track import track
+from u2fold.utils.track import tag
 
 
-@track(tag="cli_argument/exec/input_image")
+@tag("cli_argument/exec/input_image")
 class InputPath(CLIArgument):
     def short_name(self) -> str:
         return "-i"
@@ -23,7 +23,7 @@ class InputPath(CLIArgument):
         return Path
 
 
-@track(tag="cli_argument/exec/output_image")
+@tag("cli_argument/exec/output_image")
 class OutputPath(CLIArgument):
     def short_name(self) -> str:
         return "-o"

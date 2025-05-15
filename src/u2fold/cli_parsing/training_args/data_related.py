@@ -1,10 +1,10 @@
 from pathlib import Path
 
 from u2fold.cli_parsing.cli_argument import CLIArgument
-from u2fold.utils.track import track
+from u2fold.utils.track import tag
 
 
-@track(tag="cli_argument/train/dataset_dir")
+@tag("cli_argument/train/dataset_dir")
 class DatasetDir(CLIArgument):
     def short_name(self) -> str:
         return "-d"
@@ -19,5 +19,7 @@ class DatasetDir(CLIArgument):
         return Path
 
     def help(self) -> str:
-        return "Path of the dataset to be used for traning. Splitting \
+        return """
+        Path of the dataset to be used for traning. Splitting \
         into train, validation and testing subsets is handled by the program."
+        """
