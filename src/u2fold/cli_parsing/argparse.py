@@ -2,12 +2,12 @@ from argparse import ArgumentParser
 from typing import cast
 
 from u2fold.cli_parsing.cli_argument import CLIArgument
-from u2fold.utils import get_tracked_group
+from u2fold.utils import get_tag_group
 from u2fold.utils.ensure_loaded import ensure_loaded
 
 
 def add_tagged_args_to_parser(parser: ArgumentParser, tag: str) -> None:
-    for arg_class in get_tracked_group(tag).values():
+    for arg_class in get_tag_group(tag).values():
         arg = cast(CLIArgument, arg_class())
         arg.add_to_parser(parser)
 
@@ -24,7 +24,7 @@ def build_parser() -> ArgumentParser:
     add_tagged_args_to_parser(common_parser, "cli_argument/common")
 
     subparsers = common_parser.add_subparsers(
-        help="Either train some model or execute it.",
+        help="Either train a model or execute one.",
         required=True
     )
 

@@ -3,7 +3,8 @@ import torch
 
 def conv(f: torch.Tensor, g: torch.Tensor) -> torch.Tensor:
     """
-    "Regular" convolution between a batch of images and a fixed kernel (the same accross images), all represented as tensors.
+    "Regular" convolution between a batch of images and a fixed kernel
+    (the same accross images), all represented as tensors.
 
     Actually, pytorch implements cross correlation and not convolution, so
     symmetry should be assumed on \\(g\\) for this to be an actual convolution.
