@@ -1,3 +1,3 @@
-from u2fold.utils.track import get_tracked_group, track
+from u2fold.utils.track import get_tag_group, tag
 
-__all__ = ["track", "get_tracked_group"]
+__all__ = ["tag", "get_tag_group"]
