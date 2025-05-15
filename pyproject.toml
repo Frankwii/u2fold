@@ -1,12 +1,13 @@
 [project]
 name = "U2FOLD"
-version = "0.0.1"
-description = "Add your description here"
+version = "0.0.2"
+description = "U2FOLD: Underwater image unfolding"
 readme = "README.md"
 authors = [
     { name = "Frank William Hammond Espinosa", email = "frank.william.hammond@gmail.com" }
 ]
 requires-python = ">=3.13"
+keywords = ["Underwater imaging", "Unfolding", "Algorithm unrolling", "Algorithm unfolding"]
 
 dependencies = [
   "torch",
@@ -18,12 +19,12 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest",
-  "ruff",
-  "mypy"
+  "ruff"
 ]
 
-# [project.urls]
-# Repository = ""
+[project.urls]
+repository = "https://github.com/Frankwii/u2fold"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".", "src"]
@@ -48,7 +49,7 @@ docstring-code-format = true
 select = ["F", "E", "W", "I"]
 
 [project.scripts]
-u2fold = "u2fold:main"
+u2fold = "main:main"
 
 [build-system]
 requires = ["hatchling"]
