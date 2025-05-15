@@ -1,3 +1,3 @@
-from u2fold.models.mock import MockModel
+from .unet import UNet
 
-__all__ = ["MockModel"]
+__all__ = ["UNet"]
