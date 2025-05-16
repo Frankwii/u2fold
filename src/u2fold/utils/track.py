@@ -3,6 +3,7 @@ from typing import Union, cast
 
 logger = getLogger("tracking_logger")
 
+
 NestedDict = dict[str, Union["NestedDict", type]]
 _TRACKED: NestedDict = {}
 
