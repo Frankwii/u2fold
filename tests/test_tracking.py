@@ -22,6 +22,7 @@ def test_cli_command_tracking():
 
 @tag("model/mock")
 class MockModel(torch.nn.Module):
+    """My documentation"""
     ...
 
 def test_mock_model_tracking():
@@ -35,3 +36,7 @@ def test_models_tracking():
     models = get_tag_group("model")
 
     assert {"unet-like"}.issubset(set(models.keys()))
+
+def test_wrapping():
+
+    assert MockModel.__doc__ == "My documentation"
