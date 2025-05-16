@@ -1,16 +1,44 @@
 from abc import ABC
-from pathlib import Path
+from dataclasses import asdict, dataclass
+from pathlib import Path, PurePath
 
 import torch
 
 from u2fold.cli_parsing.config import TrainingConfig
+from u2fold.models.generic import Model, ModelConfig
 from u2fold.orchestrate.greedy_iteration_models import GreedyIterationModels
 from u2fold.utils.track import tag
 
 from .loading_models import load_models
 
 
-class SharedOrchestrator(ABC):
+@dataclass
+class SharedOrchestratorConfig[C: ModelConfig](ABC):
+    weight_dir: Path
+    model_config: C
+    model_class: Model[C]
+
+class SharedOrchestrator[C: SharedOrchestratorConfig](ABC):
+    def __init__(self, config: C) -> None:
+        self.__model_config = config.model_config
+        self.__model_class = config.model_class
+        self.__model_dir_name = self._compute_model_dir_name()
+
+        self.__weight_dir = config.weight_dir
+        self.__model_weight_dir = self.__weight_dir.joinpath(
+            self.__model_dir_name
+        )
+
+    def _compute_model_dir_name(self) -> PurePath:
+        d = asdict(self.__model_config)
+        param_strings = (f"{k}{v}" for k, v in d.keys())
+
+        class_name = self.__model_class.__name__
+
+        model_weight_dir_name = f"{class_name}__{'_'.join(param_strings)}"
+
+        return PurePath(model_weight_dir_name)
+
     def _load_models(
             self,
             model_name: str,
@@ -47,6 +75,8 @@ class SharedOrchestrator(ABC):
         """
 
         return load_models(model_name, weight_files_dir)
+
+
 
 
 @tag("orchestrate/train")

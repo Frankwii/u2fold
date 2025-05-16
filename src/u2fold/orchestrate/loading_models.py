@@ -1,13 +1,14 @@
 """
 Utilities for loading model weights.
 """
+from abc import ABC
 from pathlib import Path
 from typing import cast
 
 import torch
 
 from u2fold.orchestrate.greedy_iteration_models import GreedyIterationModels
-from u2fold.utils.track import get_from_tag
+from u2fold.utils.track import get_from_tag, tag
 
 
 def __from_weight_file(
@@ -41,6 +42,7 @@ def load_models(
     greedy_iter_dirs = [d for d, _, _ in weight_files_dir.walk()]
     models = [([], []) for _ in range(len(greedy_iter_dirs))]
 
+
     for greedy_iter, greedy_iter_dir in enumerate(greedy_iter_dirs):
         image_dir = greedy_iter_dir.joinpath("image")
 
@@ -56,3 +58,20 @@ def load_models(
         )
 
     return cast(list[GreedyIterationModels], models)
+
+
+class SharedWeightLoader(ABC):
+
+    def __init__(self, model_class: type[torch.nn.Module], ) -> None:
+        super().__init__()
+    ...
+
+
+@tag("loader/train")
+class TrainWeightLoader(SharedWeightLoader):
+    ...
+
+
+@tag("loader/exec")
+class ExecWeightLoader(SharedWeightLoader):
+    ...
