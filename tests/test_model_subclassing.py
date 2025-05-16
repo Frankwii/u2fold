@@ -1,13 +1,12 @@
 from dataclasses import dataclass
+from typing import Optional
 
 import torch
 
 from u2fold.models.generic import Model, ModelConfig
 
 
-
 def test_subclassing():
-
     @dataclass
     class FeedForwardConfig(ModelConfig):
         layer_dimensions: list[int]
@@ -16,19 +15,23 @@ def test_subclassing():
             assert len(self.layer_dimensions) >= 2
 
     class FeedForwardBlock(Model[FeedForwardConfig]):
-        def __init__(self, config: FeedForwardConfig) -> None:
+        def __init__(
+            self, config: FeedForwardConfig, device: Optional[str] = None
+        ) -> None:
             torch.nn.Module.__init__(self)
             layer_dimensions = config.layer_dimensions
 
             dimension_pairs = (
-                (layer_dimensions[i], layer_dimensions[i+1])
+                (layer_dimensions[i], layer_dimensions[i + 1])
                 for i in range(len(layer_dimensions) - 1)
             )
 
-            self.__layers = torch.nn.ModuleList([
-                torch.nn.Linear(input_dim, output_dim)
-                for input_dim, output_dim in dimension_pairs
-            ])
+            self.__layers = torch.nn.ModuleList(
+                [
+                    torch.nn.Linear(input_dim, output_dim, device=device)
+                    for input_dim, output_dim in dimension_pairs
+                ]
+            )
 
         def forward(self, x: torch.Tensor) -> torch.Tensor:
             for layer in self.__layers:
