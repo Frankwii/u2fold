@@ -6,10 +6,7 @@ import torch
 
 from u2fold.cli_parsing.config import TrainingConfig
 from u2fold.models.generic import Model, ModelConfig
-from u2fold.orchestrate.greedy_iteration_models import GreedyIterationModels
 from u2fold.utils.track import tag
-
-from .loading_models import load_models
 
 
 @dataclass
@@ -17,6 +14,7 @@ class SharedOrchestratorConfig[C: ModelConfig](ABC):
     weight_dir: Path
     model_config: C
     model_class: Model[C]
+
 
 class SharedOrchestrator[C: SharedOrchestratorConfig](ABC):
     def __init__(self, config: C) -> None:
@@ -40,10 +38,8 @@ class SharedOrchestrator[C: SharedOrchestratorConfig](ABC):
         return PurePath(model_weight_dir_name)
 
     def _load_models(
-            self,
-            model_name: str,
-            weight_files_dir: Path
-        ) -> list[GreedyIterationModels]:
+        self, model_name: str, weight_files_dir: Path
+    ) -> list[GreedyIterationModels]:
         """
         Load the given model based on the contents of the specified directory
         in `weight_files_dir`.
@@ -77,8 +73,6 @@ class SharedOrchestrator[C: SharedOrchestratorConfig](ABC):
         return load_models(model_name, weight_files_dir)
 
 
-
-
 @tag("orchestrate/train")
 class TrainingOrchestrator(SharedOrchestrator):
     def __init__(self, config: TrainingConfig) -> None:
@@ -95,9 +89,8 @@ class TrainingOrchestrator(SharedOrchestrator):
         # TODO: logger?
 
     def __instantiate_dataloader(
-            self,
-            dataset_dir: Path
-        ) -> torch.utils.data.DataLoader:
+        self, dataset_dir: Path
+    ) -> torch.utils.data.DataLoader:
         raise NotImplementedError("WIP")
 
     def train(self):

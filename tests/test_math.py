@@ -19,7 +19,7 @@ def test_conv_zeros(mock_f = mock_f):
 
     mock_g = torch.zeros((3, 3, 3))
 
-    assert torch.sum(conv(mock_f, mock_g) ** 2) < 10e-9
+    assert torch.sum(conv(mock_f, mock_g) ** 2) < 1e-9
 
 def test_conv_identity(mock_f = mock_f):
 
@@ -32,4 +32,4 @@ def test_conv_identity(mock_f = mock_f):
 
     res = conv(mock_f, mock_dirac_delta)
 
-    assert square_norm(res - mock_f) < 10e-9
+    assert square_norm(res - mock_f) < 1e-9
