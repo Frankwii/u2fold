@@ -35,7 +35,7 @@ def test_models_tracking():
 
     models = get_tag_group("model")
 
-    assert {"unet-like"}.issubset(set(models.keys()))
+    assert {"unet"}.issubset(set(models.keys()))
 
 def test_wrapping():
 
