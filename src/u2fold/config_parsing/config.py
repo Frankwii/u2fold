@@ -1,4 +1,5 @@
 from abc import ABC
+from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -29,3 +30,13 @@ class TrainingConfig(SharedConfig):
 class ExecConfig(SharedConfig):
     model_name: str
     weight_file: Path
+
+
+class U2FoldConfig(ABC):
+    def __init__(self, args: Namespace) -> None:
+        ...
+
+class TrainConfig(U2FoldConfig): ...
+
+
+# class ExecConfig(U2FoldConfig): ...

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from u2fold.cli_parsing.cli_argument import CLIArgument, DirectoryCLIArgument
 from u2fold.utils.track import tag
 
@@ -13,7 +11,27 @@ class DatasetDir(DirectoryCLIArgument):
         return "dataset"
 
     def help(self) -> str:
-        return """
-        Path of the dataset to be used for traning. Splitting \
-        into train, validation and testing subsets is handled by the program."
-        """
+        return (
+            "Path of the dataset to be used for traning. Splitting into train,"
+            " validation and testing subsets is handled by the program."
+        )
+
+@tag("cli_argument/train/n_epochs")
+class NumberOfEpochs(CLIArgument[int]):
+    def short_name(self) -> str:
+        return "-n"
+
+    def long_name(self) -> str:
+        return "--n-epochs"
+
+    def help(self) -> str:
+        return "Number of epochs to train for."
+
+    def metavar(self) -> str:
+        return "N_EPOCHS"
+
+    def _validate_value(self, value: int) -> None:
+        if value <= 0:
+            raise ValueError(f"Number of training epochs should be at least 1")
+        elif value > 1000:
+            raise ValueError(f"Too many training epochs!")
