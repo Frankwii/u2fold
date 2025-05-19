@@ -20,7 +20,7 @@ class LogLevel(CLIArgument):
         return str
 
     def choices(self) -> list[str]:
-        return ["debug", "info", "warn", "error", "critical"]
+        return ["debug", "info", "warning", "error", "critical"]
 
     def default(self) -> str:
         return "debug"
