@@ -1,4 +1,1 @@
-from .data_related import DatasetDir
-from .model_related import ModelName
-
-__all__ = ["DatasetDir", "ModelName"]
+from .data_related import *  # noqa: F403

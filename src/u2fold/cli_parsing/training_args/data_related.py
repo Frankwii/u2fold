@@ -1,22 +1,16 @@
 from pathlib import Path
 
-from u2fold.cli_parsing.cli_argument import CLIArgument
+from u2fold.cli_parsing.cli_argument import CLIArgument, DirectoryCLIArgument
 from u2fold.utils.track import tag
 
 
 @tag("cli_argument/train/dataset_dir")
-class DatasetDir(CLIArgument):
+class DatasetDir(DirectoryCLIArgument):
     def short_name(self) -> str:
         return "-d"
 
-    def long_name(self) -> str:
-        return "--dataset-dir"
-
-    def metavar(self) -> str:
-        return "DATASET_PATH"
-
-    def value_type(self) -> type:
-        return Path
+    def _name(self) -> str:
+        return "dataset"
 
     def help(self) -> str:
         return """

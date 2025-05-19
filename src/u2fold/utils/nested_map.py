@@ -6,6 +6,7 @@ type MappableIterable[A] = list[A] | tuple[A] | dict[Any, A] | Generator[A]
 
 type NestedIterable[A] = A | MappableIterable["NestedIterable[A]"]
 
+
 def nested_map[A, B](
         f: Callable[[A], B], nested_structure: NestedIterable[A]
     ) -> NestedIterable[B]:
