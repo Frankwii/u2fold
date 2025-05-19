@@ -9,13 +9,7 @@ from u2fold.utils.singleton_metaclasses import AbstractSingleton
 
 
 class CLIArgument[T: object](ABC, metaclass = AbstractSingleton):
-
-    @abstractmethod
-    def long_name(self) -> str: ...
-
-    @abstractmethod
-    def help(self) -> str: ...
-
+    
     @classmethod
     def value_type(cls: type) -> type[T]:
         for superclass in cls.__mro__:
@@ -30,6 +24,15 @@ class CLIArgument[T: object](ABC, metaclass = AbstractSingleton):
                   f" hierarchy of {cls.__name__}. Make sure that subclassing"
                   f" of CLIArgument is done with a substituted TypeVar.")
         raise TypeError(errmsg)
+
+    def validate_value(self, value: T) -> None:
+        if not isinstance(value, t := self.value_type()):
+            raise TypeError(
+                f"Invalid type when parsing CLIArgument \
+                `{type(self)}`. Expected `{t}`, got `{type(value)}`."
+            )
+
+        self._validate_value(value)
 
     def short_name(self) -> Optional[str]:
         return None
@@ -48,13 +51,6 @@ class CLIArgument[T: object](ABC, metaclass = AbstractSingleton):
 
     def _help(self) -> str:
         return dedent(self.help()).strip()
-
-    def validate_value(self, value: Any) -> None:
-        if not isinstance(value, t := self.value_type()):
-            raise TypeError(
-                f"Invalid type when parsing CLIArgument \
-                `{type(self)}`. Expected `{t}`, got `{type(value)}`."
-            )
 
     def add_to_parser(self, parser: ArgumentParser) -> None:
         possible_args = (
@@ -79,6 +75,15 @@ class CLIArgument[T: object](ABC, metaclass = AbstractSingleton):
             **kwargs
         )
 
+    @abstractmethod
+    def _validate_value(self, value: T) -> None: ...
+
+    @abstractmethod
+    def long_name(self) -> str: ...
+
+    @abstractmethod
+    def help(self) -> str: ...
+
 
 class PathCLIArgument(CLIArgument[Path], ABC):
     @abstractmethod
@@ -97,6 +102,20 @@ class FileCLIArgument(PathCLIArgument, ABC):
     def long_name(self) -> str:
         return f"--{self._name()}"
 
+    def _validate_value(self, value: Path) -> None:
+        if not value.exists():
+            raise FileNotFoundError(f"File not found at {value}")
+        elif value.is_dir():
+            raise IsADirectoryError(f"Path {value} specified as a file is"
+                                    " a directory")
+
 class DirectoryCLIArgument(PathCLIArgument, ABC):
     def long_name(self) -> str:
         return f"--{self._name()}-dir"
+
+    def _validate_value(self, value: Path) -> None:
+        if not value.exists():
+            value.mkdir()
+        elif not value.is_dir():
+            raise NotADirectoryError(f"Path {value} specified as a directory"
+                                     "is a file.")

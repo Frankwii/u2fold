@@ -50,6 +50,7 @@ select = ["F", "E", "W", "I"]
 
 [project.scripts]
 u2fold = "main:main"
+profile = "main:profile"
 
 [build-system]
 requires = ["hatchling"]

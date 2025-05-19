@@ -1,3 +1,5 @@
+from pathlib import Path
+from PIL import Image, UnidentifiedImageError
 
 from u2fold.cli_parsing.cli_argument import FileCLIArgument
 from u2fold.utils.track import tag
@@ -12,8 +14,15 @@ class InputPath(FileCLIArgument):
         return "input"
 
     def help(self) -> str:
-        return "Input file path. \
-            TODO: figure out whether this is relative or absolute."
+        return "Input file path."
+
+    def _validate_value(self, value: Path) -> None:
+        super()._validate_value(value)
+
+        if value.suffix not in Image.registered_extensions():
+            errmsg = f"Unsupported image file format for {value}."
+            raise UnidentifiedImageError(errmsg)
+
 
 @tag("cli_argument/exec/output_image")
 class OutputPath(FileCLIArgument):
@@ -24,5 +33,10 @@ class OutputPath(FileCLIArgument):
         return "output"
 
     def help(self) -> str:
-        return "Output file path. \
-        TODO: figure out whether this is relative or absolute."
+        return "Output file path."
+
+    def _validate_value(self, value: Path) -> None:
+        if value.is_dir():
+            raise IsADirectoryError(
+                f"Specified output file {value} is a directory!"
+            )
