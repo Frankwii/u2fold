@@ -11,6 +11,7 @@ class FeedForwardConfig(ModelConfig):
     layer_dimensions: list[int]
 
     def __post_init__(self):
+        super().__post_init__()
         assert len(self.layer_dimensions) >= 2
 
 
@@ -40,7 +41,7 @@ class FeedForwardBlock(Model[FeedForwardConfig]):
 
 
 def test_subclassing():
-    config = FeedForwardConfig([10, 100, 5])
+    config = FeedForwardConfig(0.2, [10, 100, 5])
 
     model = FeedForwardBlock(config)
 
@@ -52,7 +53,7 @@ def test_subclassing():
 
 
 def test_skip_init():
-    config = FeedForwardConfig([10, 100, 5])
+    config = FeedForwardConfig(0.5, [10, 100, 5])
 
     # This should not raise an exception
     model = torch.nn.utils.skip_init(FeedForwardBlock, config)
@@ -62,3 +63,14 @@ def test_skip_init():
 
     for idx, mock_input in enumerate(mock_inputs):
         assert model(mock_input).shape == expected_shapes[idx]
+
+def test_fails_with_wrong_dropout():
+
+    try:
+        config = FeedForwardConfig(2, [10, 10])
+        errmsg = ("Initializing config should fail before this line due to"
+                  "wrong dropout value (should be between 0 and 1)")
+        raise AssertionError(errmsg)
+    except ValueError:
+        # Ok; should raise this exception
+        pass

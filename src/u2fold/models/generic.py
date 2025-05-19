@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 import torch
@@ -10,9 +10,28 @@ class ModelConfig(ABC):
     """Configuration for a model.
 
     Models should specify a (concrete) subclass of this class via generic types
-    (see Model for details and examples).
+    (see Model for details and examples). A metadata attribute should be added
+    to each field in subclasses. It should be a dictionary containing two keys::
+
+        desc (str): A human-readable description of what the parameter controls.
+
+        cli_mode (Literal["train", "exec", "model"]): How to register this
+            parameter in the CLI. If "train" or "exec", it should be specified
+            as a parameter only for the respective subparser (e.g., since
+            `dropout` has a mode of "train", it should be specified like this:
+            `u2fold train --dropout 0.2`). If "model", it has to be specified
+            as a parameter of the respective model subparser.
     """
-    ...
+    dropout: float = field(
+        metadata={
+            "desc":"Dropout to use during traning",
+            "cli_mode": "train"
+        }
+    )
+
+    def __post_init__(self):
+        if not 0 <= self.dropout <= 1:
+            raise ValueError("Dropout must be between 0 and 1")
 
 class Model[Config: ModelConfig](ABC, torch.nn.Module):
     r"""Common interface for models with a configuration class.
@@ -75,5 +94,5 @@ class Model[Config: ModelConfig](ABC, torch.nn.Module):
         model = FeedForwardBlock(config)
     """
     @abstractmethod
-    def __init__(self, config: Config, device: Optional[str] = None) -> None:
+    def __init__(self, config: Config, device: Optional[str]) -> None:
         ...
