@@ -67,7 +67,7 @@ def test_skip_init():
 def test_fails_with_wrong_dropout():
 
     try:
-        config = FeedForwardConfig(2, [10, 10])
+        FeedForwardConfig(2, [10, 10])
         errmsg = ("Initializing config should fail before this line due to"
                   "wrong dropout value (should be between 0 and 1)")
         raise AssertionError(errmsg)

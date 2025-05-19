@@ -7,11 +7,12 @@ from u2fold.utils import get_tag_group
 from u2fold.utils.ensure_loaded import ensure_loaded
 from u2fold.utils.track import get_from_tag
 
+from .cli_argument import CLIArgument
+
 
 def build_parser() -> ArgumentParser:
     ensure_loaded("u2fold.cli_parsing")
 
-    # Common args
     common_parser = ArgumentParser(
         description="U2FOLD: Underwater image UnFOLDing. Process subaquatic \
         images with an unfolding-based algorithm.",
@@ -20,29 +21,33 @@ def build_parser() -> ArgumentParser:
 
     __add_mode_subparsers(common_parser, ["train", "exec"])
 
+    __add_cliarguments_to_subparser(common_parser, "common")
+
     return common_parser
 
 
 def __add_mode_subparsers(parser: ArgumentParser, modes: list[str]) -> None:
     mode_subparsers = parser.add_subparsers(
-        help="Either train a model or execute one.", required=True
+        help="Either train a model or execute one.", required=True, dest="mode"
     )
 
     for mode in modes:
         mode_parser = mode_subparsers.add_parser(
             mode,
-            help=f"{__format_mode} a model.",
+            help=f"{__format_mode(mode)} a model.",
             description=__format_description(mode, "given"),
         )
 
         __add_models_as_subparsers(mode_parser, mode)
+
+        __add_cliarguments_to_subparser(mode_parser, mode)
 
 
 def __add_models_as_subparsers(parser: ArgumentParser, mode: str) -> None:
     model_names = sorted(get_tag_group("model").keys())
 
     model_subparsers = parser.add_subparsers(
-        help="Specify the model to be used.", required=True
+        help="Specify the model to be used.", required=True, dest="model"
     )
 
     for model in model_names:
@@ -101,3 +106,9 @@ def __format_description(mode: str, model: str) -> str:
 
 def __format_mode(mode: str) -> str:
     return "Train" if mode == "train" else "Execute"
+
+
+def __add_cliarguments_to_subparser(parser: ArgumentParser, mode: str) -> None:
+    for arg_class in get_tag_group(f"cli_argument/{mode}").values():
+        arg = cast(CLIArgument, arg_class())
+        arg.add_to_parser(parser)

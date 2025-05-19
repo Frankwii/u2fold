@@ -1,9 +1,9 @@
-from u2fold.cli_parsing.cli_argument import CLIArgument
+from u2fold.cli_parsing.cli_argument import CLIArgument, DirectoryCLIArgument
 from u2fold.utils import tag
 
 
 @tag("cli_argument/common/log_level")
-class LogLevel(CLIArgument):
+class LogLevel(CLIArgument[str]):
     def short_name(self) -> str:
         return "-L"
 
@@ -15,10 +15,6 @@ class LogLevel(CLIArgument):
         Log level of execution-related tasks. \
         This is for debugging purposes mostly.
         """
-
-    def value_type(self) -> type:
-        return str
-
     def choices(self) -> list[str]:
         return ["debug", "info", "warning", "error", "critical"]
 
@@ -29,12 +25,9 @@ class LogLevel(CLIArgument):
         return False
 
 @tag("cli_argument/common/log_dir")
-class LogDir(CLIArgument):
+class LogDir(DirectoryCLIArgument):
     def short_name(self) -> str:
         return "-l"
-
-    def long_name(self) -> str:
-        return "--log-dir"
 
     def help(self) -> str:
         return """
@@ -44,11 +37,6 @@ class LogDir(CLIArgument):
         did exist.
         """
 
-    def value_type(self) -> type:
-        return str
+    def _name(self) -> str:
+        return "log"
 
-    def default(self) -> str:
-        return "debug"
-
-    def required(self) -> bool:
-        return False

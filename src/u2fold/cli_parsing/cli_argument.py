@@ -1,12 +1,35 @@
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser
+from pathlib import Path
 from textwrap import dedent
-from typing import Any, Optional
+from typing import Any, Optional, get_args, get_origin
 
+from u2fold.utils.get_project_home import get_project_home
 from u2fold.utils.singleton_metaclasses import AbstractSingleton
 
 
-class CLIArgument(ABC, metaclass = AbstractSingleton):
+class CLIArgument[T: object](ABC, metaclass = AbstractSingleton):
+
+    @abstractmethod
+    def long_name(self) -> str: ...
+
+    @abstractmethod
+    def help(self) -> str: ...
+
+    @classmethod
+    def value_type(cls: type) -> type[T]:
+        for superclass in cls.__mro__:
+            # This basically gets the text used to define the class
+            # as it was in the source code.
+            # See PEP 560 "__mro_entries__" for details.
+            for superclass_base in superclass.__orig_bases__:
+                if get_origin(superclass_base) is CLIArgument:
+                    return get_args(superclass_base)[0]
+
+        errmsg = (f"Could not find annotated CLIArgument in the class"
+                  f" hierarchy of {cls.__name__}. Make sure that subclassing"
+                  f" of CLIArgument is done with a substituted TypeVar.")
+        raise TypeError(errmsg)
 
     def short_name(self) -> Optional[str]:
         return None
@@ -14,26 +37,14 @@ class CLIArgument(ABC, metaclass = AbstractSingleton):
     def metavar(self) -> Optional[str]:
         return None
 
-    def choices(self) -> Optional[list[str]]:
+    def choices(self) -> Optional[list[T]]:
         return None
 
     def required(self) -> bool:
         return True
 
-    def default(self) -> Optional[str]:
+    def default(self) -> Optional[T]:
         return None
-
-    @abstractmethod
-    def long_name(self) -> str:
-        ...
-
-    @abstractmethod
-    def value_type(self) -> type:
-        ...
-
-    @abstractmethod
-    def help(self) -> str:
-        ...
 
     def _help(self) -> str:
         return dedent(self.help()).strip()
@@ -69,3 +80,23 @@ class CLIArgument(ABC, metaclass = AbstractSingleton):
         )
 
 
+class PathCLIArgument(CLIArgument[Path], ABC):
+    @abstractmethod
+    def _name(self) -> str: ...
+
+    def required(self) -> bool:
+        return False
+
+    def default(self) -> Path:
+        return get_project_home() / self._name()
+
+    def metavar(self) -> str:
+        return f"{self._name().upper()}_PATH"
+
+class FileCLIArgument(PathCLIArgument, ABC):
+    def long_name(self) -> str:
+        return f"--{self._name()}"
+
+class DirectoryCLIArgument(PathCLIArgument, ABC):
+    def long_name(self) -> str:
+        return f"--{self._name()}-dir"

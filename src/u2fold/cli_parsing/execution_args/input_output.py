@@ -1,42 +1,28 @@
-from pathlib import Path
 
-from u2fold.cli_parsing.cli_argument import CLIArgument
+from u2fold.cli_parsing.cli_argument import FileCLIArgument
 from u2fold.utils.track import tag
 
 
 @tag("cli_argument/exec/input_image")
-class InputPath(CLIArgument):
+class InputPath(FileCLIArgument):
     def short_name(self) -> str:
         return "-i"
 
-    def long_name(self) -> str:
-        return "--input"
-
-    def metavar(self) -> str:
-        return "INPUT_PATH"
+    def _name(self) -> str:
+        return "input"
 
     def help(self) -> str:
         return "Input file path. \
             TODO: figure out whether this is relative or absolute."
 
-    def value_type(self) -> type:
-        return Path
-
-
 @tag("cli_argument/exec/output_image")
-class OutputPath(CLIArgument):
+class OutputPath(FileCLIArgument):
     def short_name(self) -> str:
         return "-o"
 
-    def long_name(self) -> str:
-        return "--output"
-
-    def metavar(self) -> str:
-        return "OUTPUT_PATH"
+    def _name(self) -> str:
+        return "output"
 
     def help(self) -> str:
         return "Output file path. \
         TODO: figure out whether this is relative or absolute."
-
-    def value_type(self) -> type:
-        return Path
