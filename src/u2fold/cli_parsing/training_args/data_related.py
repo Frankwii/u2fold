@@ -32,6 +32,6 @@ class NumberOfEpochs(CLIArgument[int]):
 
     def _validate_value(self, value: int) -> None:
         if value <= 0:
-            raise ValueError(f"Number of training epochs should be at least 1")
+            raise ValueError("Number of training epochs should be at least 1")
         elif value > 1000:
-            raise ValueError(f"Too many training epochs!")
+            raise ValueError("Too many training epochs!")

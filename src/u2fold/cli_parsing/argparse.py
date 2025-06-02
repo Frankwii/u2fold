@@ -1,17 +1,20 @@
 from argparse import ArgumentParser
 from dataclasses import Field, fields
-from typing import cast, get_args, get_origin
+from typing import cast
 
 from u2fold.models.generic import ModelConfig
 from u2fold.utils import get_tag_group
 from u2fold.utils.ensure_loaded import ensure_loaded
 from u2fold.utils.track import get_from_tag
 
+from .argument_from_field import ArgumentFromField
 from .cli_argument import CLIArgument
 
 
 def build_parser() -> ArgumentParser:
     ensure_loaded("u2fold.cli_parsing")
+    ensure_loaded("u2fold.models")
+    ensure_loaded("u2fold.config_parsing")
 
     common_parser = ArgumentParser(
         description="U2FOLD: Underwater image UnFOLDing. Process subaquatic \
@@ -68,32 +71,15 @@ def __add_models_as_subparsers(parser: ArgumentParser, mode: str) -> None:
                 for field in model_fields
                 if field.metadata.get("cli_mode", "model") == cli_mode
             ]
+        __add_field_args_to_parser(model_parser, *(config_fields["model"]))
+        __add_field_args_to_parser(parser, *(config_fields[mode]))
 
-        __add_model_args_to_parser(model_parser, *(config_fields["model"]))
-        __add_model_args_to_parser(parser, *(config_fields[mode]))
 
-
-def __add_model_args_to_parser(parser: ArgumentParser, *fields: Field) -> None:
+def __add_field_args_to_parser(parser: ArgumentParser, *fields: Field) -> None:
     for field in fields:
-        field_type = field.type
-        annotation_origin = get_origin(field_type)
-        annotation_args = get_args(field_type)
+        argument = ArgumentFromField(field)
 
-        is_list = annotation_origin is not None and issubclass(
-            annotation_origin, list | tuple
-        )
-
-        param_type = annotation_args[0] if is_list else field_type
-        long_name = f"--{field.name.replace('_', '-')}"
-
-        parser.add_argument(
-            long_name,
-            help=field.metadata.get("desc", "No help available"),
-            type=param_type,
-            nargs="+" if is_list else None,
-            required=True,
-            action="extend" if is_list else "store",
-        )
+        argument.add_to_parser(parser)
 
 
 def __format_description(mode: str, model: str) -> str:

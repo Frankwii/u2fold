@@ -17,19 +17,21 @@ def test_cli_command_tracking():
 
     expected_args = {"common", "exec", "train"}
 
-    print(args)
     assert expected_args == set(args.keys())
 
-@tag("model/mock")
-class MockModel(torch.nn.Module):
-    """My documentation"""
-    ...
 
 def test_mock_model_tracking():
+    @tag("model/mock")
+    class MockModel(torch.nn.Module):
+        """My documentation"""
+        ...
 
     models = get_tag_group("model")
 
     assert "mock" in models.keys()
+
+    from u2fold.utils.track import _TRACKED
+    _TRACKED["model"].pop("mock")
 
 def test_models_tracking():
 
@@ -38,5 +40,13 @@ def test_models_tracking():
     assert {"unet"}.issubset(set(models.keys()))
 
 def test_wrapping():
+    @tag("model/mock")
+    class MockModel(torch.nn.Module):
+        """My documentation"""
+        ...
 
     assert MockModel.__doc__ == "My documentation"
+    from u2fold.utils.track import _TRACKED
+    _TRACKED["model"].pop("mock")
+
+
