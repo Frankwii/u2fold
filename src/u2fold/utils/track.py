@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Union, cast
+from typing import Callable, Union, cast
 
 logger = getLogger("tracking_logger")
 
@@ -49,10 +49,10 @@ def _set_last_level(
 
     logger.debug(f"Finished setting tracking levels {levels} to {name}.")
 
-def tag(*tags: str):
+def tag[C: type](*tags: str) -> Callable[[C], C]:
     global _TRACKED
 
-    def decorator(cls: type):
+    def decorator(cls: C):
         for tag in tags:
             levels, name = _split_group_and_level(tag)
             logger.info(f"Tracking element of group {levels}: {name}.")
