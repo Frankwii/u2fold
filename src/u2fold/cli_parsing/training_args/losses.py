@@ -22,4 +22,5 @@ class LossStrategy(CLIArgument[str]):
         return True
 
     def _validate_value(self, value: str) -> None:
+        # raise NotImplementedError(value)
         pass

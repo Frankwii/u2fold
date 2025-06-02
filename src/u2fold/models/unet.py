@@ -128,7 +128,7 @@ class UNet(Model[ConfigUNet]):
                 UNetConvolutionalLayer(
                     in_channels,
                     out_channels,
-                    config.sublayers,
+                    config.sublayers_per_step,
                     config.activation,
                     device,
                 )
