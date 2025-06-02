@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from PIL import Image, UnidentifiedImageError
 
 from u2fold.cli_parsing.cli_argument import FileCLIArgument

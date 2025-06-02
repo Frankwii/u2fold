@@ -1,5 +1,8 @@
+from importlib import import_module
+
+
 def ensure_loaded(module: str):
     """
     Makes sure that the given module is loaded.
     """
-    __import__(module)
+    import_module(module)

@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from argparse import Namespace
 
 from u2fold.config_parsing.config import ExecConfig, TrainConfig, U2FoldConfig
 

@@ -1,8 +1,13 @@
-from .weight_handler import (
-    ExecWeightHandler,
+from .exec import ExecWeightHandler
+from .generic import (
     ModelInitBundle,
-    TrainWeightHandler,
     U2FoldWeightTuple,
 )
+from .train import TrainWeightHandler
 
-__all__ = ["ExecWeightHandler", "TrainWeightHandler", "ModelBundle", "U2FoldWeightTuple"]
+__all__ = [
+    "ExecWeightHandler",
+    "TrainWeightHandler",
+    "ModelInitBundle",
+    "U2FoldWeightTuple",
+]

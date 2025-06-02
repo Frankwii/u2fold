@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Optional
+from dataclasses import dataclass, field, fields
+from itertools import chain
+from typing import Any, Iterable, Optional
 
 import torch
 
@@ -20,18 +21,92 @@ class ModelConfig(ABC):
             as a parameter only for the respective subparser (e.g., since
             `dropout` has a mode of "train", it should be specified like this:
             `u2fold train --dropout 0.2`). If "model", it has to be specified
-            as a parameter of the respective model subparser.
+            as a parameter of the respective model subparser. Defaults to
+            "model" if not specified.
     """
+
     dropout: float = field(
         metadata={
-            "desc":"Dropout to use during traning",
-            "cli_mode": "train"
+            "desc": "Dropout to use during traning",
+            "cli_mode": "train",
         }
     )
 
-    def __post_init__(self):
+    def validate(self) -> None:
         if not 0 <= self.dropout <= 1:
-            raise ValueError("Dropout must be between 0 and 1")
+            raise ValueError("Dropout must be between 0 and 1.")
+
+    def __post_init__(self) -> None:
+        self.validate()
+
+    def __format(self, attribute: Any) -> str:
+        """Name formatting for names and values of fields alike.
+
+        In the context of this function, "attribute" means either the name
+        of a field or the value of a field in an instance of this class.
+
+        Non-container attributes (strings, numbers...) are transformed to
+        camelCase if they were in snake_case, and left untouched otherwise.
+
+        Iterable attributes have their items recursively formatted and then
+        joined by dashes ("-").
+
+        Examples:
+            >>> self.__format(2)
+            '2'
+            >>> self.__format([1, 2, 3])
+            1-2-3
+            >>> self.__format(["foo", "bar", "foo_bar"])
+            foo-bar-fooBar
+        """
+        if isinstance(attribute, Iterable) and not isinstance(attribute, str):
+            return "-".join(self.__format(attr) for attr in attribute)
+        else:
+            substrings = str(attribute).split("_")
+            [first, *others] = substrings
+
+            camel_case_components = chain(
+                (first,),
+                (substr.capitalize() for substr in others)
+            )
+
+            return "".join(camel_case_components)
+
+    def format_self(self):
+        """Human-readable name formatting for model hyperparameter sets.
+
+        Field names and their values are formatted according to
+        self.__format_attribute. Then, formatted name-value pairs are joined
+        as follows:
+
+        Names and their respective value are separated by a single underscore
+        ("_"), and name-value pairs are separated by double underscores ("__")
+        between them.
+
+        Examples:
+            >>> my_config = ModelConfigSubclass(
+            ...     dropout=0.2
+            ...     foo="bar",
+            ...     list_foo=["bar", "baz"]
+            ... )
+            >>> my_config.format_self()
+            foo_bar__listFoo_bar-baz
+        """
+        formattable_field_names = (
+            (field_.name, getattr(self, field_.name))
+            for field_ in fields(self)
+            if field_.metadata.get("cli_mode", "model") == "model"
+        )
+
+        formatted_name_value_pairs = (
+            (self.__format(name), self.__format(value))
+            for name, value in formattable_field_names
+        )
+
+        return "__".join(
+            f"{name}_{value}" for name, value in formatted_name_value_pairs
+        )
+
 
 class Model[Config: ModelConfig](ABC, torch.nn.Module):
     r"""Common interface for models with a configuration class.
@@ -65,6 +140,7 @@ class Model[Config: ModelConfig](ABC, torch.nn.Module):
             def __post_init__(self):
                 assert len(self.layer_dimensions) >= 2
 
+
         class FeedForwardBlock(Model[FeedForwardConfig]):
             def __init__(
                 self, config: FeedForwardConfig, device: Optional[str] = None
@@ -89,10 +165,11 @@ class Model[Config: ModelConfig](ABC, torch.nn.Module):
                     x = layer(x)
                 return x
 
+
         config = FeedForwardConfig([10, 100, 5])
 
         model = FeedForwardBlock(config)
     """
+
     @abstractmethod
-    def __init__(self, config: Config, device: Optional[str]) -> None:
-        ...
+    def __init__(self, config: Config, device: Optional[str]) -> None: ...

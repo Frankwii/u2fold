@@ -10,10 +10,10 @@ from u2fold.models.generic import Model, ModelConfig
 class FeedForwardConfig(ModelConfig):
     layer_dimensions: list[int]
 
-    def __post_init__(self):
-        super().__post_init__()
-        assert len(self.layer_dimensions) >= 2
+    def validate(self) -> None:
+        super().validate()
 
+        assert len(self.layer_dimensions) >= 2
 
 class FeedForwardBlock(Model[FeedForwardConfig]):
     def __init__(

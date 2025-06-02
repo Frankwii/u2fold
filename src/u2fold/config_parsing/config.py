@@ -3,6 +3,7 @@ from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
 
+from u2fold.models.generic import ModelConfig
 from u2fold.utils.track import tag
 
 
@@ -18,18 +19,22 @@ class SharedConfig(ABC):
 class TrainingConfig(SharedConfig):
     # TODO: Add (admittedly complex) validation logic for this directory.
     # See SharedOrchestrator._load_models for details.
-    weight_file_dir: Path
+    weight_dir: Path
     dataset_dir: Path
     n_epochs: int
     # TODO: Check how to add this automatically with post_init
     tensorboard_log_dir: Path
+
+    def __post_init__(self):
+        ...
 
 
 @tag("config/exec")
 @dataclass
 class ExecConfig(SharedConfig):
     model_name: str
-    weight_file: Path
+    model_config: ModelConfig
+    weight_dir: Path
 
 
 class U2FoldConfig(ABC):

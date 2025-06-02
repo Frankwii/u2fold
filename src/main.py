@@ -14,14 +14,14 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
 
-    print(args)
+    # print(args)
 
-    logger = bootstrap_logger(args)
-    program_config = build_config(args, logger)
-
-    orchestrator = instantiate_orchestrator(program_config, logger)
-
-    orchestrator.run()
+    # logger = bootstrap_logger(args)
+    # program_config = build_config(args, logger)
+    #
+    # orchestrator = instantiate_orchestrator(program_config, logger)
+    #
+    # orchestrator.run()
 
 
 def bootstrap_logger(args: Namespace) -> logging.Logger:
@@ -45,7 +45,7 @@ def build_config(args: Namespace, logger: logging.Logger) -> U2FoldConfig:
         conf = ExecConfig(args)
     else:  # It should be impossible to end up here, but just in case.
         raise ValueError(
-            f"Invalid mode specified for the program. Mode should be either"
+            "Invalid mode specified for the program. Mode should be either"
             ' "train" or "exec".'
         )
 

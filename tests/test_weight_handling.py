@@ -80,8 +80,6 @@ def test_filetree_building(mock_path=mock_path):
 
     mock_filetree = build_mock_filetree(greedy_iters, stages)
 
-    print(mock_filetree)
-
     handler = TrainWeightHandler(mock_path, greedy_iters, stages)
 
     filetree = handler._filetree
