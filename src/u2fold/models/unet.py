@@ -58,7 +58,7 @@ class ConfigUNet(ModelConfig):
     def __validate_sublayers_per_step(self) -> None:
         if self.sublayers_per_step < 2:
             raise ValueError(
-                "Insufficient sublayers per step. Must be at least 2"
+                "Insufficient sublayers per UNet step. Must be at least 2"
             )
 
     def validate(self) -> None:
