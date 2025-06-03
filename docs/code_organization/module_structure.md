@@ -64,6 +64,7 @@ This decorator is very useful for grouping classes and querying them somewhere e
 >>> class MyOtherClass: ...
 >>> for name, class_ in get_tag_group("my_group").items():
 ...     print(f"{name} -> {class_}")
+...
 my_class -> <class '__main__.MyClass'>
 my_other_class -> <class '__main__.MyOtherClass'>
 ```
