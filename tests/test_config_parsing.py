@@ -1,4 +1,5 @@
 from pathlib import Path
+from re import Pattern
 import pytest
 import torch
 
@@ -144,3 +145,102 @@ def test_full_config_parsing():
     )
 
     assert config == expected_config
+
+
+def test_should_raise_if_incorrect_layer_sizes():
+    parser = build_parser()
+
+    cli_args = [
+        "--log-level",
+        "info",
+        "--weight-dir",
+        "/tmp/path/to/weights",
+        "--log-dir",
+        "/tmp/path/to/logs",
+        "train",
+        "--dataset-dir",
+        "/tmp/path/to/dataset",
+        "--dropout",
+        "0.1",
+        "-n",
+        "10",
+        "--loss-strategy",
+        "intermediate",
+        "unet",
+        "--pooling",
+        "max",
+        "--activation",
+        "gelu",
+        "--channels-per-layer",
+        "3",
+        "256",
+        "512",
+        "1",
+        "3",
+        "--sublayers-per-step",
+        "3"
+    ]
+
+    weight_mock_path = Path("/tmp/path/to/weights")
+    log_mock_path = Path("/tmp/path/to/logs")
+    dataset_mock_path = Path("/tmp/path/to/dataset")
+
+    weight_mock_path.mkdir(parents=True, exist_ok=True)
+    log_mock_path.mkdir(parents=True, exist_ok=True)
+    dataset_mock_path.mkdir(parents=True, exist_ok=True)
+
+    args = parser.parse_args(cli_args)
+
+    with pytest.raises(ValueError, match="Invalid number of channels per UNet layer."):
+        config = parse_and_validate_config(args)
+
+        assert isinstance(config, TrainConfig)
+
+def test_should_raise_if_invalid_sublayers_per_step():
+    parser = build_parser()
+
+    cli_args = [
+        "--log-level",
+        "info",
+        "--weight-dir",
+        "/tmp/path/to/weights",
+        "--log-dir",
+        "/tmp/path/to/logs",
+        "train",
+        "--dataset-dir",
+        "/tmp/path/to/dataset",
+        "--dropout",
+        "0.1",
+        "-n",
+        "10",
+        "--loss-strategy",
+        "intermediate",
+        "unet",
+        "--pooling",
+        "max",
+        "--activation",
+        "gelu",
+        "--channels-per-layer",
+        "3",
+        "256",
+        "512",
+        "256",
+        "3",
+        "--sublayers-per-step",
+        "-1"
+    ]
+
+    weight_mock_path = Path("/tmp/path/to/weights")
+    log_mock_path = Path("/tmp/path/to/logs")
+    dataset_mock_path = Path("/tmp/path/to/dataset")
+
+    weight_mock_path.mkdir(parents=True, exist_ok=True)
+    log_mock_path.mkdir(parents=True, exist_ok=True)
+    dataset_mock_path.mkdir(parents=True, exist_ok=True)
+
+    args = parser.parse_args(cli_args)
+
+    with pytest.raises(ValueError, match="Insufficient sublayers per UNet step."):
+        config = parse_and_validate_config(args)
+
+        assert isinstance(config, TrainConfig)
