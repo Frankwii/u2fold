@@ -1,5 +1,16 @@
 \documentclass{article}
 
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+
+\setlength{\parindent}{0px}
+
+\DeclareMathOperator*{\argmin}{\operatorname*{argmin}}
+\DeclareMathOperator*{\argmax}{\operatorname*{argmax}}
+
 \begin{document}
   The Underwater Image Formation Model proposes that an underwater image $I$ is obtained from the ``original'' image $J$ via the following equation:
   \[
@@ -21,10 +32,25 @@ and
 $I_1$ is first estimated via analytic means, which also yield an estimation for $t$. Then, $I_2$ is taken as $I_2 = J - I_1$. Finally $J$ and $g$ are estimated variationally. Define
 
 \[
-  E(f, g) = \|f\ast g - I_2\|_2^2 + \mathcal{R}_1(f) + \mathcal{R}_2(g)
+  E(J, g) = \|J\ast g - I_2\|_2^2 + \mathcal{R}_1(J) + \mathcal{R}_2(g)
 ,\]
 
-where \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are regularization functions.
+where \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are regularization functions. Thus, \(J\) and \(g\) are obtained by solving the following minimization problem:
+
+\[
+  J, g = \text{argmin}_{\hat{J}, \hat{g}} E(\hat{J}, \hat{g})
+.\]
+
+Given the complexity of such problem, a greedy approach is used, whereby \(E\) is alternatively minimized with respect to one of the variables while fixing the other. Thus, the proposed algorithm is the following:
+
+\begin{equation}
+  \left\{\begin{split}
+    J_{n+1} &= \operatornamewithlimits{argmin}_{\hat{J}} E(\hat{J}, \hat{g}_n) \\
+    g_{n+1} &= \argmin_{\hat{g}} E(\hat{J}_{n+1}, \hat{g})
+  \end{split}\right.
+\end{equation}
+
+
 
 
 \end{document}
