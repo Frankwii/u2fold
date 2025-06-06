@@ -5,7 +5,7 @@ import torch
 
 from u2fold.cli_parsing.argparse import build_parser
 from u2fold.config_parsing.config_dataclasses import TrainConfig
-from u2fold.config_parsing.generic import __parse_model_arguments, parse_and_validate_config
+from u2fold.config_parsing.validation_and_parsing import __parse_model_arguments, parse_and_validate_config
 from u2fold.models.unet import ConfigUNet
 
 
@@ -21,6 +21,8 @@ def test_model_config_parsing():
         "--loss-strategy",
         "intermediate",
         "unet",
+        "--unfolded-step-size",
+        "0.01",
         "--pooling",
         "max",
         "--activation",
@@ -42,7 +44,8 @@ def test_model_config_parsing():
         sublayers_per_step = 3,
         pooling = "max",
         activation = "gelu",
-        dropout = 0.1
+        dropout = 0.1,
+        unfolded_step_size=0.01
     )
 
     assert config == expected_config
@@ -59,6 +62,8 @@ def test_model_config_validation():
         "--loss-strategy",
         "intermediate",
         "unet",
+        "--unfolded-step-size",
+        "0.01",
         "--pooling",
         "max",
         "--activation",
@@ -80,6 +85,8 @@ def test_full_config_parsing():
     parser = build_parser()
 
     cli_args = [
+        "--step-size",
+        "0.1",
         "--log-level",
         "info",
         "--weight-dir",
@@ -96,6 +103,8 @@ def test_full_config_parsing():
         "--loss-strategy",
         "intermediate",
         "unet",
+        "--unfolded-step-size",
+        "0.01",
         "--pooling",
         "max",
         "--activation",
@@ -127,7 +136,8 @@ def test_full_config_parsing():
         sublayers_per_step=3,
         pooling="max",
         activation="gelu",
-        dropout=0.1
+        dropout=0.1,
+        unfolded_step_size=0.01
     )
 
     model_config_path = expected_model_config.format_self()
@@ -142,6 +152,8 @@ def test_full_config_parsing():
         device = "cuda" if torch.cuda.is_available() else "cpu",
         loss_strategy="intermediate",
         n_epochs=10,
+        step_size=0.1,
+        unfolded_step_size=0.01
     )
 
     assert config == expected_config
@@ -167,6 +179,8 @@ def test_should_raise_if_incorrect_layer_sizes():
         "--loss-strategy",
         "intermediate",
         "unet",
+        "--unfolded-step-size",
+        "0.01",
         "--pooling",
         "max",
         "--activation",
@@ -216,6 +230,8 @@ def test_should_raise_if_invalid_sublayers_per_step():
         "--loss-strategy",
         "intermediate",
         "unet",
+        "--unfolded-step-size",
+        "0.01",
         "--pooling",
         "max",
         "--activation",

@@ -13,7 +13,6 @@ class LogLevel(CLIArgument[str]):
     def help(self) -> str:
         return (
             "Log level of execution-related tasks."
-            " This is for debugging purposes mostly."
         )
 
     def choices(self) -> list[str]:
@@ -25,7 +24,9 @@ class LogLevel(CLIArgument[str]):
     def required(self) -> bool:
         return False
 
-    def _validate_value(self, value: str) -> None: ...
+    def _validate_value(self, value: str) -> None:
+        if value not in (c := self.choices()):
+            raise ValueError(f"Log level must be one of `{','.join(c)}`")
 
 
 @tag("cli_argument/common/log_dir")

@@ -47,6 +47,8 @@ def test_unet_parsing():
         "--loss-strategy",
         "intermediate",
         "unet",
+        "--unfolded-step-size",
+        "0.02",
         "--pooling",
         "max",
         "--activation",
@@ -62,6 +64,8 @@ def test_unet_parsing():
     args = parser.parse_args(cli_args)
 
     class ExpectedNamespace(NamedTuple):
+        unfolded_step_size = 0.02
+        step_size = 0.01
         mode = "train"
         dropout = 0.1
         n_epochs = 10
@@ -83,6 +87,8 @@ def test_unet_parsing():
         "activation",
         "channels_per_layer",
         "sublayers_per_step",
+        "step_size",
+        "unfolded_step_size"
     ]
 
     for attr in attrs:

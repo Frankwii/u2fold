@@ -56,13 +56,16 @@ def __parse_model_arguments(args: Namespace) -> ModelConfig:
 
 def __handle_exceptions(
     config_args: dict[str, Any],
-    mode: Literal["train", "exec"],
-    model_path: Path,
+    model_name: str,
+    mode: str,
+    model_config: ModelConfig,
 ) -> None:
     """Manually handle arguments with validation that cannot be automated.
 
     Mutates "config_args" inplace.
     """
+
+    model_path = Path(model_name) / Path(model_config.format_self())
 
     config_args["weight_dir"] = config_args.pop("weight_dir") / model_path
 
@@ -78,6 +81,8 @@ def __handle_exceptions(
 
     config_args["device"] = "cuda" if torch.cuda.is_available() else "cpu"
 
+    config_args["unfolded_step_size"] = model_config.unfolded_step_size
+
 
 def parse_and_validate_config(args: Namespace) -> U2FoldConfig:
     mode = args.mode
@@ -88,9 +93,8 @@ def parse_and_validate_config(args: Namespace) -> U2FoldConfig:
     config_args = __validate_cliarguments(args)
 
     model_config = __parse_model_arguments(args)
-    model_path = Path(args.model) / Path(model_config.format_self())
 
-    __handle_exceptions(config_args, mode, model_path)
+    __handle_exceptions(config_args, args.model, mode, model_config)
 
     config_args["model_config"] = model_config
 

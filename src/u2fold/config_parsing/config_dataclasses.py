@@ -11,6 +11,8 @@ from u2fold.utils.track import tag
 @dataclass
 class U2FoldConfig(ABC):
     log_level: Literal["debug", "info", "warning", "error", "critical"]
+    step_size: float
+    unfolded_step_size: float
     weight_dir: Path
     execution_log_dir: Path
     model_config: ModelConfig

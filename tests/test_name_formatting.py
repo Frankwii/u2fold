@@ -15,9 +15,9 @@ class FeedForwardConfig(ModelConfig):
 
 
 def test_feedforward_name():
-    conf = FeedForwardConfig(0.5, [10,2,5])
+    conf = FeedForwardConfig(0.5, 0.05, [10,2,5])
 
-    assert conf.format_self() == "layerDimensions_10-2-5"
+    assert conf.format_self() == "unfoldedStepSize_0.05__layerDimensions_10-2-5"
 
 @dataclass
 class MockConfig(ModelConfig):
@@ -25,9 +25,9 @@ class MockConfig(ModelConfig):
     bar: list[str]
 
 def test_mock_name():
-    conf = MockConfig(0, foo_bar=1_000, bar=["baz_bar", "b"])
+    conf = MockConfig(0, 0.1, foo_bar=1_000, bar=["baz_bar", "b"])
 
-    assert conf.format_self() == "fooBar_1000__bar_bazBar-b"
+    assert conf.format_self() == "unfoldedStepSize_0.1__fooBar_1000__bar_bazBar-b"
 
 def get_conversion_examples():
     snake_case = ["snake_case", "layer_channels", "dropout"]

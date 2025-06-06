@@ -101,7 +101,7 @@ def save_mock_weights(greedy_iters: int, stages: int):
             nn.Module.__init__(self)
             self.fc1 = nn.Linear(10, 10, device=device)
 
-    model = MockModel(MockConfig(0.5), None)
+    model = MockModel(MockConfig(0.5, unfolded_step_size=0.1), None)
 
     filetree = handler._filetree
 
@@ -137,7 +137,7 @@ def test_weight_loading(mock_path=mock_path):
             nn.Module.__init__(self)
             self.fc1 = nn.Linear(10, 10)
 
-    config = MockConfig2(0.2)
+    config = MockConfig2(0.2, 0.3)
 
     model_bundle = ModelInitBundle(config, MockModel2, None)
 

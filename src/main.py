@@ -2,7 +2,7 @@ import logging
 from argparse import Namespace
 
 from u2fold import build_parser
-from u2fold.config_parsing.config import ExecConfig, TrainConfig, U2FoldConfig
+from u2fold.config_parsing.config_dataclasses import ExecConfig, TrainConfig, U2FoldConfig
 from u2fold.orchestrate.orchestrator import (
     ExecOrchestrator,
     Orchestrator,
