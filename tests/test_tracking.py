@@ -7,7 +7,7 @@ def test_cli_common_command_tracking():
 
     args = get_tag_group("cli_argument/common")
 
-    expected_args = {"log_level", "log_dir", "weight_dir"}
+    expected_args = {"log_level", "log_dir", "weight_dir", "step_size"}
 
     assert expected_args == set(args.keys())
 

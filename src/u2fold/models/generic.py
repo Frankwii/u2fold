@@ -27,14 +27,23 @@ class ModelConfig(ABC):
 
     dropout: float = field(
         metadata={
-            "desc": "Dropout to use during traning",
+            "desc": "Dropout to use during traning.",
             "cli_mode": "train",
         }
+    )
+
+    unfolded_step_size: float = field(
+        metadata={"desc": "Step size for the learned proximity operators."},
     )
 
     def validate(self) -> None:
         if not 0 <= self.dropout <= 1:
             raise ValueError("Dropout must be between 0 and 1.")
+
+        if not 0 < self.unfolded_step_size <= 1:
+            raise ValueError(
+                "Step size must be greater than 0 and less than or equal to 1."
+            )
 
     def __post_init__(self) -> None:
         self.validate()
@@ -66,8 +75,7 @@ class ModelConfig(ABC):
             [first, *others] = substrings
 
             camel_case_components = chain(
-                (first,),
-                (substr.capitalize() for substr in others)
+                (first,), (substr.capitalize() for substr in others)
             )
 
             return "".join(camel_case_components)

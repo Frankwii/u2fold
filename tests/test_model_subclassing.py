@@ -41,7 +41,7 @@ class FeedForwardBlock(Model[FeedForwardConfig]):
 
 
 def test_subclassing():
-    config = FeedForwardConfig(0.2, [10, 100, 5])
+    config = FeedForwardConfig(0.2, 0.01, [10, 100, 5])
 
     model = FeedForwardBlock(config)
 
@@ -53,7 +53,7 @@ def test_subclassing():
 
 
 def test_skip_init():
-    config = FeedForwardConfig(0.5, [10, 100, 5])
+    config = FeedForwardConfig(0.5, 0.1, [10, 100, 5])
 
     # This should not raise an exception
     model = torch.nn.utils.skip_init(FeedForwardBlock, config)
@@ -67,7 +67,7 @@ def test_skip_init():
 def test_fails_with_wrong_dropout():
 
     try:
-        FeedForwardConfig(2, [10, 10])
+        FeedForwardConfig(2, 0.1,[10, 10])
         errmsg = ("Initializing config should fail before this line due to"
                   "wrong dropout value (should be between 0 and 1)")
         raise AssertionError(errmsg)
