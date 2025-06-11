@@ -1,10 +1,10 @@
+#/usr/bin/python
 import argparse
 import shutil
 from pathlib import Path
 from typing import cast
 
 import PIL.Image
-
 
 def __assert_directory_exists(p: Path) -> None:
     if not p.exists():
