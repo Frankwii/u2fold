@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
 
-from u2fold.config_parsing.config_dataclasses import ExecConfig, TrainConfig, U2FoldConfig
+from u2fold.config_parsing.config_dataclasses import (
+    ExecConfig,
+    TrainConfig,
+    U2FoldConfig,
+)
 
 
 class Orchestrator(ABC):
