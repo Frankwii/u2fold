@@ -40,6 +40,8 @@ def test_unet_parsing():
 
     cli_args = [
         "train",
+        "-b",
+        "16",
         "--dropout",
         "0.1",
         "-n",
@@ -65,6 +67,7 @@ def test_unet_parsing():
 
     class ExpectedNamespace(NamedTuple):
         unfolded_step_size = 0.02
+        batch_size = 16
         step_size = 0.01
         mode = "train"
         dropout = 0.1
@@ -79,6 +82,7 @@ def test_unet_parsing():
     expected_namespace = ExpectedNamespace()
     attrs = [
         "mode",
+        "batch_size",
         "dropout",
         "n_epochs",
         "loss_strategy",

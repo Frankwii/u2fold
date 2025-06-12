@@ -14,6 +14,8 @@ def test_model_config_parsing():
 
     cli_args = [
         "train",
+        "-b",
+        "1",
         "--dropout",
         "0.1",
         "-n",
@@ -55,6 +57,8 @@ def test_model_config_validation():
 
     cli_args = [
         "train",
+        "-b",
+        "1",
         "--dropout",
         "2",
         "-n",
@@ -94,6 +98,8 @@ def test_full_config_parsing():
         "--log-dir",
         "/tmp/path/to/logs",
         "train",
+        "-b",
+        "10",
         "--dataset-dir",
         "/tmp/path/to/dataset",
         "--dropout",
@@ -144,6 +150,7 @@ def test_full_config_parsing():
 
     expected_config = TrainConfig(
         log_level="info",
+        batch_size=10,
         weight_dir=Path("/tmp/path/to/weights") / "unet" / model_config_path,
         execution_log_dir=Path("/tmp/path/to/logs") / "execution" / "unet" / model_config_path,
         tensorboard_log_dir=Path("/tmp/path/to/logs") / "tensorboard" / "unet" / model_config_path,
@@ -170,6 +177,8 @@ def test_should_raise_if_incorrect_layer_sizes():
         "--log-dir",
         "/tmp/path/to/logs",
         "train",
+        "-b",
+        "64",
         "--dataset-dir",
         "/tmp/path/to/dataset",
         "--dropout",
@@ -225,6 +234,8 @@ def test_should_raise_if_invalid_sublayers_per_step():
         "/tmp/path/to/dataset",
         "--dropout",
         "0.1",
+        "-b",
+        "4",
         "-n",
         "10",
         "--loss-strategy",
@@ -260,3 +271,94 @@ def test_should_raise_if_invalid_sublayers_per_step():
         config = parse_and_validate_config(args)
 
         assert isinstance(config, TrainConfig)
+
+
+def test_should_raise_if_incorrect_batch_sizes():
+    parser = build_parser()
+
+    negative_test_cases = [0, -1, -10]
+
+    for case in negative_test_cases:
+
+        cli_args = [
+            "--log-level",
+            "info",
+            "--weight-dir",
+            "/tmp/path/to/weights",
+            "--log-dir",
+            "/tmp/path/to/logs",
+            "train",
+            "--dataset-dir",
+            "/tmp/path/to/dataset",
+            "--dropout",
+            "0.1",
+            "-b",
+            f"{case}",
+            "-n",
+            "10",
+            "--loss-strategy",
+            "intermediate",
+            "unet",
+            "--unfolded-step-size",
+            "0.01",
+            "--pooling",
+            "max",
+            "--activation",
+            "gelu",
+            "--channels-per-layer",
+            "3",
+            "256",
+            "512",
+            "256",
+            "3",
+            "--sublayers-per-step",
+            "-1"
+        ]
+
+        with pytest.raises(ValueError, match="Batch size must be a positive integer"):
+            args = parser.parse_args(cli_args)
+
+            parse_and_validate_config(args)
+
+    too_large_test_cases = [20000, 1025, 2048]
+    for case in too_large_test_cases:
+
+        cli_args = [
+            "--log-level",
+            "info",
+            "--weight-dir",
+            "/tmp/path/to/weights",
+            "--log-dir",
+            "/tmp/path/to/logs",
+            "train",
+            "--dataset-dir",
+            "/tmp/path/to/dataset",
+            "--dropout",
+            "0.1",
+            "-b",
+            f"{case}",
+            "-n",
+            "10",
+            "--loss-strategy",
+            "intermediate",
+            "unet",
+            "--unfolded-step-size",
+            "0.01",
+            "--pooling",
+            "max",
+            "--activation",
+            "gelu",
+            "--channels-per-layer",
+            "3",
+            "256",
+            "512",
+            "256",
+            "3",
+            "--sublayers-per-step",
+            "-1"
+        ]
+
+        with pytest.raises(ValueError, match="at most 1024"):
+            args = parser.parse_args(cli_args)
+
+            parse_and_validate_config(args)

@@ -25,6 +25,7 @@ class TrainConfig(U2FoldConfig):
     loss_strategy: str
     n_epochs: int
     dataset_dir: Path
+    batch_size: int
     # TODO: Add these two as CLIArguments
     # the logic responsible for ignoring these if there are already weights
     # should be inside WeightHandler.
