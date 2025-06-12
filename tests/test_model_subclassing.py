@@ -15,6 +15,7 @@ class FeedForwardConfig(ModelConfig):
 
         assert len(self.layer_dimensions) >= 2
 
+
 class FeedForwardBlock(Model[FeedForwardConfig]):
     def __init__(
         self, config: FeedForwardConfig, device: Optional[str] = None
@@ -64,12 +65,14 @@ def test_skip_init():
     for idx, mock_input in enumerate(mock_inputs):
         assert model(mock_input).shape == expected_shapes[idx]
 
-def test_fails_with_wrong_dropout():
 
+def test_fails_with_wrong_dropout():
     try:
-        FeedForwardConfig(2, 0.1,[10, 10])
-        errmsg = ("Initializing config should fail before this line due to"
-                  "wrong dropout value (should be between 0 and 1)")
+        FeedForwardConfig(2, 0.1, [10, 10])
+        errmsg = (
+            "Initializing config should fail before this line due to"
+            "wrong dropout value (should be between 0 and 1)"
+        )
         raise AssertionError(errmsg)
     except ValueError:
         # Ok; should raise this exception

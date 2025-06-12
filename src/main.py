@@ -2,16 +2,20 @@ import logging
 from argparse import Namespace
 from pathlib import Path
 
+import matplotlib.pyplot as plt
+
 from u2fold import build_parser
-from u2fold.config_parsing.config_dataclasses import ExecConfig, TrainConfig, U2FoldConfig
+from u2fold.config_parsing.config_dataclasses import (
+    ExecConfig,
+    TrainConfig,
+    U2FoldConfig,
+)
 from u2fold.data.uieb_handling import get_dataloaders
 from u2fold.orchestrate.orchestrator import (
     ExecOrchestrator,
     Orchestrator,
     TrainOrchestrator,
 )
-
-import matplotlib.pyplot as plt
 
 
 def main() -> None:

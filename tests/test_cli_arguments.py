@@ -92,7 +92,7 @@ def test_unet_parsing():
         "channels_per_layer",
         "sublayers_per_step",
         "step_size",
-        "unfolded_step_size"
+        "unfolded_step_size",
     ]
 
     for attr in attrs:

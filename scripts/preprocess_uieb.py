@@ -103,6 +103,89 @@ def process_image(
     resized_image.save(output_path)
 
 
+def get_watermarked_images() -> set[str]:
+    return {
+        "326_img_.png",
+        "189_img_.png",
+        "259_img_.png",
+        "336_img_.png",
+        "348_img_.png",
+        "834_img_.png",
+        "871_img_.png",
+        "7027.png",
+        "7643.png",
+        "7654.png",
+        "8046.png",
+        "8262.png"
+    }
+
+def get_low_quality_images() -> set[str]:
+    return {
+        "18_img_.png",
+        "710_img_.png",
+        "294_img_.png",
+        "295_img_.png",
+        "299_img_.png",
+        "313_img_.png",
+        "324_img_.png",
+        "330_img_.png",
+        "337_img_.png",
+        "290_img_.png",
+        "347_img_.png",
+        "300_img_.png",
+        "301_img_.png",
+        "355_img_.png",
+        "302_img_.png",
+        "361_img_.png",
+        "306_img_.png",
+        "332_img_.png",
+        "362_img_.png",
+        "307_img_.png",
+        "364_img_.png",
+        "366_img_.png",
+        "404_img_.png",
+        "421_img_.png",
+        "445_img_.png",
+        "454_img_.png",
+        "455_img_.png",
+        "457_img_.png",
+        "460_img_.png",
+        "471_img_.png",
+        "472_img_.png",
+        "476_img_.png",
+        "481_img_.png",
+        "487_img_.png",
+        "516_img_.png",
+        "555_img_.png",
+        "567_img_.png",
+        "568_img_.png",
+        "580_img_.png",
+        "608_img_.png",
+        "679_img_.png",
+        "77_img_.png",
+        "793_img_.png",
+        "849_img_.png",
+        "850_img_.png",
+        "860_img_.png",
+        "904_img_.png",
+        "905_img_.png",
+        "534.png",
+        "557.png",
+        "551.png",
+        "567.png",
+        "756.png",
+        "837.png",
+        "841.png",
+        "810.png",
+        "2774.png",
+        "6062.png",
+        "9900.png",
+        "12290.png",
+        "12348.png",
+        "15426.png"
+    }
+
+
 if __name__ == "__main__":
     uieb_path, output_resolution = get_input_arguments()
 
@@ -112,10 +195,14 @@ if __name__ == "__main__":
     raw_path = uieb_path / "raw"
     processed_path = uieb_path / "processed"
 
+    should_be_excluded = get_low_quality_images() | get_watermarked_images()
+
     for subdir in ["input", "ground_truth"]:
         input_subdir = raw_path / subdir
         output_subdir = processed_path / subdir
 
         for image_file in input_subdir.iterdir():
-            output_file = output_subdir / image_file.name
-            process_image(image_file, output_file, output_resolution)
+            
+            if image_file.name not in should_be_excluded:
+                output_file = output_subdir / image_file.name
+                process_image(image_file, output_file, output_resolution)
