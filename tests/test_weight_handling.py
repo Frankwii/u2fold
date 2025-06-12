@@ -91,8 +91,7 @@ def save_mock_weights(greedy_iters: int, stages: int):
     handler = TrainWeightHandler(mock_path, greedy_iters, stages)
 
     @dataclass
-    class MockConfig(ModelConfig):
-        ...
+    class MockConfig(ModelConfig): ...
 
     class MockModel(Model[MockConfig]):
         def __init__(
@@ -129,8 +128,7 @@ def test_weight_loading(mock_path=mock_path):
     handler = TrainWeightHandler(mock_path, 10, 10)
 
     @dataclass
-    class MockConfig2(ModelConfig):
-        ...
+    class MockConfig2(ModelConfig): ...
 
     class MockModel2(Model[MockConfig2]):
         def __init__(self, config: MockConfig2, device: Optional[str]) -> None:

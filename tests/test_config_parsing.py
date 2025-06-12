@@ -1,10 +1,14 @@
 from pathlib import Path
+
 import pytest
 import torch
 
 from u2fold.cli_parsing.argparse import build_parser
 from u2fold.config_parsing.config_dataclasses import TrainConfig
-from u2fold.config_parsing.validation_and_parsing import __parse_model_arguments, parse_and_validate_config
+from u2fold.config_parsing.validation_and_parsing import (
+    __parse_model_arguments,
+    parse_and_validate_config,
+)
 from u2fold.models.unet import ConfigUNet
 
 
@@ -41,15 +45,16 @@ def test_model_config_parsing():
     config = __parse_model_arguments(args)
 
     expected_config = ConfigUNet(
-        channels_per_layer = [256, 512, 256],
-        sublayers_per_step = 3,
-        pooling = "max",
-        activation = "gelu",
-        dropout = 0.1,
-        unfolded_step_size=0.01
+        channels_per_layer=[256, 512, 256],
+        sublayers_per_step=3,
+        pooling="max",
+        activation="gelu",
+        dropout=0.1,
+        unfolded_step_size=0.01,
     )
 
     assert config == expected_config
+
 
 def test_model_config_validation():
     parser = build_parser()
@@ -83,6 +88,7 @@ def test_model_config_validation():
 
     with pytest.raises(ValueError, match="Dropout must be between 0 and 1."):
         __parse_model_arguments(args)
+
 
 def test_full_config_parsing():
     parser = build_parser()
@@ -119,7 +125,7 @@ def test_full_config_parsing():
         "512",
         "256",
         "--sublayers-per-step",
-        "3"
+        "3",
     ]
 
     weight_mock_path = Path("/tmp/path/to/weights")
@@ -136,13 +142,13 @@ def test_full_config_parsing():
 
     assert isinstance(config, TrainConfig)
 
-    expected_model_config=ConfigUNet(
+    expected_model_config = ConfigUNet(
         channels_per_layer=[256, 512, 256],
         sublayers_per_step=3,
         pooling="max",
         activation="gelu",
         dropout=0.1,
-        unfolded_step_size=0.01
+        unfolded_step_size=0.01,
     )
 
     model_config_path = expected_model_config.format_self()
@@ -151,15 +157,21 @@ def test_full_config_parsing():
         log_level="info",
         batch_size=10,
         weight_dir=Path("/tmp/path/to/weights") / "unet" / model_config_path,
-        execution_log_dir=Path("/tmp/path/to/logs") / "execution" / "unet" / model_config_path,
-        tensorboard_log_dir=Path("/tmp/path/to/logs") / "tensorboard" / "unet" / model_config_path,
+        execution_log_dir=Path("/tmp/path/to/logs")
+        / "execution"
+        / "unet"
+        / model_config_path,
+        tensorboard_log_dir=Path("/tmp/path/to/logs")
+        / "tensorboard"
+        / "unet"
+        / model_config_path,
         dataset_dir=Path("/tmp/path/to/dataset"),
         model_config=expected_model_config,
-        device = "cuda" if torch.cuda.is_available() else "cpu",
+        device="cuda" if torch.cuda.is_available() else "cpu",
         loss_strategy="intermediate",
         n_epochs=10,
         step_size=0.1,
-        unfolded_step_size=0.01
+        unfolded_step_size=0.01,
     )
 
     assert config == expected_config
@@ -200,7 +212,7 @@ def test_should_raise_if_incorrect_layer_sizes():
         "1",
         "3",
         "--sublayers-per-step",
-        "3"
+        "3",
     ]
 
     weight_mock_path = Path("/tmp/path/to/weights")
@@ -213,10 +225,13 @@ def test_should_raise_if_incorrect_layer_sizes():
 
     args = parser.parse_args(cli_args)
 
-    with pytest.raises(ValueError, match="Invalid number of channels per UNet layer."):
+    with pytest.raises(
+        ValueError, match="Invalid number of channels per UNet layer."
+    ):
         config = parse_and_validate_config(args)
 
         assert isinstance(config, TrainConfig)
+
 
 def test_should_raise_if_invalid_sublayers_per_step():
     parser = build_parser()
@@ -253,7 +268,7 @@ def test_should_raise_if_invalid_sublayers_per_step():
         "256",
         "3",
         "--sublayers-per-step",
-        "-1"
+        "-1",
     ]
 
     weight_mock_path = Path("/tmp/path/to/weights")
@@ -266,7 +281,9 @@ def test_should_raise_if_invalid_sublayers_per_step():
 
     args = parser.parse_args(cli_args)
 
-    with pytest.raises(ValueError, match="Insufficient sublayers per UNet step."):
+    with pytest.raises(
+        ValueError, match="Insufficient sublayers per UNet step."
+    ):
         config = parse_and_validate_config(args)
 
         assert isinstance(config, TrainConfig)
@@ -278,7 +295,6 @@ def test_should_raise_if_incorrect_batch_sizes():
     negative_test_cases = [0, -1, -10]
 
     for case in negative_test_cases:
-
         cli_args = [
             "--log-level",
             "info",
@@ -311,17 +327,18 @@ def test_should_raise_if_incorrect_batch_sizes():
             "256",
             "3",
             "--sublayers-per-step",
-            "-1"
+            "-1",
         ]
 
-        with pytest.raises(ValueError, match="Batch size must be a positive integer"):
+        with pytest.raises(
+            ValueError, match="Batch size must be a positive integer"
+        ):
             args = parser.parse_args(cli_args)
 
             parse_and_validate_config(args)
 
     too_large_test_cases = [20000, 1025, 2048]
     for case in too_large_test_cases:
-
         cli_args = [
             "--log-level",
             "info",
@@ -354,7 +371,7 @@ def test_should_raise_if_incorrect_batch_sizes():
             "256",
             "3",
             "--sublayers-per-step",
-            "-1"
+            "-1",
         ]
 
         with pytest.raises(ValueError, match="at most 1024"):

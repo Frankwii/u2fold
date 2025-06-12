@@ -15,19 +15,24 @@ class FeedForwardConfig(ModelConfig):
 
 
 def test_feedforward_name():
-    conf = FeedForwardConfig(0.5, 0.05, [10,2,5])
+    conf = FeedForwardConfig(0.5, 0.05, [10, 2, 5])
 
     assert conf.format_self() == "unfoldedStepSize_0.05__layerDimensions_10-2-5"
+
 
 @dataclass
 class MockConfig(ModelConfig):
     foo_bar: int
     bar: list[str]
 
+
 def test_mock_name():
     conf = MockConfig(0, 0.1, foo_bar=1_000, bar=["baz_bar", "b"])
 
-    assert conf.format_self() == "unfoldedStepSize_0.1__fooBar_1000__bar_bazBar-b"
+    assert (
+        conf.format_self() == "unfoldedStepSize_0.1__fooBar_1000__bar_bazBar-b"
+    )
+
 
 def get_conversion_examples():
     snake_case = ["snake_case", "layer_channels", "dropout"]
@@ -36,6 +41,7 @@ def get_conversion_examples():
 
     return snake_case, cli
 
+
 def test_cli_to_snake():
     inputs, expected = get_conversion_examples()
 
@@ -43,11 +49,10 @@ def test_cli_to_snake():
 
     assert outputs == expected
 
+
 def test_snake_to_cli():
     expected, inputs = get_conversion_examples()
 
     outputs = [cli_to_snake(i) for i in inputs]
 
     assert outputs == expected
-
-
