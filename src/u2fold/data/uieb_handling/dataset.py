@@ -89,7 +89,7 @@ class UIEBDataset(Dataset, metaclass=Singleton):
             ground_truth_images_path
         )
 
-        differences = input_names.symmetric_difference(ground_truth_names)
+        differences = input_names ^ ground_truth_names
 
         if len(differences) > 0:
             errmsg = (

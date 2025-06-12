@@ -1,5 +1,4 @@
 from pathlib import Path
-from re import Pattern
 import pytest
 import torch
 

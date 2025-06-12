@@ -25,7 +25,7 @@ class SplitData[T]:
     def map[U, A](
         self,
         f: Callable[[T, A], U] | Callable[[T], U],
-        params: Optional["SplitData[A]"],
+        params: Optional["SplitData[A]"] = None,
     ) -> "SplitData[U]":
         if params is not None:
             f = cast(Callable[[T, A], U], f)
@@ -43,14 +43,15 @@ class SplitData[T]:
         )
 
 
+@dataclass
 class DatasetSplits(SplitData[float]):
     def __post_init__(self) -> None:
         splits = self.to_tuple()
-        if not (s := sum(splits)) == 1:
+        if not abs(s:=sum(splits) - 1) < 1e-8:
             raise ValueError(f"Splits must sum to 1! Value: {s}.")
         for val in splits:
             if not val > 0:
-                raise ValueError("Splits must all be positive.")
+                raise ValueError("All split fractions must be positive.")
 
 
 def split_dataset[T: Dataset](
