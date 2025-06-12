@@ -1,0 +1,66 @@
+"""Create splits randomly (but reproducibly) for a given Dataset."""
+
+from dataclasses import dataclass
+from typing import Callable, Optional, cast
+
+from torch import Generator
+from torch.utils.data import Dataset, random_split
+
+RANDOM_SEED = 42
+
+
+@dataclass
+class SplitData[T]:
+    training: T
+    validation: T
+    test: T
+
+    def to_tuple(self) -> tuple[T, T, T]:
+        return (
+            self.training,
+            self.validation,
+            self.test,
+        )
+
+    def map[U, A](
+        self,
+        f: Callable[[T, A], U] | Callable[[T], U],
+        params: Optional["SplitData[A]"],
+    ) -> "SplitData[U]":
+        if params is not None:
+            f = cast(Callable[[T, A], U], f)
+            return SplitData(
+                training=f(self.training, params.training),
+                validation=f(self.validation, params.validation),
+                test=f(self.test, params.test),
+            )
+
+        f = cast(Callable[[T], U], f)
+        return SplitData(
+            training=f(self.training),
+            validation=f(self.validation),
+            test=f(self.test),
+        )
+
+
+class DatasetSplits(SplitData[float]):
+    def __post_init__(self) -> None:
+        splits = self.to_tuple()
+        if not (s := sum(splits)) == 1:
+            raise ValueError(f"Splits must sum to 1! Value: {s}.")
+        for val in splits:
+            if not val > 0:
+                raise ValueError("Splits must all be positive.")
+
+
+def split_dataset[T: Dataset](
+    dataset: T,
+    splits: DatasetSplits,
+) -> SplitData[T]:
+    train, valid, test = random_split(
+        dataset,
+        splits.to_tuple(),
+        generator=Generator().manual_seed(RANDOM_SEED),
+    )
+
+    return cast(SplitData[T], SplitData(train, valid, test))

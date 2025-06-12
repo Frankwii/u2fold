@@ -1,4 +1,4 @@
-from u2fold.cli_parsing.cli_argument import CLIArgument, DirectoryCLIArgument
+from u2fold.cli_parsing.cli_argument import CLIArgument
 from u2fold.utils import tag
 
 

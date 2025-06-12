@@ -1,5 +1,4 @@
 from abc import ABC
-from argparse import Namespace
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
