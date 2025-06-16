@@ -3,12 +3,14 @@ from typing import Iterator, cast
 
 from torch import Tensor
 from torch.utils.data import DataLoader
+from u2fold.utils import tag
 
 from ..dataset_splits import DatasetSplits, SplitData, split_dataset
 from .collation import UIEBCollateAndTransform
 from .dataset import UIEBDataset
 
 
+@tag("data/dataloader/uieb")
 class UIEBDataLoader:
     """Dataloader for the UIEB dataset.
 
