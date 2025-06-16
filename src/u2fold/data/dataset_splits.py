@@ -42,7 +42,6 @@ class SplitData[T]:
             test=f(self.test),
         )
 
-
 @dataclass
 class DatasetSplits(SplitData[float]):
     def __post_init__(self) -> None:

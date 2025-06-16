@@ -1,92 +1,44 @@
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import Iterable
 
 import PIL.Image
-import torch
 from torch import Tensor
-from torch.utils.data import Dataset
 from torchvision.transforms.functional import to_tensor
 
-from u2fold.utils.singleton_metaclasses import Singleton
+from u2fold.data.generics import GroundTruthDataset, RAMLoadedDataset
+from u2fold.exceptions.dataset_pairing import DatasetPairingError
 
 
-def _load_image(image_path: Path) -> Tensor:
-    return to_tensor(PIL.Image.open(image_path).convert("RGB"))
-
-class UIEBDataset(Dataset, metaclass=Singleton):
+class UIEBDataset(RAMLoadedDataset, GroundTruthDataset):
     """Subclass of PyTorch's Dataset for the UIEB dataset.
 
     Importantly, this loads the full (preprocessed) dataset into memory as
-    it should occupy less than half a gigabyte.
+    it should occupy less than half a gigabyte. This is implemented via
+    inheritance.
     """
+    def _get_ground_truth_element(self, index: int) -> Tensor:
+        return self.get_part_element("ground_truth", index)
 
-    def __init__(self, uieb_path: Path) -> None:
-        input_images_path = uieb_path / "processed" / "input"
-        ground_truth_images_path = uieb_path / "processed" / "ground_truth"
+    def _get_input_element(self, index: int) -> Tensor:
+        return self.get_part_element("input", index)
 
-        self.__validate_image_pairing(
-            input_images_path, ground_truth_images_path
-        )
-        image_names = self.__get_names_of_directory(input_images_path)
+    def _pad_tensors_to_common_shape(
+        self, tensors: list[Tensor]
+    ) -> list[Tensor]:
+        return tensors
 
-        self.__input_images, self.__ground_truth_images = self.__load_uieb(
-            image_names, input_images_path, ground_truth_images_path
-        )
-
-    def __getitem__(self, index: int) -> tuple[Tensor, Tensor]:
-        input = self.__input_images[index]
-        ground_truth = self.__ground_truth_images[index]
-
-        return input, ground_truth
-
-    def __len__(self) -> int:
-        return len(self.__input_images)
-
-    def __load_uieb(
-        self,
-        image_names: set[str],
-        input_images_path: Path,
-        ground_truth_images_path: Path,
-    ) -> tuple[Tensor, Tensor]:
-        input_images = self.__load_images(image_names, input_images_path)
-        ground_truth_images = self.__load_images(
-            image_names, ground_truth_images_path
-        )
-
-        return input_images, ground_truth_images
-
-    def __load_images(self, names: Iterable[str], images_path: Path) -> Tensor:
-
-        image_paths = [images_path / name for name in names]
-
-        # Parallelize a few of the loading tasks. It is better to use processes
-        # than threads since there is some number-crunching involved in the RGB
-        # conversion (CPU bottleneck there) and PIL is blocking anyway.
-        # More or less, spawn a process for each 50 images.
-        with ProcessPoolExecutor(max_workers=None) as executor:
-            images = list(
-                executor.map(_load_image, image_paths, chunksize=50)
-            )
-
-        return torch.stack(images)
-
-    def __get_names_of_directory(self, dir: Path) -> set[str]:
-        return set(file.name for file in dir.iterdir())
-
-    def __validate_image_pairing(
-        self,
-        input_images_path: Path,
-        ground_truth_images_path: Path,
-    ) -> None:
+    def _postvalidate_part_pairing(self) -> None:
+        """Check whether corresponding input and ground truth Tensors have
+        the same shape.
         """
-        Validates that each input image has an associated ground truth
-        and vice versa.
-        """
+        self._check_size_homogeneity_among_parts()
 
-        input_names = self.__get_names_of_directory(input_images_path)
+    def _prevalidate_part_pairing(self) -> None:
+        input_names = self.__get_names_of_directory(
+            self._get_part_path("input")
+        )
+
         ground_truth_names = self.__get_names_of_directory(
-            ground_truth_images_path
+            self._get_part_path("ground_truth")
         )
 
         differences = input_names ^ ground_truth_names
@@ -97,4 +49,11 @@ class UIEBDataset(Dataset, metaclass=Singleton):
                 f"\n {differences}."
             )
 
-            raise ValueError(errmsg)
+            raise DatasetPairingError(errmsg)
+
+    def __get_names_of_directory(self, dir: Path) -> set[str]:
+        return set(file.name for file in dir.iterdir())
+
+    @staticmethod
+    def _load_element(path: Path) -> Tensor:
+        return to_tensor(PIL.Image.open(path).convert("RGB"))
