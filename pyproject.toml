@@ -1,6 +1,6 @@
 [project]
 name = "U2FOLD"
-version = "0.1.0"
+version = "0.2.0"
 description = "U2FOLD: Underwater image unfolding"
 readme = "README.md"
 authors = [
@@ -13,13 +13,14 @@ dependencies = [
   "torch",
   "torchvision",
   "tensorboard",
-  "pillow"
+  "pillow",
+  "matplotlib"
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest",
-  "ruff"
+  "ruff",
 ]
 
 [project.urls]

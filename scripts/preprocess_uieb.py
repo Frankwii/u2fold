@@ -1,10 +1,12 @@
-#/usr/bin/python
+#!/usr/bin/python
 import argparse
 import shutil
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import cast
 
 import PIL.Image
+
 
 def __assert_directory_exists(p: Path) -> None:
     if not p.exists():
@@ -14,7 +16,7 @@ def __assert_directory_exists(p: Path) -> None:
         raise NotADirectoryError(f"Provided path {p} is not a directory.")
 
 
-def get_input_arguments() -> tuple[Path, tuple[int, int]]:
+def get_input_arguments() -> tuple[Path, int]:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "uieb_path", type=Path, help="Path to the UEIB dataset directory."
@@ -22,8 +24,10 @@ def get_input_arguments() -> tuple[Path, tuple[int, int]]:
     parser.add_argument(
         "output_resolution",
         type=int,
-        help= ("Output resolution for the images"
-               " (width and height will be the same)."),
+        help=(
+            "Output resolution for the images"
+            " (width and height will be the same)."
+        ),
     )
 
     args = parser.parse_args()
@@ -35,7 +39,7 @@ def get_input_arguments() -> tuple[Path, tuple[int, int]]:
 
     __assert_directory_exists(path)
 
-    return path, (output_resolution_side, output_resolution_side)
+    return path, output_resolution_side
 
 
 def validate_raw_path(uieb_path: Path) -> None:
@@ -78,27 +82,48 @@ def prepare_processed_directory(uieb_path: Path) -> None:
         subdir_path.mkdir()
 
 
-def crop_upper_left_square(image: PIL.Image.Image) -> PIL.Image.Image:
+def crop_upper_left(
+    image: PIL.Image.Image, width: int, height: int
+) -> PIL.Image.Image:
+    return image.crop((0, 0, width, height))
+
+
+def crop_largest_band(
+    image: PIL.Image.Image, multiplier: float = 0.8
+) -> PIL.Image.Image:
     """Crop the upper left square from the image."""
     width, height = image.size
-    min_side = min(width, height)
-    return image.crop((0, 0, min_side, min_side))
+
+    if width < height:
+        width = int(width * multiplier)
+    else:
+        height = int(height * multiplier)
+
+    return crop_upper_left(image, width, height)
 
 
 def resize_square(
-    image: PIL.Image.Image, output_resolution: tuple[int, int]
+    image: PIL.Image.Image, output_resolution: int
 ) -> PIL.Image.Image:
     """Resize the square image to the specified resolution."""
-    return image.resize(output_resolution, PIL.Image.Resampling.BICUBIC)
+    width, height = image.size
+    aspect_ratio = height / width
+
+    if width < height:
+        resolution = (output_resolution, int(output_resolution * aspect_ratio))
+    else:
+        resolution = (int(output_resolution / aspect_ratio), output_resolution)
+
+    return image.resize(resolution, PIL.Image.Resampling.BICUBIC)
 
 
 def process_image(
-    input_path: Path, output_path: Path, output_resolution: tuple[int, int]
+    input_path: Path, output_path: Path, output_resolution: int
 ) -> None:
     """Process a single image by cropping it to the upper left square and
     resizing it to the specified resolution."""
     image = PIL.Image.open(input_path)
-    cropped_image = crop_upper_left_square(image)
+    cropped_image = crop_largest_band(image, 0.8)
     resized_image = resize_square(cropped_image, output_resolution)
     resized_image.save(output_path)
 
@@ -112,12 +137,14 @@ def get_watermarked_images() -> set[str]:
         "348_img_.png",
         "834_img_.png",
         "871_img_.png",
+        "35.png",
         "7027.png",
         "7643.png",
         "7654.png",
         "8046.png",
-        "8262.png"
+        "8262.png",
     }
+
 
 def get_low_quality_images() -> set[str]:
     return {
@@ -182,13 +209,10 @@ def get_low_quality_images() -> set[str]:
         "9900.png",
         "12290.png",
         "12348.png",
-        "15426.png"
+        "15426.png",
     }
 
-
-if __name__ == "__main__":
-    uieb_path, output_resolution = get_input_arguments()
-
+def prepare_images(uieb_path: Path, output_resolution: int):
     validate_raw_path(uieb_path)
     prepare_processed_directory(uieb_path)
 
@@ -202,7 +226,18 @@ if __name__ == "__main__":
         output_subdir = processed_path / subdir
 
         for image_file in input_subdir.iterdir():
-            
             if image_file.name not in should_be_excluded:
                 output_file = output_subdir / image_file.name
-                process_image(image_file, output_file, output_resolution)
+                yield (image_file, output_file, output_resolution)
+
+
+if __name__ == "__main__":
+    uieb_path, output_resolution = get_input_arguments()
+
+    image_args = list(prepare_images(uieb_path, output_resolution))
+
+    image_files, output_files, output_resolutions = zip(*image_args)
+
+
+    with ProcessPoolExecutor() as executor:
+        list(executor.map(process_image, image_files, output_files, output_resolutions))

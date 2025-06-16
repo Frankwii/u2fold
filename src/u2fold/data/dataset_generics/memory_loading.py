@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Callable, Hashable, Iterable, final
@@ -7,10 +7,10 @@ from torch import Tensor
 
 from u2fold.exceptions.dataset_pairing import DatasetPairingError
 
-from .base import _GenericDataset
+from .base import _BaseDataset
 
 
-class RAMLoadedDataset(_GenericDataset, ABC):
+class RAMLoadedDataset[T](_BaseDataset[T], ABC):
     """A Dataset with information that is fully loaded in CPU memory.
 
     Each part (as defined in GenericDataset) is loaded into a list.
@@ -128,10 +128,10 @@ class RAMLoadedDataset(_GenericDataset, ABC):
         # since there is often some number-crunching involved in the loading
         # (for instance, RGB conversion for images; so CPU bottleneck there)
         # and PIL is blocking anyway (also in the image case).
-        with ProcessPoolExecutor(max_workers=None) as executor:
-            dataset_elements = list(executor.map(self._load_element, paths))
+        with ProcessPoolExecutor() as executor:
+            images = list(executor.map(self._load_element, paths))
 
-        return dataset_elements
+        return [self._cast_to_tensor(image) for image in images]
 
     @final
     def get_part_element(self, part: str, index: int) -> Tensor:
@@ -142,7 +142,9 @@ class RAMLoadedDataset(_GenericDataset, ABC):
         return len(next(iter(self.__indexed_dataset_parts.values())))
 
 
-class LazilyLoadedDataset(_GenericDataset, ABC):
+class LazilyLoadedDataset[T](_BaseDataset[T], ABC):
+    """A Dataset with elements that are loaded each time they are requested."""
+
     @final
     def __init__(self, dataset_path: Path) -> None:
         self.__dataset_path = dataset_path
@@ -176,4 +178,6 @@ class LazilyLoadedDataset(_GenericDataset, ABC):
 
     @final
     def get_part_element(self, part: str, index: int) -> Tensor:
-        return self._load_element(self.__indexed_paths[part][index])
+        return self._cast_to_tensor(
+            self._load_element(self.__indexed_paths[part][index])
+        )

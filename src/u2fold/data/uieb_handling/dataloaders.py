@@ -1,59 +1,25 @@
 from pathlib import Path
-from typing import Iterator, cast
 
 from torch import Tensor
-from torch.utils.data import DataLoader
+
 from u2fold.utils import tag
 
+from ..dataloader_generics.base import (
+    CollationFunction,
+    DataLoaderConfig,
+    ToDeviceDataLoader,
+)
 from ..dataset_splits import DatasetSplits, SplitData, split_dataset
-from .collation import UIEBCollateAndTransform
+from .collation import UIEBRandomCollateAndTransform, UIEBTopLeftCropCollate
 from .dataset import UIEBDataset
 
 
+class UIEBDataLoaderConfig(DataLoaderConfig):
+    ...
+
 @tag("data/dataloader/uieb")
-class UIEBDataLoader:
-    """Dataloader for the UIEB dataset.
-
-    There are three important implementation details for this class:
-    + The underlying dataset must be fully stored in memory (ideally, CPU).
-    + The returned tensors are already transformed (flipped, rotated...)
-      and loaded into "device".
-    + The last "moving to device" operation is asynchronous. Therefore, there
-      is room for optimization by taking this into account when using the
-      dataloader.
-    """
-
-    def __init__(
-        self,
-        dataset: UIEBDataset,
-        batch_size: int,
-        shuffle: bool,
-        device: str,
-    ) -> None:
-        self.__dataloader = DataLoader(
-            dataset=dataset,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            pin_memory=True,
-            num_workers=0,
-            collate_fn=UIEBCollateAndTransform(),
-        )
-
-        self.__device = device
-
-    def __iter__(self) -> Iterator[tuple[Tensor, Tensor]]:
-        for input_batch, ground_truth_batch in self.__dataloader:
-            input_batch = cast(Tensor, input_batch)
-            ground_truth_batch = cast(Tensor, ground_truth_batch)
-
-            yield (
-                input_batch.to(self.__device, non_blocking=True),
-                ground_truth_batch.to(self.__device, non_blocking=True),
-            )
-
-    def __len__(self) -> int:
-        return len(self.__dataloader)
-
+class UIEBDataLoader(ToDeviceDataLoader[Tensor, Tensor]):
+    ...
 
 def get_dataloaders(
     uieb_path: Path, batch_size: int, device: str
@@ -64,14 +30,27 @@ def get_dataloaders(
     dataset_splits = split_dataset(dataset, splits)
 
     def __instantiate_uieb_dataloader(
-        dataset: UIEBDataset, shuffle: bool
+        dataset: UIEBDataset, config: tuple[bool, CollationFunction]
     ) -> UIEBDataLoader:
-        return UIEBDataLoader(dataset, batch_size, shuffle, device)
+        dataloader_config = UIEBDataLoaderConfig(
+            dataset,
+            batch_size=batch_size,
+            shuffle=config[0],
+            collate_fn=config[1],
+            pin_memory=True,
+            num_workers=0
+        )
 
-    shuffling_config = SplitData(training=True, validation=False, test=False)
+        return UIEBDataLoader(device, dataloader_config)
+
+    instantiation_config = SplitData(
+        training=(True, UIEBRandomCollateAndTransform()),
+        validation=(False, UIEBTopLeftCropCollate()),
+        test=(False, UIEBTopLeftCropCollate())
+    )
 
     dataloaders = dataset_splits.map(
-        __instantiate_uieb_dataloader, shuffling_config
+        __instantiate_uieb_dataloader, instantiation_config
     )
 
     return dataloaders

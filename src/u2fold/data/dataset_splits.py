@@ -22,7 +22,7 @@ class SplitData[T]:
             self.test,
         )
 
-    def map[U, A](
+    def map[A, U](
         self,
         f: Callable[[T, A], U] | Callable[[T], U],
         params: Optional["SplitData[A]"] = None,

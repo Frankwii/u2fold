@@ -1,4 +1,5 @@
 import logging
+import time
 from argparse import Namespace
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from u2fold.config_parsing.config_dataclasses import (
     U2FoldConfig,
 )
 from u2fold.data.uieb_handling import get_dataloaders
+from u2fold.data.uieb_handling.dataset import UIEBDataset
 from u2fold.orchestrate.orchestrator import (
     ExecOrchestrator,
     Orchestrator,
@@ -19,10 +21,25 @@ from u2fold.orchestrate.orchestrator import (
 
 
 def main() -> None:
+
+    # torch.multiprocessing.set_sharing_strategy("file_descriptor")
     parser = build_parser()
     args = parser.parse_args()
 
-    path = Path("/home/frank/TFM/code/u2fold/uieb") # TODO: refactor to properly handle "processed".
+    bootstrap_logger(args)
+    path = Path("/home/frank/TFM/code/u2fold/uieb/processed/")
+
+    logger = logging.getLogger(__name__)
+
+    logger.info("Instantiating UIEB dataset...")
+    now = time.time()
+    print("==================")
+    dataset = UIEBDataset(path)
+    elapsed = time.time() - now
+    print(f"ELAPSED: {elapsed}")
+    print("==================")
+    logger.info("Instantiated UIEB dataset successfully.")
+
     train, valid, test = get_dataloaders(path, 16, "cpu").to_tuple()
 
     fig, ax = plt.subplots(2,2)
@@ -43,18 +60,7 @@ def main() -> None:
 
         plt.show()
 
-
-    # print(args)
-
-    # logger = bootstrap_logger(args)
-    # program_config = build_config(args, logger)
-    #
-    # orchestrator = instantiate_orchestrator(program_config, logger)
-    #
-    # orchestrator.run()
-
-
-def bootstrap_logger(args: Namespace) -> logging.Logger:
+def bootstrap_logger(args: Namespace) -> None:
     fmt = "{asctime} | [{levelname:<8}]@{name}(line {lineno:0>3}): {message}"
     logging.basicConfig(
         level=getattr(logging, args.log_level.upper()),
@@ -64,7 +70,6 @@ def bootstrap_logger(args: Namespace) -> logging.Logger:
         datefmt="%Y/%m/%d %H:%M:%S",
     )
 
-    return logging.getLogger(__name__)
 
 
 def build_config(args: Namespace, logger: logging.Logger) -> U2FoldConfig:

@@ -3,10 +3,10 @@ from typing import final
 
 from torch import Tensor
 
-from .base import _GenericDataset
+from .base import _BaseDataset
 
 
-class GroundTruthDataset(_GenericDataset, ABC):
+class GroundTruthDataset[T](_BaseDataset[T], ABC):
     _dataset_parts = ("input", "ground_truth")
 
     @final
@@ -17,7 +17,7 @@ class GroundTruthDataset(_GenericDataset, ABC):
         )
 
 
-class UnsupervisedDataset(_GenericDataset, ABC):
+class UnsupervisedDataset[T](_BaseDataset[T], ABC):
     _dataset_parts = ("input",)
 
     @final

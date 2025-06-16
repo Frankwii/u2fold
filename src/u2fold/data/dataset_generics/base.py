@@ -1,17 +1,18 @@
 from abc import ABC, abstractmethod
-from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import ClassVar, Iterable, final
+from typing import ClassVar
 
-from torch import Size, Tensor
+import numpy
+import PIL.Image
+from torch import Tensor
 from torch.utils.data import Dataset
+from torchvision.transforms.functional import to_tensor
 
-from u2fold.exceptions.dataset_pairing import DatasetPairingError
 from u2fold.exceptions.empty_directory import EmptyDirectoryError
 from u2fold.utils.singleton_metaclasses import AbstractSingleton
 
 
-class _GenericDataset(Dataset, ABC, metaclass=AbstractSingleton):
+class _BaseDataset[T](Dataset, ABC, metaclass=AbstractSingleton):
     """Common interface for Dataset classes in this program.
 
     Subclasses should provide, besides the usual pytorch Dataset
@@ -23,13 +24,29 @@ class _GenericDataset(Dataset, ABC, metaclass=AbstractSingleton):
     parts, e.g. checking whether every input has a label or a ground truth.
     """
 
+    @abstractmethod
+    def __init__(self, dataset_path: Path) -> None: ...
+
     _dataset_parts: ClassVar[tuple[str, ...]] = ("input",)
+
     # Important to have this be a static method for parallelization.
     @staticmethod
     @abstractmethod
-    def _load_element(path: Path) -> Tensor:
-        """Load a single element into a Tensor given its path."""
+    def _load_element(path: Path) -> T:
+        """Load a single element into something castable to a Tensor given its
+        path.
 
+        This method will be called in multiple processes inside a
+        RAMLoadedDataset.
+        """
+        ...
+
+    def _cast_to_tensor(self, potential_tensor: T) -> Tensor:
+        if isinstance(potential_tensor, Tensor):
+            return potential_tensor
+        if isinstance(potential_tensor, PIL.Image.Image | numpy.ndarray):
+            return to_tensor(potential_tensor)
+        return Tensor(potential_tensor)
 
     @abstractmethod
     def get_part_element(self, part: str, index: int) -> Tensor: ...

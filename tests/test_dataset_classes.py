@@ -5,8 +5,8 @@ import pytest
 import torch
 from torch import Tensor
 
-from u2fold.data.generics.input_pairing import GroundTruthDataset
-from u2fold.data.generics.memory_loading import RAMLoadedDataset
+from u2fold.data.dataset_generics.input_pairing import GroundTruthDataset
+from u2fold.data.dataset_generics.memory_loading import RAMLoadedDataset
 from u2fold.exceptions.dataset_pairing import DatasetPairingError
 from u2fold.utils.singleton_metaclasses import AbstractSingleton
 
