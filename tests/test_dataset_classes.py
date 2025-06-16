@@ -1,11 +1,12 @@
+import gc
 from pathlib import Path
 
 import pytest
 import torch
-import gc
 from torch import Tensor
 
-from u2fold.data.generics.combinations import RAMLoadedGroundTruthDataset
+from u2fold.data.generics.input_pairing import GroundTruthDataset
+from u2fold.data.generics.memory_loading import RAMLoadedDataset
 from u2fold.exceptions.dataset_pairing import DatasetPairingError
 from u2fold.utils.singleton_metaclasses import AbstractSingleton
 
@@ -57,17 +58,9 @@ def get_mock_homogenous_data() -> tuple[list[Tensor], list[Tensor]]:
 
 
 def get_mock_inhomogenous_channel_data() -> tuple[list[Tensor], list[Tensor]]:
-    input_shapes = [
-        (3, 100, 100),
-        (3, 120, 80),
-        (3, 300, 50)
-    ]
+    input_shapes = [(3, 100, 100), (3, 120, 80), (3, 300, 50)]
 
-    ground_truth_shapes = [
-        (3, 100, 100),
-        (1, 120, 80),
-        (3, 300, 50)
-    ]
+    ground_truth_shapes = [(3, 100, 100), (1, 120, 80), (3, 300, 50)]
 
     mock_inputs = get_mock_tensors(input_shapes)
     mock_gts = get_mock_tensors(ground_truth_shapes)
@@ -94,7 +87,7 @@ def get_mock_inhomogenous_shape_data() -> tuple[list[Tensor], list[Tensor]]:
     return mock_inputs, mock_gts
 
 
-class MockGroundTruthDataset(RAMLoadedGroundTruthDataset):
+class MockGroundTruthDataset(RAMLoadedDataset, GroundTruthDataset):
     @staticmethod
     def _load_element(path: Path) -> Tensor:
         return torch.load(path)
@@ -109,7 +102,7 @@ class MockGroundTruthDataset(RAMLoadedGroundTruthDataset):
         assert list(input_names) == list(ground_truth_names)
 
     def _postvalidate_part_pairing(self) -> None:
-        self._assert_pairing_homogeneity_of_mapping(lambda tensor: tensor.shape)
+        self.assert_pairing_homogeneity_of_mapping(lambda tensor: tensor.shape)
 
 
 def test_ground_truth_dataset1():
@@ -120,7 +113,9 @@ def test_ground_truth_dataset1():
         mock_dataset = MockGroundTruthDataset(dataset_dir)
 
         assert len(mock_dataset) == len(mock_inputs)
-        dataset_parts = getattr(mock_dataset, "_indexed_dataset_parts")
+        dataset_parts = getattr(
+            mock_dataset, "_RAMLoadedDataset__indexed_dataset_parts"
+        )
         assert dataset_parts is not None
         input_tensors = dataset_parts["input"]
         ground_truth_tensors = dataset_parts["ground_truth"]
@@ -161,4 +156,3 @@ def test_should_raise_if_impossible_shape_pairing():
             del mock_dataset
             del AbstractSingleton._instances[MockGroundTruthDataset]
             gc.collect()
-

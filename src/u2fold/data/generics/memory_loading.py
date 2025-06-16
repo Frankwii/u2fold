@@ -1,4 +1,3 @@
-import multiprocessing
 from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
@@ -17,12 +16,6 @@ class RAMLoadedDataset(_GenericDataset, ABC):
     Each part (as defined in GenericDataset) is loaded into a list.
     """
 
-    # Important to have this be a static method for parallelization.
-    @staticmethod
-    @abstractmethod
-    def _load_element(path: Path) -> Tensor:
-        """Load a single element into a Tensor given its path."""
-
     def _postvalidate_part_pairing(self) -> None:
         """Validates that the different parts of the dataset are paired.
 
@@ -36,7 +29,7 @@ class RAMLoadedDataset(_GenericDataset, ABC):
         pass
 
     @final
-    def _validate_part_pairing(self) -> None:
+    def __validate_part_pairing(self) -> None:
         """Generic validation of the part pairing.
 
         Validates whether each part Tensor has the same length (axis 0),
@@ -44,7 +37,7 @@ class RAMLoadedDataset(_GenericDataset, ABC):
         """
 
         lengths = (
-            len(tensor) for tensor in self._indexed_dataset_parts.values()
+            len(tensor) for tensor in self.__indexed_dataset_parts.values()
         )
 
         if not len(set(lengths)) == 1:
@@ -56,28 +49,30 @@ class RAMLoadedDataset(_GenericDataset, ABC):
     @final
     def __init__(self, dataset_path: Path) -> None:
         self._dataset_path = dataset_path
-        self._indexed_dataset_parts: dict[str, list[Tensor]] = {}
+        self.__indexed_dataset_parts: dict[str, list[Tensor]] = {}
 
         dataset_parts = self._dataset_parts
 
         for part in dataset_parts:
-            part_path = self._dataset_path / part
+            part_path = self._get_part_path(part)
             self._validate_directory_path(part_path)
 
         self._prevalidate_part_pairing()
 
         for part in dataset_parts:
             element_paths = sorted(self._get_part_path(part).iterdir())
-            self._indexed_dataset_parts[part] = self._load_elements(
+            self.__indexed_dataset_parts[part] = self.__load_elements(
                 *element_paths
             )
 
-        self._validate_part_pairing()
+        self.__validate_part_pairing()
         self._postvalidate_part_pairing()
 
+    @final
     def _get_part_path(self, part: str) -> Path:
         return self._dataset_path / part
 
+    @final
     def __get_part_tensor_slices(self) -> Iterable[tuple[Tensor]]:
         """Returns an iterable with "slices" of paired tensors for different
         parts of the dataset.
@@ -91,12 +86,13 @@ class RAMLoadedDataset(_GenericDataset, ABC):
         """
         return zip(
             *(
-                (tensor for tensor in self._indexed_dataset_parts[part])
+                (tensor for tensor in self.__indexed_dataset_parts[part])
                 for part in self._dataset_parts
             )
         )
 
-    def _map_to_tensor_slices[A](
+    @final
+    def map_to_tensor_slices[A](
         self, f: Callable[[Tensor], A]
     ) -> Iterable[Iterable[A]]:
         """Maps the given callable to each tensor slice given by
@@ -106,13 +102,14 @@ class RAMLoadedDataset(_GenericDataset, ABC):
             for slice in self.__get_part_tensor_slices()
         )
 
-    def _assert_pairing_homogeneity_of_mapping[A: Hashable](
+    @final
+    def assert_pairing_homogeneity_of_mapping[A: Hashable](
         self, f: Callable[[Tensor], A]
     ) -> None:
         """Checks that the function "f" is constant across slices as given by
         "__get_part_tensor_slices".
         """
-        mapped_slices = self._map_to_tensor_slices(f)
+        mapped_slices = self.map_to_tensor_slices(f)
 
         slice_sets = (set(slice) for slice in mapped_slices)
 
@@ -126,7 +123,7 @@ class RAMLoadedDataset(_GenericDataset, ABC):
                 raise DatasetPairingError(errmsg)
 
     @final
-    def _load_elements(self, *paths: Path) -> list[Tensor]:
+    def __load_elements(self, *paths: Path) -> list[Tensor]:
         # Loading tasks are parallelized via processes instead of threads
         # since there is often some number-crunching involved in the loading
         # (for instance, RGB conversion for images; so CPU bottleneck there)
@@ -136,11 +133,47 @@ class RAMLoadedDataset(_GenericDataset, ABC):
 
         return dataset_elements
 
+    @final
     def get_part_element(self, part: str, index: int) -> Tensor:
-        return self._indexed_dataset_parts[part][index]
+        return self.__indexed_dataset_parts[part][index]
 
+    @final
     def __len__(self) -> int:
-        return len(next(iter(self._indexed_dataset_parts.values())))
+        return len(next(iter(self.__indexed_dataset_parts.values())))
 
 
-class LazilyLoadedDataset(_GenericDataset, ABC): ...
+class LazilyLoadedDataset(_GenericDataset, ABC):
+    @final
+    def __init__(self, dataset_path: Path) -> None:
+        self.__dataset_path = dataset_path
+
+        self.__indexed_paths: dict[str, list[Path]] = {}
+
+        for part in self._dataset_parts:
+            part_path = self.__dataset_path / part
+            self._validate_directory_path(part_path)
+            self.__indexed_paths[part] = list(part_path.iterdir())
+
+        self._prevalidate_part_pairing()
+
+    @final
+    def _prevalidate_part_pairing(self) -> None:
+        part_lengths = set(
+            len(part_paths) for part_paths in self.__indexed_paths.values()
+        )
+
+        if len(part_lengths) != 1:
+            paths = [
+                self.__dataset_path / path
+                for path in self.__indexed_paths.keys()
+            ]
+            errmsg = f"Given paths have varying amounts of elements! {paths}."
+            raise DatasetPairingError(errmsg)
+
+    @final
+    def __len__(self) -> int:
+        return len(next(iter(self.__indexed_paths.values())))
+
+    @final
+    def get_part_element(self, part: str, index: int) -> Tensor:
+        return self._load_element(self.__indexed_paths[part][index])
