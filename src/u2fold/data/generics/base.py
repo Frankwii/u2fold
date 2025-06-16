@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import ClassVar, Iterable, final
+
 from torch import Size, Tensor
 from torch.utils.data import Dataset
 
@@ -23,6 +24,15 @@ class _GenericDataset(Dataset, ABC, metaclass=AbstractSingleton):
     """
 
     _dataset_parts: ClassVar[tuple[str, ...]] = ("input",)
+    # Important to have this be a static method for parallelization.
+    @staticmethod
+    @abstractmethod
+    def _load_element(path: Path) -> Tensor:
+        """Load a single element into a Tensor given its path."""
+
+
+    @abstractmethod
+    def get_part_element(self, part: str, index: int) -> Tensor: ...
 
     @abstractmethod
     def _prevalidate_part_pairing(self) -> None:
