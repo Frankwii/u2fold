@@ -14,12 +14,13 @@ dependencies = [
   "torchvision",
   "tensorboard",
   "pillow",
-  "matplotlib"
+  "matplotlib",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest",
+  "pytest-xdist",
   "ruff",
 ]
 

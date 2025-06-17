@@ -101,7 +101,6 @@ class UNetConvolutionalLayer(torch.nn.Module):
             ]
         )
 
-        global activation_functions
         self.__activation = components.get_activation_function(activation)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -137,7 +136,6 @@ class UNet(Model[ConfigUNet]):
         )
 
         self.__down_sublayers = all_layers[: self.__depth]
-        global pooling_classes
         pooling_class = components.get_pooling_layer(config.pooling)
         self.__downsampling_layer = pooling_class(2, 2)
 
@@ -158,6 +156,6 @@ class UNet(Model[ConfigUNet]):
 
         for idx, sublayer in enumerate(self.__up_sublayers):
             x = self.__upsampling_layer(x)
-            x = sublayer(x + down_layer_outputs[-(idx + 1)])
+            x = sublayer(x + down_layer_outputs[~idx])
 
         return x

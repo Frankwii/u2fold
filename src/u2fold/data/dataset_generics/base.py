@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from logging import Logger
+import logging
 from pathlib import Path
 from typing import ClassVar
 
@@ -23,6 +25,9 @@ class _BaseDataset[T](Dataset, ABC, metaclass=AbstractSingleton):
     Each subclass must provide its own validation for the pairing of such
     parts, e.g. checking whether every input has a label or a ground truth.
     """
+    @property
+    def _logger(self) -> Logger:
+        return logging.getLogger(f"{__name__}|{self.__class__.__name__}")
 
     @abstractmethod
     def __init__(self, dataset_path: Path) -> None: ...
@@ -62,15 +67,18 @@ class _BaseDataset[T](Dataset, ABC, metaclass=AbstractSingleton):
         truth (and vice versa).
         """
 
-    @classmethod
-    def _validate_directory_path(cls, path: Path) -> None:
+    def _validate_directory_path(self, path: Path) -> None:
         if not (path.exists() and path.is_dir()):
             errmsg = (
                 f"Path {path} is not a valid directory under dataset"
-                f" {cls.__name__}."
+                f" {self.__class__.__name__}."
             )
+
+            self._logger.error(errmsg)
 
             raise NotADirectoryError(errmsg)
 
         if next(path.iterdir(), None) is None:
+
+            self._logger.error(f"Encountered empty directory: {path}.")
             raise EmptyDirectoryError(path)
