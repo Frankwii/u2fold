@@ -29,39 +29,14 @@ def main() -> None:
     bootstrap_logger(args)
     path = Path("/home/frank/TFM/code/u2fold/uieb/processed/")
 
-    logger = logging.getLogger(__name__)
-
-    logger.info("Instantiating UIEB dataset...")
-    now = time.time()
-    print("==================")
     dataset = UIEBDataset(path)
-    elapsed = time.time() - now
-    print(f"ELAPSED: {elapsed}")
-    print("==================")
-    logger.info("Instantiated UIEB dataset successfully.")
 
     train, valid, test = get_dataloaders(path, 16, "cpu").to_tuple()
 
-    fig, ax = plt.subplots(2,2)
-    for input, ground_truth in train:
-        first_input_image = input[0].permute(2, 1, 0)
-        first_ground_truth_image = ground_truth[0].permute(2, 1, 0)
-        second_input_image = input[1].permute(2, 1, 0)
-        second_ground_truth_image = ground_truth[1].permute(2, 1, 0)
-
-        ax[0,0].imshow(first_input_image)
-        ax[0,0].set_title("Input 1")
-        ax[0,1].imshow(first_ground_truth_image)
-        ax[0,1].set_title("Ground Truth 1")
-        ax[1,0].imshow(second_input_image)
-        ax[1,0].set_title("Input 2")
-        ax[1,1].imshow(second_ground_truth_image)
-        ax[1,1].set_title("Ground Truth 2")
-
-        plt.show()
-
 def bootstrap_logger(args: Namespace) -> None:
     fmt = "{asctime} | [{levelname:<8}]@{name}(line {lineno:0>3}): {message}"
+    print(args.log_dir)
+    print(type(args.log_dir))
     logging.basicConfig(
         level=getattr(logging, args.log_level.upper()),
         filename=args.log_dir / "exec.log",

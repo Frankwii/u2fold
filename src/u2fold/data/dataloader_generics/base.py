@@ -1,8 +1,9 @@
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from typing import Callable, Iterator, Optional, cast, final
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 
 from ..dataset_generics.base import _BaseDataset
 
@@ -32,6 +33,10 @@ class BaseDataLoader[*Tensors](ABC):
     @final
     def __init__(self, device: str, config: DataLoaderConfig[*Tensors]) -> None:
         self._device = device
+        self._logger = logging.getLogger(
+            f"{__name__}|{self.__class__.__name__}"
+        )
+
         self._dataloader = config.instantiate_dataloader()
 
     @abstractmethod

@@ -5,8 +5,10 @@ from PIL.Image import Image
 
 from u2fold.data.dataset_generics import GroundTruthDataset, RAMLoadedDataset
 from u2fold.exceptions.dataset_pairing import DatasetPairingError
+from u2fold.utils.track import tag
 
 
+@tag("data/dataset/uieb")
 class UIEBDataset(RAMLoadedDataset[Image], GroundTruthDataset[Image]):
     """Subclass of PyTorch's Dataset for the UIEB dataset.
 
@@ -37,6 +39,8 @@ class UIEBDataset(RAMLoadedDataset[Image], GroundTruthDataset[Image]):
                 f"Input and ground truth images do not match: Differences:"
                 f"\n {differences}."
             )
+
+            self._logger.error(errmsg)
 
             raise DatasetPairingError(errmsg)
 

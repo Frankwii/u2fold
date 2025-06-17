@@ -44,6 +44,10 @@ class RAMLoadedDataset[T](_BaseDataset[T], ABC):
             class_name = type(self).__name__
             errmsg = f"Parts in {class_name} do not have identical length."
 
+            self._logger.error(
+                f"Encountered error while validating dataset contents: {errmsg}"
+            )
+
             raise DatasetPairingError(errmsg)
 
     @final
@@ -53,20 +57,31 @@ class RAMLoadedDataset[T](_BaseDataset[T], ABC):
 
         dataset_parts = self._dataset_parts
 
+        part_paths = [self._get_part_path(part) for part in dataset_parts]
+
+        self._logger.info(
+            f"Checking paths for corresponding dataset parts: {part_paths}..."
+        )
         for part in dataset_parts:
             part_path = self._get_part_path(part)
             self._validate_directory_path(part_path)
 
         self._prevalidate_part_pairing()
 
+        self._logger.info("Loading dataset parts...")
         for part in dataset_parts:
+            self._logger.info(f"Loading part `{part}`.")
             element_paths = sorted(self._get_part_path(part).iterdir())
             self.__indexed_dataset_parts[part] = self.__load_elements(
                 *element_paths
             )
+            self._logger.debug(f"Successfully loaded part `{part}`.")
 
+        self._logger.info("Dataset loaded. Validating contents...")
         self.__validate_part_pairing()
         self._postvalidate_part_pairing()
+
+        self._logger.debug("Successfully loaded dataset!")
 
     @final
     def _get_part_path(self, part: str) -> Path:

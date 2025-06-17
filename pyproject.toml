@@ -14,12 +14,13 @@ dependencies = [
   "torchvision",
   "tensorboard",
   "pillow",
-  "matplotlib"
+  "matplotlib",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest",
+  "pytest-xdist",
   "ruff",
 ]
 
@@ -29,6 +30,7 @@ repository = "https://github.com/Frankwii/u2fold"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = [".", "src"]
+dist = "loadscope"
 
 [tool.mypy]
 python_version = "3.13"
