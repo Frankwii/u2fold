@@ -1,6 +1,6 @@
+import logging
 from abc import ABC, abstractmethod
 from logging import Logger
-import logging
 from pathlib import Path
 from typing import ClassVar
 

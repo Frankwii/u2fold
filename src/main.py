@@ -1,9 +1,6 @@
 import logging
-import time
 from argparse import Namespace
 from pathlib import Path
-
-import matplotlib.pyplot as plt
 
 from u2fold import build_parser
 from u2fold.config_parsing.config_dataclasses import (
@@ -29,7 +26,7 @@ def main() -> None:
     bootstrap_logger(args)
     path = Path("/home/frank/TFM/code/u2fold/uieb/processed/")
 
-    dataset = UIEBDataset(path)
+    UIEBDataset(path)
 
     train, valid, test = get_dataloaders(path, 16, "cpu").to_tuple()
 

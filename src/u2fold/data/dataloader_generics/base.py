@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from typing import Callable, Iterator, Optional, cast, final
 
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 
 from ..dataset_generics.base import _BaseDataset
 
