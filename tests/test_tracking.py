@@ -6,7 +6,15 @@ from u2fold.utils.track import get_tag_group, tag
 def test_cli_common_command_tracking():
     args = get_tag_group("cli_argument/common")
 
-    expected_args = {"log_level", "log_dir", "weight_dir", "step_size"}
+    expected_args = {
+        "log_level",
+        "log_dir",
+        "weight_dir",
+        "step_size",
+        "patch_radius",
+        "saturation_coefficient",
+        "regularization_coefficient"
+    }
 
     assert expected_args == set(args.keys())
 

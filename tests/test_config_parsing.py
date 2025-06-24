@@ -1,10 +1,11 @@
+from dataclasses import fields
 from pathlib import Path
 
 import pytest
 import torch
 
 from u2fold.cli_parsing.argparse import build_parser
-from u2fold.config_parsing.config_dataclasses import TrainConfig
+from u2fold.config_parsing.config_dataclasses import TrainConfig, TransmissionMapEstimationConfig
 from u2fold.config_parsing.validation_and_parsing import (
     __parse_model_arguments,
     parse_and_validate_config,
@@ -16,6 +17,12 @@ def test_model_config_parsing():
     parser = build_parser()
 
     cli_args = [
+        "--patch-radius",
+        "6",
+        "--saturation-coefficient",
+        "0.9",
+        "--regularization-coefficient",
+        "0.1",
         "train",
         "-b",
         "1",
@@ -60,6 +67,12 @@ def test_model_config_validation():
     parser = build_parser()
 
     cli_args = [
+        "--patch-radius",
+        "6",
+        "--saturation-coefficient",
+        "0.9",
+        "--regularization-coefficient",
+        "0.1",
         "train",
         "-b",
         "1",
@@ -94,6 +107,12 @@ def test_full_config_parsing():
     parser = build_parser()
 
     cli_args = [
+        "--patch-radius",
+        "6",
+        "--saturation-coefficient",
+        "0.9",
+        "--regularization-coefficient",
+        "0.1",
         "--step-size",
         "0.1",
         "--log-level",
@@ -151,9 +170,16 @@ def test_full_config_parsing():
         unfolded_step_size=0.01,
     )
 
-    model_config_path = expected_model_config.format_self()
+    tmc = TransmissionMapEstimationConfig(
+        patch_radius=6,
+        regularization_coefficient=0.1,
+        saturation_coefficient=0.9
+    )
+
+    model_config_path = expected_model_config.format_self(tmc)
 
     expected_config = TrainConfig(
+        transmission_map_estimation_config=tmc,
         log_level="info",
         batch_size=10,
         weight_dir=Path("/tmp/path/to/weights") / "unet" / model_config_path,
@@ -181,6 +207,12 @@ def test_should_raise_if_incorrect_layer_sizes():
     parser = build_parser()
 
     cli_args = [
+        "--patch-radius",
+        "6",
+        "--saturation-coefficient",
+        "0.9",
+        "--regularization-coefficient",
+        "0.1",
         "--log-level",
         "info",
         "--weight-dir",
@@ -237,6 +269,12 @@ def test_should_raise_if_invalid_sublayers_per_step():
     parser = build_parser()
 
     cli_args = [
+        "--patch-radius",
+        "6",
+        "--saturation-coefficient",
+        "0.9",
+        "--regularization-coefficient",
+        "0.1",
         "--log-level",
         "info",
         "--weight-dir",
@@ -296,6 +334,12 @@ def test_should_raise_if_incorrect_batch_sizes():
 
     for case in negative_test_cases:
         cli_args = [
+            "--patch-radius",
+            "6",
+            "--saturation-coefficient",
+            "0.9",
+            "--regularization-coefficient",
+            "0.1",
             "--log-level",
             "info",
             "--weight-dir",
@@ -340,6 +384,12 @@ def test_should_raise_if_incorrect_batch_sizes():
     too_large_test_cases = [20000, 1025, 2048]
     for case in too_large_test_cases:
         cli_args = [
+            "--patch-radius",
+            "6",
+            "--saturation-coefficient",
+            "0.9",
+            "--regularization-coefficient",
+            "0.1",
             "--log-level",
             "info",
             "--weight-dir",

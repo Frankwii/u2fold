@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+from u2fold.config_parsing.config_dataclasses import (
+    TransmissionMapEstimationConfig,
+)
 from u2fold.models.generic import ModelConfig
 from u2fold.utils.name_conversions import cli_to_snake, snake_to_cli
 
@@ -56,3 +59,20 @@ def test_snake_to_cli():
     outputs = [cli_to_snake(i) for i in inputs]
 
     assert outputs == expected
+
+
+def test_transmission_map_parameters():
+    tm = TransmissionMapEstimationConfig(
+        patch_radius=3,
+        saturation_coefficient=0.5,
+        regularization_coefficient=1.5,
+    )
+
+    conf = MockConfig(0.5, 0.2, foo_bar=1_000_000, bar=["baz_bar", "B"])
+
+    assert (
+        conf.format_self(tm) == (
+            "unfoldedStepSize_0.2__fooBar_1000000__bar_bazBar-B__patchRadius_3"
+            "__saturationCoefficient_0.5__regularizationCoefficient_1.5"
+        )
+    )

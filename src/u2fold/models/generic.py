@@ -1,9 +1,14 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, fields
+from dataclasses import Field, dataclass, field, fields
 from itertools import chain
-from typing import Any, Iterable, Optional
+from typing import TYPE_CHECKING, Any, Iterable, Optional
 
 import torch
+
+if TYPE_CHECKING:
+    from _typeshed import DataclassInstance
+
+type Tree[A] = A | Iterable["Tree[A]"]
 
 
 @dataclass
@@ -48,7 +53,7 @@ class ModelConfig(ABC):
     def __post_init__(self) -> None:
         self.validate()
 
-    def __format(self, attribute: Any) -> str:
+    def __format(self, attribute: Tree) -> str:
         """Name formatting for names and values of fields alike.
 
         In the context of this function, "attribute" means either the name
@@ -80,7 +85,7 @@ class ModelConfig(ABC):
 
             return "".join(camel_case_components)
 
-    def format_self(self):
+    def format_self(self, other: Optional["DataclassInstance"] = None):
         """Human-readable name formatting for model hyperparameter sets.
 
         Field names and their values are formatted according to
@@ -91,6 +96,9 @@ class ModelConfig(ABC):
         ("_"), and name-value pairs are separated by double underscores ("__")
         between them.
 
+        Fields are taken from `self` first, and optionally more are taken
+        afterwards from the `other` parameter.
+
         Examples:
             >>> my_config = ModelConfigSubclass(
             ...     dropout=0.2
@@ -100,15 +108,22 @@ class ModelConfig(ABC):
             >>> my_config.format_self()
             foo_bar__listFoo_bar-baz
         """
-        formattable_field_names = (
+        self_formattable_field_names = (
             (field_.name, getattr(self, field_.name))
             for field_ in fields(self)
             if field_.metadata.get("cli_mode", "model") == "model"
         )
 
+        other_formattable_field_names = () if other is None else (
+            (field_.name, getattr(other, field_.name))
+            for field_ in fields(other)
+        )
+
         formatted_name_value_pairs = (
             (self.__format(name), self.__format(value))
-            for name, value in formattable_field_names
+            for name, value in chain(
+                self_formattable_field_names, other_formattable_field_names
+            )
         )
 
         return "__".join(

@@ -8,7 +8,12 @@ import torch
 from u2fold.models.generic import ModelConfig
 from u2fold.utils.track import get_from_tag, get_tag_group
 
-from .config_dataclasses import ExecConfig, TrainConfig, U2FoldConfig
+from .config_dataclasses import (
+    ExecConfig,
+    TrainConfig,
+    TransmissionMapEstimationConfig,
+    U2FoldConfig,
+)
 
 
 def __validate_cliarguments(args: Namespace) -> dict[str, Any]:
@@ -54,6 +59,20 @@ def __parse_model_arguments(args: Namespace) -> ModelConfig:
     return model_config_class(**model_param_values)
 
 
+def __instantiate_transmission_map_config(
+    config_args: dict[str, Any],
+) -> None:
+    patch_radius = config_args.pop("patch_radius")
+    saturation_coefficient = config_args.pop("saturation_coefficient")
+    regularization_coefficient = config_args.pop("regularization_coefficient")
+
+    config_args["transmission_map_estimation_config"] = (
+        TransmissionMapEstimationConfig(
+            patch_radius, saturation_coefficient, regularization_coefficient
+        )
+    )
+
+
 def __handle_exceptions(
     config_args: dict[str, Any],
     model_name: str,
@@ -62,10 +81,15 @@ def __handle_exceptions(
 ) -> None:
     """Manually handle arguments with validation that cannot be automated.
 
-    Mutates "config_args" inplace.
+    Mutates "config_args" in place.
     """
+    __instantiate_transmission_map_config(config_args)
 
-    model_path = Path(model_name) / Path(model_config.format_self())
+    model_path = Path(model_name) / Path(
+        model_config.format_self(
+            config_args["transmission_map_estimation_config"]
+        )
+    )
 
     config_args["weight_dir"] = config_args.pop("weight_dir") / model_path
 

@@ -39,6 +39,12 @@ def test_unet_parsing():
     parser = build_parser()
 
     cli_args = [
+        "-p",
+        "4",
+        "--regularization-coefficient",
+        "0.5",
+        "--saturation-coefficient",
+        "1.2",
         "train",
         "-b",
         "16",
@@ -66,6 +72,9 @@ def test_unet_parsing():
     args = parser.parse_args(cli_args)
 
     class ExpectedNamespace(NamedTuple):
+        patch_radius = 4
+        regularization_coefficient = 0.5
+        saturation_coefficient = 1.2
         unfolded_step_size = 0.02
         batch_size = 16
         step_size = 0.01
@@ -81,6 +90,9 @@ def test_unet_parsing():
 
     expected_namespace = ExpectedNamespace()
     attrs = [
+        "patch_radius",
+        "saturation_coefficient",
+        "regularization_coefficient",
         "mode",
         "batch_size",
         "dropout",

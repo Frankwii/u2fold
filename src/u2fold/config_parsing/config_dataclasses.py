@@ -6,6 +6,12 @@ from typing import Literal
 from u2fold.models.generic import ModelConfig
 from u2fold.utils.track import tag
 
+@dataclass
+class TransmissionMapEstimationConfig:
+    patch_radius: int
+    saturation_coefficient: float
+    regularization_coefficient: float
+
 
 @dataclass
 class U2FoldConfig(ABC):
@@ -16,6 +22,7 @@ class U2FoldConfig(ABC):
     execution_log_dir: Path
     model_config: ModelConfig
     device: str
+    transmission_map_estimation_config: TransmissionMapEstimationConfig
 
 
 @tag("config/train")

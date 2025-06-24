@@ -8,7 +8,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from compute_transmission_maps import format_param_comb_name
-from matplotlib.axes import Axes
+from matplotlib.figure import Figure
 from numpy import ndarray
 
 TRANSMISSION_MAPS_ROOT_DIR = Path("/tmp/u2fold/transmission_maps")
@@ -70,30 +70,55 @@ def compute_transmission_maps(args: Namespace):
 
 
 def create_transmission_map_axes(
-    image_name: str,
+    image_names: list[str],
+    regularization_coef: float,
     patch_radius: int,
     saturation_coef: float,
-    regularization_coef: float,
-) -> tuple[Axes, Axes, Axes, Axes, Axes]:
-    title = f"Transmission maps for {image_name}. Parameters:\n Patch radius={patch_radius}, Saturation coefficient={saturation_coef}, Regularization coefficient={regularization_coef}"
+) -> tuple[Figure, ndarray]:
+    column_titles = [
+        "Original input image",
+        "Red channel",
+        "Saturation map",
+        "Coarse transmission map",
+        "Fine transmission map",
+    ]
 
-    fig, (original, red, saturation, coarse, fine) = plt.subplots(1, 5)
-    fig.suptitle(title)
+    num_images = len(image_names)
+    num_columns = len(column_titles)
 
-    original.set_title("Original input image.")
-    red.set_title("Red channel.")
-    saturation.set_title("Saturation map.")
-    coarse.set_title("Coarse transmission map.")
-    fine.set_title("Fine transmission map.")
+    fig, axes = plt.subplots(num_images, num_columns)
 
-    return original, red, saturation, coarse, fine
+    overall_title = (
+        f"Original images, red channels, saturation map of transmission maps."
+        " Parameters:\n"
+        f"Patch Radius = {patch_radius}, "
+        f"Saturation Coefficient = {saturation_coef}, "
+        f"Regularization Coefficient = {regularization_coef}"
+    )
+    fig.suptitle(overall_title, fontsize=16)
+
+    for col_idx, title_text in enumerate(column_titles):
+        axes[0, col_idx].set_title(title_text, fontsize=12)
+
+    for row_idx, image_name in enumerate(image_names):
+        axes[row_idx, 0].set_ylabel(
+            image_name, rotation=90, fontsize=12
+        )
+
+        for col_idx in range(num_columns):
+            axes[row_idx, col_idx].set_xticks([])
+            axes[row_idx, col_idx].set_yticks([])
+
+    fig.tight_layout()
+
+    return fig, axes
 
 
 def load_transmission_maps(
     image: Path,
+    regularization_coef: float,
     patch_radius: int,
     saturation_coef: float,
-    regularization_coef: float,
 ) -> tuple[ndarray, ndarray, ndarray, ndarray, ndarray]:
     original = plt.imread(image)
 
@@ -111,23 +136,29 @@ def load_transmission_maps(
     return original, original[..., 0], saturation, coarse, fine
 
 
-def process_image(
-    image: Path,
+def process_images(
+    images: list[Path],
+    regularization_coef: float,
     patch_radius: int,
     saturation_coef: float,
-    regularization_coef: float,
 ) -> None:
-    images = load_transmission_maps(
-        image, patch_radius, saturation_coef, regularization_coef
+    images_to_display = [
+        load_transmission_maps(
+            image, regularization_coef, patch_radius, saturation_coef 
+        )
+        for image in images
+    ]
+
+    image_names = [image.name for image in images]
+    _, axes = create_transmission_map_axes(
+        image_names, regularization_coef, patch_radius, saturation_coef
     )
 
-    image_name = image.name
-    axes = create_transmission_map_axes(
-        image_name, patch_radius, saturation_coef, regularization_coef
-    )
-
-    for img, ax in zip(images, axes):
-        ax.imshow(img, cmap="jet", vmin=0, vmax=1)
+    for row_idx, img_results in enumerate(images_to_display):
+        for col_idx, img_result in enumerate(img_results):
+            axes[row_idx, col_idx].imshow(
+                img_result, cmap="jet", vmin=0, vmax=1
+            )
 
     plt.show()
 
@@ -140,13 +171,12 @@ def main():
 
     hyperparameter_combinations = list(
         itertools.product(
-            args.radius, args.saturation_coef, args.regularization_coef
+            args.regularization_coef, args.radius, args.saturation_coef,
         )
     )
 
-    for image_path in args.input_files:
-        for t in hyperparameter_combinations:
-            process_image(image_path, *t)
+    for t in hyperparameter_combinations:
+        process_images(args.input_files, *t)
 
 
 if __name__ == "__main__":
