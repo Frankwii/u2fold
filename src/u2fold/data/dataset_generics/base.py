@@ -14,7 +14,7 @@ from u2fold.exceptions.empty_directory import EmptyDirectoryError
 from u2fold.utils.singleton_metaclasses import AbstractSingleton
 
 
-class _BaseDataset[T](Dataset, ABC, metaclass=AbstractSingleton):
+class U2FoldDataset[T](Dataset, ABC, metaclass=AbstractSingleton):
     """Common interface for Dataset classes in this program.
 
     Subclasses should provide, besides the usual pytorch Dataset

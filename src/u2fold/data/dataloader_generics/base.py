@@ -1,11 +1,14 @@
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
+from pathlib import Path
 from typing import Callable, Iterator, Optional, cast, final
 
 from torch.utils.data import DataLoader
 
-from ..dataset_generics.base import _BaseDataset
+from u2fold.data.dataset_splits import SplitData
+
+from ..dataset_generics.base import U2FoldDataset
 
 type CollationFunction[*Tensors] = Callable[
     [list[tuple[*Tensors]]],
@@ -15,7 +18,7 @@ type CollationFunction[*Tensors] = Callable[
 
 @dataclass
 class DataLoaderConfig[*Tensors]:
-    dataset: _BaseDataset
+    dataset: U2FoldDataset
     batch_size: int
     shuffle: bool
     collate_fn: Optional[CollationFunction[*Tensors]]
@@ -29,7 +32,7 @@ class DataLoaderConfig[*Tensors]:
         return DataLoader(**args)
 
 
-class BaseDataLoader[*Tensors](ABC):
+class U2FoldDataLoader[*Tensors](ABC):
     @final
     def __init__(self, device: str, config: DataLoaderConfig[*Tensors]) -> None:
         self._device = device
@@ -39,6 +42,11 @@ class BaseDataLoader[*Tensors](ABC):
 
         self._dataloader = config.instantiate_dataloader()
 
+    @classmethod
+    def get_dataloaders[T](
+        cls: type[T], dataset_path: Path, batch_size: int, device: str
+    ) -> SplitData[T]: ...
+
     @abstractmethod
     def __iter__(self) -> Iterator[tuple[*Tensors]]: ...
 
@@ -47,7 +55,7 @@ class BaseDataLoader[*Tensors](ABC):
         return len(self._dataloader)
 
 
-class ToDeviceDataLoader[*Tensors](BaseDataLoader[*Tensors], ABC):
+class ToDeviceDataLoader[*Tensors](U2FoldDataLoader[*Tensors], ABC):
     @final
     def __iter__(self) -> Iterator[tuple[*Tensors]]:
         for paired_batch in self._dataloader:

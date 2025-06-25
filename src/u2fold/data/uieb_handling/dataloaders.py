@@ -21,46 +21,45 @@ class UIEBDataLoaderConfig(DataLoaderConfig): ...
 
 
 @tag("data/dataloader/uieb")
-class UIEBDataLoader(ToDeviceDataLoader[Tensor, Tensor]): ...
+class UIEBDataLoader(ToDeviceDataLoader[Tensor, Tensor]):
+    @classmethod
+    def get_dataloaders(
+        cls, dataset_path: Path, batch_size: int, device: str
+    ) -> SplitData["UIEBDataLoader"]:
+        dataset = UIEBDataset(dataset_path)
+        dataset_class = dataset.__class__.__name__
+        splits = DatasetSplits(0.8, 0.1, 0.1)
 
+        dataset_splits = split_dataset(dataset, splits)
 
-def get_dataloaders(
-    uieb_path: Path, batch_size: int, device: str
-) -> SplitData[UIEBDataLoader]:
-    dataset = UIEBDataset(uieb_path)
-    dataset_class = dataset.__class__.__name__
-    splits = DatasetSplits(0.8, 0.1, 0.1)
+        def __instantiate_uieb_dataloader(
+            dataset: UIEBDataset, config: tuple[bool, CollationFunction]
+        ) -> UIEBDataLoader:
+            _logger.info(f"Instantiating dataloader for {dataset_class}...")
+            dataloader_config = UIEBDataLoaderConfig(
+                dataset,
+                batch_size=batch_size,
+                shuffle=config[0],
+                collate_fn=config[1],
+                pin_memory=True,
+                num_workers=0,
+            )
 
-    dataset_splits = split_dataset(dataset, splits)
+            dataloader = UIEBDataLoader(device, dataloader_config)
+            _logger.debug(
+                f"Successfully instantiated dataloader for {dataset_class}."
+            )
 
-    def __instantiate_uieb_dataloader(
-        dataset: UIEBDataset, config: tuple[bool, CollationFunction]
-    ) -> UIEBDataLoader:
-        _logger.info(f"Instantiating dataloader for {dataset_class}...")
-        dataloader_config = UIEBDataLoaderConfig(
-            dataset,
-            batch_size=batch_size,
-            shuffle=config[0],
-            collate_fn=config[1],
-            pin_memory=True,
-            num_workers=0,
+            return dataloader
+
+        instantiation_config = SplitData(
+            training=(True, UIEBRandomCollateAndTransform()),
+            validation=(False, UIEBTopLeftCropCollate()),
+            test=(False, UIEBTopLeftCropCollate()),
         )
 
-        dataloader = UIEBDataLoader(device, dataloader_config)
-        _logger.debug(
-            f"Successfully instantiated dataloader for {dataset_class}."
+        dataloaders = dataset_splits.map(
+            __instantiate_uieb_dataloader, instantiation_config
         )
 
-        return dataloader
-
-    instantiation_config = SplitData(
-        training=(True, UIEBRandomCollateAndTransform()),
-        validation=(False, UIEBTopLeftCropCollate()),
-        test=(False, UIEBTopLeftCropCollate()),
-    )
-
-    dataloaders = dataset_splits.map(
-        __instantiate_uieb_dataloader, instantiation_config
-    )
-
-    return dataloaders
+        return dataloaders

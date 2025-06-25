@@ -1,7 +1,7 @@
 """Create splits randomly (but reproducibly) for a given Dataset."""
 
 from dataclasses import dataclass
-from typing import Callable, Optional, cast
+from typing import Callable, Generic, Optional, TypeVar, cast
 
 from torch import Generator
 from torch.utils.data import Dataset, random_split
@@ -9,8 +9,9 @@ from torch.utils.data import Dataset, random_split
 RANDOM_SEED = 42
 
 
+T = TypeVar("T", covariant=True)
 @dataclass
-class SplitData[T]:
+class SplitData(Generic[T]):
     training: T
     validation: T
     test: T

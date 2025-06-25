@@ -8,7 +8,12 @@ from u2fold.config_parsing.config_dataclasses import (
 
 
 class Orchestrator(ABC):
-    def __init__(self, config: U2FoldConfig) -> None: ...
+    def __init__(
+        self,
+        config: U2FoldConfig,
+    ) -> None:
+        model = config.model_config
+        config.device
 
     @abstractmethod
     def run(self) -> None: ...
@@ -16,7 +21,7 @@ class Orchestrator(ABC):
 class TrainOrchestrator(Orchestrator):
     def __init__(self, config: TrainConfig) -> None: ...
 
-    def run(self) -> None: ...
+    def run(self) -> None:
 
 class ExecOrchestrator(Orchestrator):
     def __init__(self, config: ExecConfig) -> None: ...

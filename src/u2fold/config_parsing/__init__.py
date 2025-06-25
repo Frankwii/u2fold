@@ -1,2 +1,3 @@
-# from .config_dataclasses import ExecConfig, TrainConfig
-# from .validation_and_parsing import parse_and_validate_config
+from .validation_and_parsing import parse_and_validate_config
+
+__all__ = ["parse_and_validate_config"]
