@@ -100,7 +100,13 @@ def save_mock_weights(greedy_iters: int, stages: int):
             nn.Module.__init__(self)
             self.fc1 = nn.Linear(10, 10, device=device)
 
-    model = MockModel(MockConfig(0.5, unfolded_step_size=0.1), None)
+        def forward(self, input: torch.Tensor) -> torch.Tensor:
+            return input
+
+    model = MockModel(
+        MockConfig(0.5, unfolded_step_size=0.1),
+        None
+    )
 
     filetree = handler._filetree
 
@@ -134,6 +140,9 @@ def test_weight_loading(mock_path=mock_path):
         def __init__(self, config: MockConfig2, device: Optional[str]) -> None:
             nn.Module.__init__(self)
             self.fc1 = nn.Linear(10, 10)
+
+        def forward(self, input: torch.Tensor) -> torch.Tensor:
+            return input
 
     config = MockConfig2(0.2, 0.3)
 

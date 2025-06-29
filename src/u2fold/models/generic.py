@@ -131,7 +131,7 @@ class ModelConfig(ABC):
         )
 
 
-class Model[Config: ModelConfig](ABC, torch.nn.Module):
+class Model[Config: ModelConfig](torch.nn.Module, ABC):
     r"""Common interface for models with a configuration class.
 
     When subclassing, make sure to follow the guidelines specified below for
@@ -196,3 +196,6 @@ class Model[Config: ModelConfig](ABC, torch.nn.Module):
 
     @abstractmethod
     def __init__(self, config: Config, device: Optional[str]) -> None: ...
+
+    @abstractmethod
+    def forward(self, input: torch.Tensor) -> torch.Tensor: ...

@@ -18,9 +18,10 @@ class U2FoldConfig(ABC):
     log_level: Literal["debug", "info", "warning", "error", "critical"]
     step_size: float
     unfolded_step_size: float
-    weight_dir: Path
+    weight_dir: Path # should have the hyperparameter information already
     execution_log_dir: Path
     model_config: ModelConfig
+    model_name: str
     device: str
     transmission_map_estimation_config: TransmissionMapEstimationConfig
 

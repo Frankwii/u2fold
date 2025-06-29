@@ -121,6 +121,7 @@ def parse_and_validate_config(args: Namespace) -> U2FoldConfig:
     __handle_exceptions(config_args, args.model, mode, model_config)
 
     config_args["model_config"] = model_config
+    config_args["model_name"] = args.model
 
     match mode:
         case "train":

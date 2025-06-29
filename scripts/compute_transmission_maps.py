@@ -56,7 +56,7 @@ def compute_transmission_maps(
         guide=batched.mean(dim=1, keepdim=True),
         input=coarse_transmission_map,
         patch_radius=patch_radius,
-        regularization_coef=regularization_coef,
+        regularization_coefficient=regularization_coef,
     ).reshape(1, H, W)
 
     return (saturation_map, coarse_transmission_map, fine_transmission_map)

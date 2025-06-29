@@ -180,6 +180,7 @@ def test_full_config_parsing():
 
     expected_config = TrainConfig(
         transmission_map_estimation_config=tmc,
+        model_name="unet",
         log_level="info",
         batch_size=10,
         weight_dir=Path("/tmp/path/to/weights") / "unet" / model_config_path,

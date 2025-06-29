@@ -38,7 +38,7 @@ def estimate_coarse_transmission_map(
     images: Tensor,
     background_lights: Tensor,
     patch_radius: int,
-    saturation_coef: float,
+    saturation_coefficient: float,
 ) -> Tensor:
     """Estimates the coarse red transmission map as in https://doi.org/10.1109/TCSVT.2021.
 
@@ -83,7 +83,7 @@ def estimate_coarse_transmission_map(
     coefficients = torch.cat(
         (
             background_lights,  # (B, 3)
-            torch.tensor([saturation_coef])  # CPU
+            torch.tensor([saturation_coefficient])  # CPU
             .to(background_lights.device)  # GPU
             .view(1, 1)
             .expand(batch_size, 1),  # (B, 1)
@@ -103,8 +103,8 @@ def estimate_transmission_map(
     images: Tensor,
     background_light: Tensor,
     patch_radius: int,
-    saturation_coef: float,
-    regularization_coef: float,
+    saturation_coefficient: float,
+    regularization_coefficient: float,
 ) -> Tensor:
     """Estimates the fine red transmission map as in https://doi.org/10.1109/TCSVT.2021.
 
@@ -127,7 +127,7 @@ def estimate_transmission_map(
     coarse_transmission_map = estimate_coarse_transmission_map(
         images=images,
         background_lights=background_light,
-        saturation_coef=saturation_coef,
+        saturation_coefficient=saturation_coefficient,
         patch_radius=patch_radius,
     )
 
@@ -135,5 +135,5 @@ def estimate_transmission_map(
         guide=images[:, 0, :, :],
         input=coarse_transmission_map,
         patch_radius=patch_radius,
-        regularization_coef=regularization_coef,
+        regularization_coefficient=regularization_coefficient,
     )
