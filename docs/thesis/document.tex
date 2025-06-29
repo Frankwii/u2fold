@@ -188,6 +188,20 @@ First, the background light is chosen by iteratively splitting the image into fo
 
 \Frank{Falta explicar com se calcula es transmission map i es guided filter. He posat s'algoritme pes transmission map a \ref{al:I1}.}
 
+Once the background light \(B\) has been computed, it is possible to estimate the trasmission map \(t\). We proceed in a similar fashion to (CITAR ART. REF): first, a coarse version of the transmission map \(t_0\) is obtained via
+\[
+  t_0(x) = 1 - \min_{y\in\Omega_x}\left(\min\left(\frac{1-I^r(y)}{1-B^r}, \frac{I^g(y)}{B^g}, \frac{I^b(y)}{B^b}, \lambda S(y)\right)\right)
+,\]
+
+where the \textit{saturation map} \(S\) is defined as \(0\) for black \((0, 0, 0)\) pixels and \(S=1-\frac{\min(I^r, I^g, I^b)}{\max(I^r, I^g, I^b)}\) otherwise.
+
+Then, a fine version of the transmission map, \(t\), is obtained by passing \(t_0\) through a guided filter with \(I^r\) as the guide. \Frank{Cal explicar què fa es guided filter? O basta citar?}
+
+Finally, we estimate a first version of \(J\) as follows, for each color channel \(c\in\{r, g, b\}\):
+\begin{equation}\label{eq:J0}
+  J^c(x) = \frac{I^c(x) - B^c}{\max(t(x), 0.1)} + (1-B^c)\cdot B^c
+\end{equation}
+
 \begin{algorithm}\label{al:background-light}
 \caption{Estimate background light.}
 \KwData{\(I\)}
@@ -266,7 +280,7 @@ Initialize dual variables \(\tilde{g}\), \(\tilde{J}\)\;
     \(\tilde{J}\gets (\tilde{J} + \sigma\cdot (J* g) - \sigma \cdot I_2)/(\sigma + 1)\)\;
   }
 }
-\Return J
+\Return J / t
 \end{algorithm}
 
 \subsection{Implementation}
