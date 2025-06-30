@@ -44,7 +44,7 @@ def estimate_coarse_transmission_map(
 
     Args:
         images: Shape (B, 3, H, W)
-        background_lights: Shape (B, 3)
+        background_lights: Shape (B, 3, 1, 1)
         saturation_coef: Constant (should be between 0 and 1,
             but this is not enforced) to weigh the saturation map with.
         patch_radius: Number of pixels from the center of the patch to its
@@ -73,7 +73,7 @@ def estimate_coarse_transmission_map(
         padding=patch_radius,
     )  # (B, 4, H, W)
 
-    background_lights[:, 0] = 1 - background_lights[:, 0]
+    background_lights[:, 0, 0, 0] = 1 - background_lights[:, 0, 0, 0]
     background_lights = torch.max(
         input=background_lights, other=torch.tensor(1e-3)
     )
@@ -82,11 +82,11 @@ def estimate_coarse_transmission_map(
 
     coefficients = torch.cat(
         (
-            background_lights,  # (B, 3)
+            background_lights,  # (B, 3, 1, 1)
             torch.tensor([saturation_coefficient])  # CPU
             .to(background_lights.device)  # GPU
-            .view(1, 1)
-            .expand(batch_size, 1),  # (B, 1)
+            .view(1, 1, 1, 1)
+            .expand(batch_size, 1, 1, 1),  # (B, 1, 1, 1)
         ),
         dim=1,  # (B, 4)
     ).view(batch_size, 4, 1, 1)  # (B, 4, 1, 1)
@@ -110,7 +110,7 @@ def estimate_transmission_map(
 
     Args:
         images: Shape (B, 3, H, W)
-        background_lights: Shape (B, 3)
+        background_lights: Shape (B, 3, 1, 1)
         patch_radius: Number of pixels from the center of the patch to its
             border, without counting the center itself.
 
@@ -132,7 +132,7 @@ def estimate_transmission_map(
     )
 
     return gray_guided_filter(
-        guide=images[:, 0, :, :],
+        guide=images[:, 0, :, :].unsqueeze(1),
         input=coarse_transmission_map,
         patch_radius=patch_radius,
         regularization_coefficient=regularization_coefficient,

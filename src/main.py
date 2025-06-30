@@ -1,21 +1,13 @@
 import logging
-from argparse import Namespace
 from pathlib import Path
 
 from u2fold import build_parser
 from u2fold.config_parsing import parse_and_validate_config
 from u2fold.config_parsing.config_dataclasses import U2FoldConfig
-from u2fold.data.uieb_handling import get_dataloaders
-from u2fold.data.uieb_handling.dataset import UIEBDataset
-from u2fold.orchestrate.orchestrator import (
-    ExecOrchestrator,
-    Orchestrator,
-    TrainOrchestrator,
-)
+from u2fold.orchestrate.orchestrator import get_orchestrator
 
 
 def main() -> None:
-
     parser = build_parser()
     args = parser.parse_args()
 
@@ -23,10 +15,10 @@ def main() -> None:
 
     bootstrap_logger(config)
 
-    path = Path("/home/frank/TFM/code/u2fold/uieb/processed/")
+    orchestrator = get_orchestrator(config)
 
-    UIEBDataset(path)
-    train, valid, test = get_dataloaders(path, 16, "cpu").to_tuple()
+    orchestrator.run()
+
 
 def bootstrap_logger(config: U2FoldConfig) -> None:
     fmt = "{asctime} | [{levelname:<8}]@{name}(line {lineno:0>3}): {message}"

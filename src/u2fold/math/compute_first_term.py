@@ -24,9 +24,11 @@ def estimate_radiance_and_transmission_map(
         config.regularization_coefficient,
     )  # t; (B, 1, H, W)
 
-    scene_radiance_estimation = (images - background_light) / torch.max(
-        transmission_map_estimation, torch.tensor(0.1)
-    ) + (1 - background_light) * background_light  # J_0; (B, C, H, W)
+    diff = images - background_light
+    mx = torch.clamp(transmission_map_estimation, min=0.1, max=None)
+    prd = (1 - background_light) * background_light
+
+    scene_radiance_estimation = diff / mx + prd  # J_0; (B, C, H, W)
 
     return scene_radiance_estimation, transmission_map_estimation
 

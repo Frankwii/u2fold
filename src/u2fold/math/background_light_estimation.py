@@ -34,7 +34,7 @@ def _linear_search_background_light(
         patches: Shape (B, C, H, W).
 
     Returns:
-        pixels: Shape (B, C).
+        pixels: Shape (B, C, 1, 1).
     """
     batch_size, channels, height, width = patches.shape
 
@@ -58,7 +58,9 @@ def _linear_search_background_light(
         flattened_patches, dim=2, index=ravelled_closest_pixels_to_white
     )  # (B, C, 1)
 
-    return closest_to_white_values.squeeze(-1)  # (B, C)
+    return closest_to_white_values.reshape(
+        batch_size, channels, 1, 1
+    )  # (B, C, 1, 1)
 
 
 @torch.compile
@@ -108,7 +110,7 @@ def estimate_background_light(
         image: Tensor of shape (B, C, H, W).
 
     Returns
-        background_light: Tensor of shape (B, C).
+        background_light: Tensor of shape (B, C, 1, 1).
     """
 
     batch_size, channels, height, width = images.shape

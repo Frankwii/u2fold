@@ -20,6 +20,7 @@ class TrainWeightHandler(WeightHandler):
     ) -> None:
         self.__default_greedy_iterations = default_greedy_iterations
         self.__default_stages = default_stages
+        model_weight_dir.mkdir(parents=True, exist_ok=True)
         super().__init__(model_weight_dir)
 
     @staticmethod

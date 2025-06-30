@@ -29,30 +29,21 @@ class ConfigUNet(ModelConfig):
     pooling: str = field(
         metadata={
             "desc": "Pooling technique to use after convolutional layers.",
-            "choices": components.get_supported_pooling_layers()
+            "choices": components.get_supported_pooling_layers(),
         }
     )
 
     activation: str = field(
         metadata={
             "desc": "Activation function to use between layers.",
-            "choices": components.get_supported_activaton_functions()
+            "choices": components.get_supported_activaton_functions(),
         }
     )
 
     def __validate_channels_per_layer(self) -> None:
-        if (n := len(self.channels_per_layer)) < 2 or n % 2 == 0:
+        if len(self.channels_per_layer) < 2:
             raise ValueError(
-                "Insufficient number of layers for UNet. Must be"
-                " an odd number bigger than or equal to 3."
-            )
-
-        intermediate_layers = self.channels_per_layer[1:-1]
-        if intermediate_layers[::-1] != intermediate_layers:
-            raise ValueError(
-                "Invalid number of channels per UNet layer. The"
-                " array of intermediate channel sizes must be"
-                " symmetrical."
+                "Insufficient number of layers for UNet. Must be at least 2."
             )
 
     def __validate_sublayers_per_step(self) -> None:
@@ -119,8 +110,15 @@ class UNet(Model[ConfigUNet]):
     ) -> None:
         torch.nn.Module.__init__(self)
 
-        self.__depth = len(config.channels_per_layer) // 2
-        channel_sizes = sliding_window(config.channels_per_layer)
+        self.__depth = len(config.channels_per_layer)
+
+        size_sequence = (
+            3,
+            *config.channels_per_layer,
+            *reversed(config.channels_per_layer),
+            3
+        )
+        channel_sizes = sliding_window(size_sequence)
 
         all_layers = nn.ModuleList(
             [
@@ -137,25 +135,28 @@ class UNet(Model[ConfigUNet]):
 
         self.__down_sublayers = all_layers[: self.__depth]
         pooling_class = components.get_pooling_layer(config.pooling)
-        self.__downsampling_layer = pooling_class(2, 2)
+        self.__downsample = pooling_class(2, 2)
 
-        self.__bottom_sublayer = all_layers[self.__depth]
+        self.__bottleneck = all_layers[self.__depth]
 
         self.__up_sublayers = all_layers[self.__depth + 1 :]
-        self.__upsampling_layer = Upsample(scale_factor=2)
+        self.__upsample = Upsample(scale_factor=2)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         down_layer_outputs = [torch.Tensor() for _ in range(self.__depth)]
 
+        x = input
+        counter = 0
         for idx, sublayer in enumerate(self.__down_sublayers):
             x = sublayer(x)
             down_layer_outputs[idx] = x
-            x = self.__downsampling_layer(x)
+            x = self.__downsample(x)
 
-        x = self.__bottom_sublayer(x)
+        output_shapes = [y.shape for y in down_layer_outputs]
+        x = self.__bottleneck(x)
 
         for idx, sublayer in enumerate(self.__up_sublayers):
-            x = self.__upsampling_layer(x)
+            x = self.__upsample(x)
             x = sublayer(x + down_layer_outputs[~idx])
 
         return x

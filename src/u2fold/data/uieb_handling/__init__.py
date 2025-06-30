@@ -1,3 +1,3 @@
-from .dataloaders import UIEBDataLoader, get_dataloaders
+from .dataloaders import UIEBDataLoader
 
-__all__ = ["get_dataloaders", "UIEBDataLoader"]
+__all__ = ["UIEBDataLoader"]
