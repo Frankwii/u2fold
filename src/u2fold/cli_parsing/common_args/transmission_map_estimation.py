@@ -53,10 +53,10 @@ class SaturationCoefficient(CLIArgument[float]):
         return 0.9
 
     def _validate_value(self, value: float) -> None:
-        if not 0 < value <= 10:
+        if not 0 < value <= 1000:
             raise ValueError(
                 "Invalid saturation coefficient. It should be a positive"
-                " number, ideally between 0 and 1 and close to 1."
+                " number, ideally between 0 and 1."
             )
 
 @tag("cli_argument/common/regularization_coefficient", "affect_weights")

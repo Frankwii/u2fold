@@ -12,9 +12,9 @@ def _assign_scores(patches: Tensor) -> Tensor:
     Returns:
         scores: Shape (*dims,).
     """
-    std, avg = torch.std_mean(patches, dim=(-3, -2, -1))
+    std, avg = torch.std_mean(patches, dim=(-2, -1))
 
-    return avg - std
+    return (avg - std).sum(dim=-1)
 
 
 @torch.compile
@@ -65,7 +65,7 @@ def _linear_search_background_light(
 
 @torch.compile
 def _MAX_ALLOWED_SIZE(batch_size: int, channels: int) -> int:
-    return batch_size * channels * 16  # 4 x 4 patches are the biggest allowed.
+    return batch_size * channels * 4  # 2 x 2 patches are the biggest allowed.
 
 
 @torch.compile
@@ -88,11 +88,10 @@ def _split_image_batch_into_quadrants(
                 4, -1, channels, half_height, half_width
             )  # (4, B, C, H//2, W//2)
         )
-
     else:
-        left, right, *_ = torch.split(images, half_width, dim=-1)
-        upper_left, lower_left, *_ = torch.split(left, half_height, dim=-2)
-        upper_right, lower_right, *_ = torch.split(right, half_height, dim=-2)
+        left, right, *_ = images.split(half_width, dim=-1)
+        upper_left, lower_left, *_ = left.split(half_height, dim=-2)
+        upper_right, lower_right, *_ = right.split(half_height, dim=-2)
 
         # (4, B, C, H//2, W//2)
         return torch.stack(
@@ -115,10 +114,12 @@ def estimate_background_light(
 
     batch_size, channels, height, width = images.shape
 
-    while images.numel() > _MAX_ALLOWED_SIZE(batch_size, channels):
+    img = images.detach().clone()
+
+    while img.numel() > _MAX_ALLOWED_SIZE(batch_size, channels):
         # images: Shape (B, C, H, W)
         quadrants = _split_image_batch_into_quadrants(
-            images, channels, height, width
+            img, channels, height, width
         )
 
         # (4, B)
@@ -135,9 +136,9 @@ def estimate_background_light(
             )  # (1, B, C, H//2, W//2)
         )
 
-        images = torch.gather(
+        img = torch.gather(
             quadrants, dim=0, index=best_score_indices
         ).squeeze(0)  # (B, C, H//2, W//2)
         # Update notation: H = H //2, W = W // 2
 
-    return _linear_search_background_light(images)
+    return _linear_search_background_light(img)

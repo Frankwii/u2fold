@@ -4,14 +4,11 @@ from torch import Tensor
 from u2fold.config_parsing.config_dataclasses import (
     TransmissionMapEstimationConfig,
 )
-from u2fold.math import background_light_estimation
-
-from .background_light_estimation import estimate_background_light
 from .transmission_map_estimation import estimate_transmission_map
 
 
 @torch.compile
-def estimate_radiance_and_transmission_map(
+def estimate_fidelity_and_transmission_map(
     images: Tensor,  # I; (B, C, H, W)
     background_light: Tensor,  # B; (B, C, 1, 1)
     config: TransmissionMapEstimationConfig,
@@ -24,20 +21,9 @@ def estimate_radiance_and_transmission_map(
         config.regularization_coefficient,
     )  # t; (B, 1, H, W)
 
-    diff = images - background_light
-    mx = torch.clamp(transmission_map_estimation, min=0.1, max=None)
-    prd = (1 - background_light) * background_light
+    fidelity = images - (1 - transmission_map_estimation) * background_light
 
-    scene_radiance_estimation = diff / mx + prd  # J_0; (B, C, H, W)
-
-    return scene_radiance_estimation, transmission_map_estimation
-
-
-# batch_size = images.size(0)
-#
-# background_light = estimate_background_light(
-#     images
-# ).reshape(batch_size, -1, 1, 1)  # (B, C, 1, 1)
+    return fidelity, transmission_map_estimation
 
 
 @torch.compile

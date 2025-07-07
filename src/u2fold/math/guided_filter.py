@@ -1,5 +1,7 @@
+from functools import partial
+
 import torch
-from torch import Tensor
+from torch import Tensor, reshape
 
 
 @torch.compile
@@ -26,23 +28,33 @@ def mean_filter(image: Tensor, patch_radius: int) -> Tensor:
     )
 
 
+def cross_multiply_channels(
+    a: Tensor,  # (B, C, H, W)
+    b: Tensor,  # (B, D, H, W)
+) -> Tensor:  # (B, C, D, H, W)
+
+    return a.unsqueeze(2) * b.unsqueeze(1)
+
+def identity(C: int) -> Tensor:  # (1, C, C, 1, 1)
+    return torch.eye(C).reshape(1, C, C, 1, 1)
+
+
 @torch.compile
-def gray_guided_filter(
+def guided_filter(
     guide: Tensor,
     input: Tensor,
     patch_radius: int,
     regularization_coefficient: float,
 ) -> Tensor:
-    """Computes the (1D) guided filter for the given (batched) input and guide.
+    """Computes the guided filter for the given (batched) input and guide.
 
-    As defined in https://doi.org/10.1109/TPAMI.2012.213, for the grayscale
-    (1D) case.
+    As defined in https://doi.org/10.1109/TPAMI.2012.213.
 
     Args:
         guide: The batch of guided images. ("I" in the paper).
-            Shape (B, 1, H, W)
+            Shape (B, C, H, W)
         input: The batch of input images ("p" in the paper).
-            Shape (B, 1, H, W)
+            Shape (B, D, H, W)
         patch_radius: Number of pixels from the center of the patch (i.e.
             the filter) to its border, without counting the center itself.
             ("r" in the paper).
@@ -53,28 +65,40 @@ def gray_guided_filter(
 
     Returns:
         output: The batch of output images ("q" in the paper).
-            Shape (B, 1, H, W)
+            Shape (B, D, H, W)
     """
 
-    guide_patch_means = mean_filter(guide, patch_radius)  # "\mu" in the paper
-    guide_patch_second_moments = mean_filter(guide**2, patch_radius)
-    guide_patch_variances = (
-        guide_patch_second_moments - guide_patch_means**2
-    )  # "\sigma^2" in the paper
+    B, C, H, W = guide.shape
+    _, D, _, _ = input.shape
 
-    input_patch_means = mean_filter(input, patch_radius)  # \bar{p} in the paper
+    mf = partial(mean_filter, patch_radius=patch_radius)
+    meanI = mf(guide) # (B, C, H, W)
+    meanp = mf(input) # (B, D, H, W)
 
-    product_patch_means = mean_filter(guide * input, patch_radius)
+    corrI = mf(cross_multiply_channels(guide, guide).reshape(B, -1, H, W)).reshape(B, C, C, H, W)
+    corrIp = mf(cross_multiply_channels(guide, input).reshape(B, -1, H, W)).reshape(B, C, D, H, W)
 
-    input_coefficients = (
-        product_patch_means - guide_patch_means * input_patch_means
-    ) / (guide_patch_variances + regularization_coefficient)  # "a" in the paper
+    covI = corrI - cross_multiply_channels(meanI, meanI)  # (B, C, C, H, W)
+    covIp = corrIp - cross_multiply_channels(meanI, meanp)  # (B, C, D, H, W)
 
-    independent_terms = (
-        input_patch_means - input_coefficients * guide_patch_means
-    )  # "b" in the paper
+    id_matrix = identity(C)
+    a: Tensor = (
+        torch.linalg.solve(
+            (
+                (covI + regularization_coefficient * id_matrix).permute(
+                    0, 3, 4, 1, 2
+                )  # (B, H, W, C, C)
+            ),
+            covIp.permute(0, 3, 4, 1, 2),  # (B, H, W, C, D)
+        ) # (B, H, W, C, D)
+        .permute(0, 3, 4, 1, 2)  # (B, C, D, H, W)
+    )
 
-    smoothed_input_coefficients = mean_filter(input_coefficients, patch_radius)
-    smoothed_independent_terms = mean_filter(independent_terms, patch_radius)
+    b = meanp - (a * meanI.unsqueeze(2)).sum(dim=1)
 
-    return smoothed_input_coefficients * guide + smoothed_independent_terms
+    a_smoothed = mf(a.reshape(B, -1, H, W)).reshape(B, C, D, H, W)
+    b_smoothed = mf(b)
+
+    q = (a_smoothed * guide.unsqueeze(2)).sum(dim=1) + b_smoothed
+
+    return q

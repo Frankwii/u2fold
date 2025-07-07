@@ -25,8 +25,8 @@ class UIEBRandomCollateAndTransform(metaclass=Singleton):
         cropped_batch_pairs = [
             list(
                 crop_random_maximal_square(
-                    image_tuple[0].size(-2),
                     image_tuple[0].size(-1),
+                    image_tuple[0].size(-2),
                     image_tuple,
                 )
             )
@@ -54,8 +54,8 @@ class UIEBTopLeftCropCollate(metaclass=Singleton):
         cropped_batch_pairs = [
             list(
                 crop_top_left_maximal_square(
-                    image_tuple[0].size(-2),
                     image_tuple[0].size(-1),
+                    image_tuple[0].size(-2),
                     image_tuple,
                 )
             )

@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 
-from u2fold.math.guided_filter import gray_guided_filter
+from u2fold.math.guided_filter import guided_filter
 
 
 @torch.compile
@@ -73,18 +73,15 @@ def estimate_coarse_transmission_map(
         padding=patch_radius,
     )  # (B, 4, H, W)
 
-    background_lights[:, 0, 0, 0] = 1 - background_lights[:, 0, 0, 0]
-    background_lights = torch.max(
-        input=background_lights, other=torch.tensor(1e-3)
-    )
-
-    background_lights = 1 / background_lights
+    copy_background_lights = background_lights.detach().clone()
+    copy_background_lights[:, 0, 0, 0] = (1 - background_lights[:, 0, 0, 0])
+    copy_background_lights = 1 / copy_background_lights.clamp(min=1e-3)
 
     coefficients = torch.cat(
         (
-            background_lights,  # (B, 3, 1, 1)
+            copy_background_lights,  # (B, 3, 1, 1)
             torch.tensor([saturation_coefficient])  # CPU
-            .to(background_lights.device)  # GPU
+            .to(copy_background_lights.device)  # GPU
             .view(1, 1, 1, 1)
             .expand(batch_size, 1, 1, 1),  # (B, 1, 1, 1)
         ),
@@ -131,9 +128,9 @@ def estimate_transmission_map(
         patch_radius=patch_radius,
     )
 
-    return gray_guided_filter(
-        guide=images[:, 0, :, :].unsqueeze(1),
+    return guided_filter(
+        guide=images,
         input=coarse_transmission_map,
-        patch_radius=patch_radius,
+        patch_radius=patch_radius * 2 - 1,
         regularization_coefficient=regularization_coefficient,
     )

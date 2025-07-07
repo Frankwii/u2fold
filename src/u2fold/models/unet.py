@@ -41,6 +41,12 @@ class ConfigUNet(ModelConfig):
     )
 
     def __validate_channels_per_layer(self) -> None:
+        for channels in self.channels_per_layer:
+            if channels <= 0:
+                raise ValueError(
+                    "Invalid number of channels in UNet layer. Must be a"
+                    " natural number."
+                )
         if len(self.channels_per_layer) < 2:
             raise ValueError(
                 "Insufficient number of layers for UNet. Must be at least 2."
@@ -116,7 +122,7 @@ class UNet(Model[ConfigUNet]):
             3,
             *config.channels_per_layer,
             *reversed(config.channels_per_layer),
-            3
+            3,
         )
         channel_sizes = sliding_window(size_sequence)
 
@@ -142,21 +148,19 @@ class UNet(Model[ConfigUNet]):
         self.__up_sublayers = all_layers[self.__depth + 1 :]
         self.__upsample = Upsample(scale_factor=2)
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
+    def forward(self, input: torch.Tensor, *_) -> torch.Tensor:
         down_layer_outputs = [torch.Tensor() for _ in range(self.__depth)]
 
         x = input
-        counter = 0
         for idx, sublayer in enumerate(self.__down_sublayers):
             x = sublayer(x)
             down_layer_outputs[idx] = x
             x = self.__downsample(x)
 
-        output_shapes = [y.shape for y in down_layer_outputs]
         x = self.__bottleneck(x)
 
         for idx, sublayer in enumerate(self.__up_sublayers):
             x = self.__upsample(x)
             x = sublayer(x + down_layer_outputs[~idx])
 
-        return x
+        return input + x

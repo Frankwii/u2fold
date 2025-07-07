@@ -1,9 +1,15 @@
+from typing import Any, Callable
 import torch
+from torch import Tensor
+from torch._dynamo.testing import CompileCounter
 
+type ProximityOperator[A] = Callable[[Tensor, float, A], Tensor]
+type LinearOperator[B] = Callable[[Tensor, B], Tensor]
 
-def shifted_square_L2_norm_conjugate(
-    x: torch.Tensor, shift: torch.Tensor, tau: float
-) -> torch.Tensor:
+@torch.compile
+def conjugate_shifted_square_L2_norm(
+    input: Tensor, step_size: float, shift: Tensor
+) -> Tensor:
     """
     Computes the proximity operator of the square L2 norm evaluated in x
 
@@ -27,4 +33,17 @@ def shifted_square_L2_norm_conjugate(
         \\(prox_{\\tauF^*}(x)\\)
             Shape: (batch_size, channels, height, width)
     """
-    return (x - tau * shift) / (tau + 1)
+    return (input - step_size * shift) / (step_size + 1)
+
+@torch.compile
+def shifted_square_L2_norm(
+    input: Tensor, step_size: float, shift: Tensor
+) -> Tensor:
+    return (step_size / (1 + step_size)) * (input + shift) 
+
+
+@torch.compile
+def identity(
+    input: Tensor, *_
+) -> Tensor:
+    return input
