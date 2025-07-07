@@ -27,7 +27,7 @@ from torchvision.transforms.functional import to_tensor
 from tqdm import tqdm
 
 from u2fold.math.background_light_estimation import estimate_background_light
-from u2fold.math.guided_filter import gray_guided_filter
+from u2fold.math.guided_filter import guided_filter
 from u2fold.math.transmission_map_estimation import (
     compute_saturation_map,
     estimate_coarse_transmission_map,
@@ -39,6 +39,7 @@ def compute_transmission_maps(
     patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
+    use_red_map_only: bool
 ) -> tuple[Tensor, Tensor, Tensor]:
     # (C, H, W) -> ((1, H, W), (1, H, W))
     H, W = image.shape[-2:]
@@ -52,10 +53,13 @@ def compute_transmission_maps(
         batched, background_light, patch_radius, saturation_coef
     ).reshape(1, H, W)
 
-    fine_transmission_map = gray_guided_filter(
-        guide=batched.mean(dim=1, keepdim=True),
-        input=coarse_transmission_map,
-        patch_radius=patch_radius,
+    # guide = batched[:, 0, ...].unsqueeze(1) if use_red_map_only else batched
+    guide = batched
+    # guide = batched[:, 0, ...].unsqueeze(1)
+    fine_transmission_map = guided_filter(
+        guide=guide,
+        input=coarse_transmission_map.reshape(1, 1, H, W),
+        patch_radius=int(patch_radius * 1.5),
         regularization_coefficient=regularization_coef,
     ).reshape(1, H, W)
 
@@ -154,8 +158,8 @@ def format_param_comb_name(
 def format_parameters(
     root_dir: Path,
     image_paths: Iterable[Path],
-    hyperparameter_combinations: Iterable[tuple[int, float, float]],
-) -> Iterator[tuple[Path, Path, int, float, float]]:
+    hyperparameter_combinations: Iterable[tuple[int, float, float, bool]],
+) -> Iterator[tuple[Path, Path, int, float, float, bool]]:
     for image_path, params in product(image_paths, hyperparameter_combinations):
         yield (root_dir, image_path, *params)
 
@@ -166,6 +170,7 @@ def single_image_job(
     patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
+    use_red_map_only: bool,
 ) -> None:
     image_name = image_path.name
     try:
@@ -181,7 +186,7 @@ def single_image_job(
 
     try:
         saturation, coarse_tm, fine_tm = compute_transmission_maps(
-            image, patch_radius, saturation_coef, regularization_coef
+            image, patch_radius, saturation_coef, regularization_coef, use_red_map_only
         )
     except Exception as e:
         print("=======ERROR=======", flush=True)
@@ -213,7 +218,7 @@ def single_image_job(
         print("===================", flush=True)
 
 
-def wrapped_single_image_job(t: tuple[Path, Path, int, float, float]) -> None:
+def wrapped_single_image_job(t: tuple[Path, Path, int, float, float, bool]) -> None:
     return single_image_job(*t)
 
 
@@ -227,9 +232,10 @@ def main():
     patch_radii = args.radius
     saturation_coefs = args.saturation_coef
     regularization_coefs = args.regularization_coef
+    use_red_map_only = getattr(args, "use_red_map_only", False)
 
     hyperparameter_combinations = list(itertools.product(
-        patch_radii, saturation_coefs, regularization_coefs
+        patch_radii, saturation_coefs, regularization_coefs, [use_red_map_only]
     ))
 
     all_parameter_combinations = list(

@@ -1,9 +1,6 @@
 #!/usr/bin/python
 """
-Compute transmission maps (both coarse and fine) for each of the images passed as arguments,
-and visualize them.
-
-As defined in https://doi.org/10.1109/TCSVT.2021.3115791.
+Compute transmission maps (coarse and multiple refinements) for each of the images passed as arguments, and visualize them.
 """
 
 # Disable compilation of pytorch functions because images are usually
@@ -19,7 +16,7 @@ import itertools
 from argparse import ArgumentParser
 from itertools import product
 from pathlib import Path
-from typing import Iterable, Iterator
+from typing import Iterable, Iterator, List
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -34,11 +31,10 @@ from tqdm import tqdm
 from u2fold.math.background_light_estimation import estimate_background_light
 from u2fold.math.guided_filter import guided_filter
 from u2fold.math.transmission_map_estimation import (
-    compute_saturation_map,
     estimate_coarse_transmission_map,
 )
 
-TRANSMISSION_MAPS_ROOT_DIR = Path("/tmp/u2fold/transmission_maps")
+TRANSMISSION_MAPS_ROOT_DIR = Path("/tmp/u2fold/transmission_maps_multiple")
 
 
 def compute_transmission_maps(
@@ -47,39 +43,32 @@ def compute_transmission_maps(
     guided_filter_patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
-) -> tuple[Tensor, Tensor, Tensor, Tensor]:
+    number_of_extra_refinements: int,
+) -> tuple[Tensor, list[Tensor]]:
+    # (C, H, W) -> ((1, H, W), list[(1, H, W)])
     H, W = image.shape[-2:]
 
     batched = image.reshape(1, 3, H, W)
-
-    saturation_map = compute_saturation_map(batched).reshape(1, H, W)
 
     background_light = estimate_background_light(batched)
     coarse_transmission_map = estimate_coarse_transmission_map(
         batched, background_light, rcp_patch_radius, saturation_coef
     ).reshape(1, H, W)
 
-    fine_tm_color_guide = guided_filter(
-        guide=batched,
-        input=coarse_transmission_map.reshape(1, 1, H, W),
-        patch_radius=guided_filter_patch_radius,
-        regularization_coefficient=regularization_coef,
-    ).reshape(1, H, W)
+    refined_maps = []
+    current_map = coarse_transmission_map.reshape(1, 1, H, W)
 
-    red_channels = batched[:, 0, ...].unsqueeze(1)
-    fine_tm_red_guide = guided_filter(
-        guide=red_channels,
-        input=coarse_transmission_map.reshape(1, 1, H, W),
-        patch_radius=guided_filter_patch_radius,
-        regularization_coefficient=regularization_coef,
-    ).reshape(1, H, W)
+    for _ in range(1 + number_of_extra_refinements):
+        refined_map = guided_filter(
+            guide=batched,
+            input=current_map,
+            patch_radius=guided_filter_patch_radius,
+            regularization_coefficient=regularization_coef,
+        )  # output is (1, 1, H, W)
+        refined_maps.append(refined_map.reshape(1, H, W))
+        current_map = refined_map
 
-    return (
-        saturation_map,
-        coarse_transmission_map,
-        fine_tm_color_guide,
-        fine_tm_red_guide,
-    )
+    return coarse_transmission_map, refined_maps
 
 
 def tensor_to_image(img: Tensor) -> PIL.Image.Image:
@@ -96,26 +85,20 @@ def tensor_to_image(img: Tensor) -> PIL.Image.Image:
 def save_transmission_maps(
     dir_path: Path,
     img_name: str,
-    saturation: Tensor,
     coarse_tm: Tensor,
-    fine_tm_color_guide: Tensor,
-    fine_tm_red_guide: Tensor,
+    refined_maps: list[Tensor],
 ) -> None:
     dir_path.mkdir(parents=True, exist_ok=True)
-    (dir_path / "saturation").mkdir(exist_ok=True)
     (dir_path / "coarse").mkdir(exist_ok=True)
-    (dir_path / "fine_color_guide").mkdir(exist_ok=True)
-    (dir_path / "fine_red_guide").mkdir(exist_ok=True)
 
-    saturation_path = dir_path / "saturation" / img_name
     coarse_path = dir_path / "coarse" / img_name
-    fine_color_guide_path = dir_path / "fine_color_guide" / img_name
-    fine_red_guide_path = dir_path / "fine_red_guide" / img_name
-
     tensor_to_image(coarse_tm).save(coarse_path)
-    tensor_to_image(fine_tm_color_guide).save(fine_color_guide_path)
-    tensor_to_image(fine_tm_red_guide).save(fine_red_guide_path)
-    tensor_to_image(saturation).save(saturation_path)
+
+    for i, refined_map in enumerate(refined_maps):
+        refined_dir = dir_path / f"refined_{i}"
+        refined_dir.mkdir(exist_ok=True)
+        refined_path = refined_dir / img_name
+        tensor_to_image(refined_map).save(refined_path)
 
 
 def format_param_comb_name(
@@ -123,20 +106,22 @@ def format_param_comb_name(
     guided_filter_patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
+    number_of_extra_refinements: int,
 ) -> str:
     return (
         f"rcpPatchRadius_{rcp_patch_radius}__"
         f"guidedFilterPatchRadius_{guided_filter_patch_radius}__"
         f"saturation_{saturation_coef}__"
-        f"regularization_{regularization_coef}"
+        f"regularization_{regularization_coef}__"
+        f"extraRefinements_{number_of_extra_refinements}"
     )
 
 
 def format_parameters(
     root_dir: Path,
     image_paths: Iterable[Path],
-    hyperparameter_combinations: Iterable[tuple[int, int, float, float]],
-) -> Iterator[tuple[Path, Path, int, int, float, float]]:
+    hyperparameter_combinations: Iterable[tuple[int, int, float, float, int]],
+) -> Iterator[tuple[Path, Path, int, int, float, float, int]]:
     for image_path, params in product(image_paths, hyperparameter_combinations):
         yield (root_dir, image_path, *params)
 
@@ -148,6 +133,7 @@ def single_image_job(
     guided_filter_patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
+    number_of_extra_refinements: int,
 ) -> None:
     image_name = image_path.name
     try:
@@ -162,17 +148,13 @@ def single_image_job(
         return
 
     try:
-        (
-            saturation,
-            coarse_tm,
-            fine_tm_color_guide,
-            fine_tm_red_guide,
-        ) = compute_transmission_maps(
+        coarse_tm, refined_maps = compute_transmission_maps(
             image,
             rcp_patch_radius,
             guided_filter_patch_radius,
             saturation_coef,
             regularization_coef,
+            number_of_extra_refinements,
         )
     except Exception as e:
         print("=======ERROR=======", flush=True)
@@ -181,7 +163,8 @@ def single_image_job(
             f"rcp_patch_radius={rcp_patch_radius}, "
             f"guided_filter_patch_radius={guided_filter_patch_radius}, "
             f"saturation_coef={saturation_coef}, "
-            f"regularization_coef={regularization_coef})",
+            f"regularization_coef={regularization_coef}, "
+            f"number_of_extra_refinements={number_of_extra_refinements})",
             flush=True,
         )
         print("==TRACE==", flush=True)
@@ -194,16 +177,15 @@ def single_image_job(
         guided_filter_patch_radius,
         saturation_coef,
         regularization_coef,
+        number_of_extra_refinements,
     )
 
     try:
         save_transmission_maps(
             output_dir / subdir_name,
             image_name,
-            saturation,
             coarse_tm,
-            fine_tm_color_guide,
-            fine_tm_red_guide,
+            refined_maps,
         )
     except Exception as e:
         print("=======ERROR=======", flush=True)
@@ -217,7 +199,7 @@ def single_image_job(
 
 
 def wrapped_single_image_job(
-    t: tuple[Path, Path, int, int, float, float],
+    t: tuple[Path, Path, int, int, float, float, int],
 ) -> None:
     return single_image_job(*t)
 
@@ -228,14 +210,14 @@ def create_transmission_map_axes(
     guided_filter_patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
+    number_of_extra_refinements: int,
 ) -> tuple[Figure, ndarray]:
     column_titles = [
         "Original input image",
-        "Red channel",
-        "Saturation map",
         "Coarse TM",
-        "Fine TM, color guide",
-        "Fine TM, red guide",
+        "Fine TM",
+    ] + [
+        f"Extra Refinement {i + 1}" for i in range(number_of_extra_refinements)
     ]
 
     num_images = len(image_names)
@@ -249,12 +231,13 @@ def create_transmission_map_axes(
         axes = np.atleast_2d(axes)
 
     overall_title = (
-        "Original images, red channels, saturation map of transmission maps."
+        "Original images and transmission maps with multiple refinements."
         " Parameters:\n"
         f"RCP Patch Radius = {rcp_patch_radius}, "
         f"Guided Filter Patch Radius = {guided_filter_patch_radius}, "
         f"Saturation Coefficient = {saturation_coef}, "
-        f"Regularization Coefficient = {regularization_coef}"
+        f"Regularization Coefficient = {regularization_coef}, "
+        f"Num Extra Refinements = {number_of_extra_refinements}"
     )
     fig.suptitle(overall_title, fontsize=16)
 
@@ -279,8 +262,9 @@ def load_transmission_maps(
     guided_filter_patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
+    number_of_extra_refinements: int,
     output_dir: Path,
-) -> tuple[ndarray, ndarray, ndarray, ndarray, ndarray, ndarray]:
+) -> list[ndarray]:
     original = plt.imread(image)
 
     subdir_name = format_param_comb_name(
@@ -288,24 +272,20 @@ def load_transmission_maps(
         guided_filter_patch_radius,
         saturation_coef,
         regularization_coef,
+        number_of_extra_refinements,
     )
 
     subdir = output_dir / subdir_name
-
     image_name = image.name
-    saturation = plt.imread(subdir / "saturation" / image_name)
-    coarse = plt.imread(subdir / "coarse" / image_name)
-    fine_color_guide = plt.imread(subdir / "fine_color_guide" / image_name)
-    fine_red_guide = plt.imread(subdir / "fine_red_guide" / image_name)
 
-    return (
-        original,
-        original[..., 0],
-        saturation,
-        coarse,
-        fine_color_guide,
-        fine_red_guide,
-    )
+    coarse = plt.imread(subdir / "coarse" / image_name)
+
+    refined_maps = []
+    for i in range(1 + number_of_extra_refinements):
+        refined_map = plt.imread(subdir / f"refined_{i}" / image_name)
+        refined_maps.append(refined_map)
+
+    return [original, coarse] + refined_maps
 
 
 def visualize_transmission_maps(
@@ -314,6 +294,7 @@ def visualize_transmission_maps(
     guided_filter_patch_radius: int,
     saturation_coef: float,
     regularization_coef: float,
+    number_of_extra_refinements: int,
     output_dir: Path,
 ) -> None:
     images_to_display = [
@@ -323,6 +304,7 @@ def visualize_transmission_maps(
             guided_filter_patch_radius,
             saturation_coef,
             regularization_coef,
+            number_of_extra_refinements,
             output_dir,
         )
         for image in images
@@ -335,6 +317,7 @@ def visualize_transmission_maps(
         guided_filter_patch_radius,
         saturation_coef,
         regularization_coef,
+        number_of_extra_refinements,
     )
 
     for row_idx, img_results in enumerate(images_to_display):
@@ -386,6 +369,16 @@ def build_parser() -> ArgumentParser:
     )
 
     parser.add_argument(
+        "-n",
+        "--number-of-extra-refinements",
+        type=int,
+        nargs="+",
+        dest="numbers_of_extra_refinements",
+        required=True,
+        help="Number of extra guided filter refinements to apply.",
+    )
+
+    parser.add_argument(
         "-o",
         "--output-dir",
         help="Output directory path",
@@ -414,6 +407,7 @@ def main():
     guided_filter_patch_radii = args.guided_filter_patch_radii
     saturation_coefs = args.saturation_coefs
     regularization_coefs = args.regularization_coefs
+    numbers_of_extra_refinements = args.numbers_of_extra_refinements
 
     hyperparameter_combinations_for_compute = list(
         itertools.product(
@@ -421,6 +415,7 @@ def main():
             guided_filter_patch_radii,
             saturation_coefs,
             regularization_coefs,
+            numbers_of_extra_refinements,
         )
     )
 
@@ -444,7 +439,6 @@ def main():
 
     print("Finished computing transmission maps.")
 
-    # --- Visualization ---
     print("Visualizing results...")
     hyperparameter_combinations_for_viz = list(
         itertools.product(
@@ -452,6 +446,7 @@ def main():
             guided_filter_patch_radii,
             saturation_coefs,
             regularization_coefs,
+            numbers_of_extra_refinements,
         )
     )
 
