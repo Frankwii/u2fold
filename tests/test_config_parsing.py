@@ -240,7 +240,7 @@ def test_should_raise_if_incorrect_layer_sizes():
         "gelu",
         "--channels-per-layer",
         "3",
-        "256",
+        "-256",
         "512",
         "1",
         "3",
@@ -259,7 +259,7 @@ def test_should_raise_if_incorrect_layer_sizes():
     args = parser.parse_args(cli_args)
 
     with pytest.raises(
-        ValueError, match="Invalid number of channels per UNet layer."
+        ValueError, match="Invalid number of channels in UNet layer."
     ):
         config = parse_and_validate_config(args)
 

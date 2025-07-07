@@ -26,11 +26,11 @@ def test_linear_search_background_light_per_image():
     patches[0, :, 0, 0] = 1.0
     patches[1, :, 1, 1] = 1.0
 
-    expected_pixels = Tensor([[1, 1, 1], [1, 1, 1]])
-    output_pixels = _linear_search_background_light(patches)
+    expected = Tensor([[1, 1, 1], [1, 1, 1]]).reshape(2, 3, 1, 1)
+    output = _linear_search_background_light(patches)
 
-    assert output_pixels.shape == (B, C)
-    assert torch.allclose(output_pixels, expected_pixels)
+    assert output.shape == (B, C, 1, 1)
+    assert torch.allclose(output, expected)
 
 
 def test_split_image_into_quadrants_even_dims():
@@ -88,11 +88,11 @@ def test_estimate_background_light1():
     # Optimal quadrant
     images[:, :, 0 : 4, 4 : W] = 0.95
 
-    expected = Tensor([0.95, 0.95, 0.95]).reshape(B, C)
+    expected = Tensor([0.95, 0.95, 0.95]).reshape(B, C, 1, 1)
 
     output = estimate_background_light(images)
 
-    assert output.shape == (B, C)
+    assert output.shape == (B, C, 1, 1)
     assert torch.allclose(output, expected)
 
 
@@ -104,8 +104,8 @@ def test_estimate_background_light2():
 
     # The program should not keep splitting into quadrants
     # but rather go straight into the optimal pixel
-    expected = Tensor([1, 1, 1]).reshape(B, C)
+    expected = Tensor([1, 1, 1]).reshape(B, C, 1, 1)
     output = estimate_background_light(images)
 
-    assert output.shape == (B, C)
+    assert output.shape == (B, C, 1, 1)
     assert torch.allclose(output, expected)

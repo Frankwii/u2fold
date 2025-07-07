@@ -34,12 +34,12 @@ def test_estimate_coarse_transmission_map():
     input = torch.zeros(B, C, H, W)
     input[0, 1:, :2, :2] = 1  # top-left corner is cyan
 
-    expected_background_lights = torch.zeros(B, 3)
-    expected_background_lights[0, 1:] = 1
+    expected_background_lights = torch.zeros(B, 3, 1, 1)
+    expected_background_lights[0, 1:, 0, 0] = 1
 
     background_lights = estimate_background_light(input)
 
-    assert background_lights.shape == (B, C)
+    assert background_lights.shape == (B, C, 1, 1)
     assert torch.equal(background_lights, expected_background_lights)
 
     patch_radius = 1
