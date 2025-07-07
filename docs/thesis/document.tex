@@ -98,7 +98,7 @@ PENDENT: Explicar un mínim d'on surt aquella equació (UIFM) i posar cites.
 Let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e., the desired image), \(t\) the transmission map, \(g\) the point-spread funcion and \(B\) the background light. According to the UIFM, for each color channel \(c\in\{r, g, b\}\) and pixel \(x\),
 
 \begin{equation}\label{eq:physical-model}
-  I^c(x) = \left(J^ct\right)(x) + B^c\left(1 - t(x)\right) + \left(\left(J^c t\right)\ast g^c\right) (x) + \xi^c(x),
+  I^c(x) = B^c\left(1 - t(x)\right) + \left(g^c\ast\left(J^c t\right)\right) (x) + \xi^c(x),
 \end{equation}
 
 where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as white noise (i.i.d. centered gaussians).

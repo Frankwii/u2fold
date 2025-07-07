@@ -15,6 +15,7 @@ dependencies = [
   "tensorboard",
   "pillow",
   "matplotlib",
+  "standard-imghdr",
   "tqdm",
   "pyqt6"
 ]
