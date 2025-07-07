@@ -65,7 +65,7 @@ def _linear_search_background_light(
 
 @torch.compile
 def _MAX_ALLOWED_SIZE(batch_size: int, channels: int) -> int:
-    return batch_size * channels * 4  # 2 x 2 patches are the biggest allowed.
+    return batch_size * channels * 16  # 4 x 4 patches are the biggest allowed.
 
 
 @torch.compile
