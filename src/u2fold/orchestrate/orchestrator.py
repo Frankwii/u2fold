@@ -77,14 +77,14 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         self._logger = getLogger(__name__)
         self._logger.info(f"Initializing orchestrator.")
         self._config = config
-        self.__weight_handler = weigth_handler
+        self._weight_handler = weigth_handler
         image_bundle = ModelInitBundle(
             config.model_config,
             get_from_tag(f"model/{config.model_name}"),
             device=config.device,
         )
 
-        self._models = self.__weight_handler.load_models(image_bundle)
+        self._models = self._weight_handler.load_models(image_bundle)
 
         self._model_optimizer = Adam(
             torch.nn.ModuleList(chain.from_iterable(self._models)).parameters()
@@ -349,9 +349,9 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                 min_valiation_loss = validation_loss
                 self._logger.info(
                     f"Validation loss minimum achieved at epoch {epoch}."
-                    " saving new weigths to disk."
+                    " saving new weights to disk."
                 )
-                self.__weight_handler.save_models(self._models)
+                self._weight_handler.save_models(self._models)
 
             test_loss = self.run_test_epoch(epoch)
 
@@ -391,13 +391,14 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                 restored_image, "Test/Output", epoch
             )
 
-            radiance_estimation_fidelity = (
+            radiance_estimation = (
                 output.fidelity
                 / output.transmission_map.clamp(min=1e-4)
             )
+
             self.tensorboard_log_image(
-                radiance_estimation_fidelity,
-                "Test/Radiance_from_fidelity",
+                radiance_estimation,
+                "Test/First_radiance",
                 epoch,
             )
 
