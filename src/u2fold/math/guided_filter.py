@@ -83,7 +83,7 @@ def guided_filter(
     covI = corrI - cross_multiply_channels(meanI, meanI)  # (B, C, C, H, W)
     covIp = corrIp - cross_multiply_channels(meanI, meanp)  # (B, C, D, H, W)
 
-    id_matrix = identity(C)
+    id_matrix = identity(C).to(input.device)
     a: Tensor = (
         torch.linalg.solve(
             (

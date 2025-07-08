@@ -10,7 +10,7 @@ import torch
 import torch.nn.functional as F
 from PIL import Image
 from torch import Tensor
-from torch.nn import MSELoss, Parameter
+from torch.nn import Parameter
 from torch.optim import Adam, Optimizer
 from torch.utils.checkpoint import checkpoint
 from torch.utils.tensorboard import SummaryWriter
