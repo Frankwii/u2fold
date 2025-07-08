@@ -104,10 +104,13 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         with torch.no_grad():
             background_light = estimate_background_light(input)
 
+            transmission_map_config = self._config.transmission_map_estimation_config
             fidelity, transmission_map = estimate_fidelity_and_transmission_map(
                 input,
                 background_light,
-                self._config.transmission_map_estimation_config,
+                transmission_map_config.patch_radius,
+                transmission_map_config.saturation_coefficient,
+                transmission_map_config.regularization_coefficient
             )
 
         return DeterministicComponents(fidelity, transmission_map)

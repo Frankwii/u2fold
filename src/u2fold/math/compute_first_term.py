@@ -1,9 +1,6 @@
 import torch
 from torch import Tensor
 
-from u2fold.config_parsing.config_dataclasses import (
-    TransmissionMapEstimationConfig,
-)
 from .transmission_map_estimation import estimate_transmission_map
 
 
@@ -11,14 +8,16 @@ from .transmission_map_estimation import estimate_transmission_map
 def estimate_fidelity_and_transmission_map(
     images: Tensor,  # I; (B, C, H, W)
     background_light: Tensor,  # B; (B, C, 1, 1)
-    config: TransmissionMapEstimationConfig,
+    patch_radius: int,
+    saturation_coefficient: float,
+    regularization_coefficient: float,
 ) -> tuple[Tensor, Tensor]:  # (J_0, t); ((B, C, H, W), (B, 1, H, W))
     transmission_map_estimation = estimate_transmission_map(
         images,
         background_light,
-        config.patch_radius,
-        config.saturation_coefficient,
-        config.regularization_coefficient,
+        patch_radius,
+        saturation_coefficient,
+        regularization_coefficient,
     )  # t; (B, 1, H, W)
 
     fidelity = images - (1 - transmission_map_estimation) * background_light
