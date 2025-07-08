@@ -173,6 +173,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
             self._config.device,
         )
 
+    @torch.enable_grad
     def optimize_kernel(
         self,
         kernel_bundle: KernelBundle,
@@ -202,7 +203,9 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
         return kernel_bundle.compute_kernel()
 
-    def tensorboard_log_image(self, image: Tensor, tag: str) -> None: ...
+    def tensorboard_log_image(
+        self, image: Tensor, tag: str, epoch: int
+    ) -> None: ...
 
     def tensorboard_log_scalar(self, value: float, tag: str) -> None: ...
 
@@ -218,8 +221,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         self,
         input: Tensor,
     ) -> ForwardPassResult:
-        self.tensorboard_log_image(input, "Input")
-
         deterministic_components = self.compute_deterministic_components(input)
 
         primal_dual_bundle = self.initialize_primal_dual(
@@ -271,15 +272,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                     tuple[Tensor, Tensor], backward_checkpoint
                 )
 
-            self.tensorboard_log_image(
-                kernel, f"Kernel; greedy iteration {greedy_iter}"
-            )
-            self.tensorboard_log_image(
-                primal_variable
-                / deterministic_components.transmission_map.clamp(0.1),
-                f"Radiance estimation; greedy iteration {greedy_iter}",
-            )
-
         return ForwardPassResult(
             primal_variable,
             kernel,
@@ -298,8 +290,11 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     fidelity_term = torch.nn.functional.mse_loss(
         convolution.conv(output.primal_variable, output.kernel), output.fidelity
     )
+    restored_image = output.primal_variable / output.transmission_map.clamp(
+        min=1e-4
+    )
     ground_truth_term = torch.nn.functional.mse_loss(
-        output.primal_variable, ground_truth
+        restored_image, ground_truth
     )
 
     return fidelity_term + ground_truth_term
@@ -324,13 +319,19 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
     def run(self):
         print(f"Running!")
         if self._config.tensorboard_log_dir.exists():
+            self._logger.warning(
+                "Found an existing tensorboard log directory."
+                " Emptying it."
+            )
             shutil.rmtree(self._config.tensorboard_log_dir)
             self._config.tensorboard_log_dir.mkdir()
 
+        self._logger.debug("Starting tensorboard process")
         tensorboard_process = subprocess.Popen(
             ["tensorboard", "--logdir", self._config.tensorboard_log_dir]
         )
 
+        self._logger.info("Starting training.")
         min_valiation_loss = torch.inf
         for epoch in tqdm(
             range(1, self._config.n_epochs + 1),
@@ -349,38 +350,62 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                 )
                 self.__weight_handler.save_models(self._models)
 
-            test_loss = self.run_validation_epoch()
+            test_loss = self.run_test_epoch(epoch)
 
             self.tensorboard_log_loss(train_loss, "Train loss", epoch)
             self.tensorboard_log_loss(validation_loss, "Validation loss", epoch)
             self.tensorboard_log_loss(test_loss, "Test loss", epoch)
-
-        print(
+        msg = (
             "Traning has finished, but the tensorboard process will be kept"
             " running. Please kill the process to stop it."
         )
+        self._logger.warning(msg)
+        print(msg)
+
         tensorboard_process.wait()
 
-    def run_test_epoch(self) -> float:
+    def run_test_epoch(self, epoch: int) -> float:
         cumulative_loss = 0.0
 
         with torch.no_grad():
             test_iter = iter(self.__dataloaders.test)
-
+            
             first_input, first_ground_truth = next(test_iter)
+            
             output = self.forward_pass(first_input)
-
+            
             loss = self.__loss_function(output, first_ground_truth)
             cumulative_loss += loss.detach().item()
 
-            self.tensorboard_log_image(first_input, "Input")
+            if epoch == 1:
+                self.tensorboard_log_image(first_input, "Test/Input", epoch)
+
+            restored_image = (
+                output.primal_variable
+                / output.transmission_map.clamp(min=1e-4)
+            )
+            self.tensorboard_log_image(
+                restored_image, "Test/Output", epoch
+            )
+
+            radiance_estimation_fidelity = (
+                output.fidelity
+                / output.transmission_map.clamp(min=1e-4)
+            )
+            self.tensorboard_log_image(
+                radiance_estimation_fidelity,
+                "Test/Radiance_from_fidelity",
+                epoch,
+            )
+
             for input, ground_truth in test_iter:
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
                 cumulative_loss += loss.detach().item()
 
-        return cumulative_loss / len(self.__dataloaders.validation)
+
+        return cumulative_loss / len(self.__dataloaders.test)
 
     def run_validation_epoch(self) -> float:
         cumulative_loss = 0.0
@@ -410,10 +435,11 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
         return cumulative_loss / len(self.__dataloaders.training)
 
-    def tensorboard_log_image(self, image: Tensor, tag: str) -> None:
+    def tensorboard_log_image(
+        self, image: Tensor, tag: str, epoch: int
+    ) -> None:
         self._tensorboard_logger.add_images(
-            tag,
-            image.detach(),
+            tag, image.detach(), global_step=epoch
         )
 
     def tensorboard_log_hist(self, image: Tensor, tag: str) -> None:

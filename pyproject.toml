@@ -1,5 +1,5 @@
 [project]
-name = "U2FOLD"
+name = "u2fold"
 version = "0.2.0"
 description = "U2FOLD: Underwater image unfolding"
 readme = "README.md"
@@ -58,8 +58,5 @@ u2fold = "main:main"
 profile = "main:profile"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.setuptools.packages.find]
-where = ["src"]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
