@@ -2,20 +2,14 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NamedTuple, Optional, cast
+from typing import Optional, cast
 
 import torch
 
 from u2fold.models.generic import Model, ModelConfig
 
-
-class U2FoldWeightTuple[T, U](NamedTuple):
-    image: list[T]
-    kernel: list[U]
-
-
-type WeightTreeStructure[T, U] = list[U2FoldWeightTuple[T, U]]
-type WeightFileTree = WeightTreeStructure[Path, Path]
+type WeightTreeStructure[T] = list[list[T]]
+type WeightFileTree = WeightTreeStructure[Path]
 
 
 @dataclass
@@ -46,31 +40,12 @@ class WeightHandler(ABC):
     def _handle_no_greedy_iter_dirs(self, root_dir: Path) -> None: ...
 
     @abstractmethod
-    def _handle_nonexisting_subdir(self, subdir: Path) -> None: ...
-
-    @abstractmethod
     def _handle_empty_stage_dir(self, stage_dir: Path) -> list[Path]: ...
 
-    def _resolve_stages(self, dir: Path) -> list[Path]:
-        stage_weight_files = sorted(dir.iterdir())
-        if len(stage_weight_files) == 0:
-            return self._handle_empty_stage_dir(dir)
-
-        return stage_weight_files
-
-    def __resolve_greedy_iteration(
-        self, dir: Path
-    ) -> U2FoldWeightTuple[Path, Path]:
-        expected_subdirs = [dir.joinpath("image"), dir.joinpath("kernel")]
-
-        for subdir in expected_subdirs:
-            if not subdir.exists():
-                self._handle_nonexisting_subdir(subdir)
-
-        return U2FoldWeightTuple(
-            image=self._resolve_stages(expected_subdirs[0]),
-            kernel=self._resolve_stages(expected_subdirs[1]),
-        )
+    @abstractmethod
+    def _handle_nonexisting_weight_file[C: ModelConfig](
+        self, weight_file: Path, model_bundle: ModelInitBundle[C]
+    ) -> Model[C]: ...
 
     def __build_filetree(self, model_weight_dir: Path) -> WeightFileTree:
         sorted_greedy_iteration_dirs = sorted(model_weight_dir.iterdir())
@@ -83,6 +58,13 @@ class WeightHandler(ABC):
             self.__resolve_greedy_iteration(greedy_iter_dir)
             for greedy_iter_dir in sorted_greedy_iteration_dirs
         ]
+
+    def __resolve_greedy_iteration(self, dir: Path) -> list[Path]:
+        stage_weight_files = sorted(dir.iterdir())
+        if len(stage_weight_files) == 0:
+            return self._handle_empty_stage_dir(dir)
+
+        return stage_weight_files
 
     def __load_model_no_check[C: ModelConfig](
         self, weight_file: Path, model_init_bundle: ModelInitBundle[C]
@@ -105,13 +87,8 @@ class WeightHandler(ABC):
                 f" Error:\n{e}"
             )
             raise RuntimeError(errmsg)
-        # Cheating here since Pytorch doesn't know about custom abstractions
+        # Cheating here since pytorch doesn't know about custom abstractions
         return cast(Model[C], model)
-
-    @abstractmethod
-    def _handle_nonexisting_weight_file[C: ModelConfig](
-        self, weight_file: Path, model_bundle: ModelInitBundle[C]
-    ) -> Model[C]: ...
 
     def _load_model[C: ModelConfig](
         self, weight_file: Path, model_bundle: ModelInitBundle[C]
@@ -121,21 +98,14 @@ class WeightHandler(ABC):
 
         return self._handle_nonexisting_weight_file(weight_file, model_bundle)
 
-    def load_models[C: ModelConfig, D: ModelConfig](
+    def load_models[C: ModelConfig](
         self,
         image_model_bundle: ModelInitBundle[C],
-        kernel_model_bundle: ModelInitBundle[D],
-    ) -> WeightTreeStructure[Model[C], Model[D]]:
+    ) -> WeightTreeStructure[Model[C]]:
         return [
-            U2FoldWeightTuple(
-                image=[
-                    self._load_model(weight_file, image_model_bundle)
-                    for weight_file in greedy_iter_dir.image
-                ],
-                kernel=[
-                    self._load_model(weight_file, kernel_model_bundle)
-                    for weight_file in greedy_iter_dir.kernel
-                ],
-            )
+            [
+                self._load_model(weight_file, image_model_bundle)
+                for weight_file in greedy_iter_dir
+            ]
             for greedy_iter_dir in self._filetree
         ]

@@ -16,10 +16,6 @@ class ExecWeightHandler(WeightHandler):
         errmsg = f"Empty global weight directory: {root_dir}"
         raise FileNotFoundError(errmsg)
 
-    def _handle_nonexisting_subdir(self, subdir: Path) -> None:
-        errmsg = f"Non-existing weight subdirectory: {subdir}"
-        raise FileNotFoundError(errmsg)
-
     def _handle_empty_stage_dir(self, stage_dir: Path) -> list[Path]:
         errmsg = f"Empty model weight directory: {stage_dir}"
         raise FileNotFoundError(errmsg)

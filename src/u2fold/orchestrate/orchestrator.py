@@ -2,16 +2,19 @@ import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from functools import partial
+from itertools import chain
 from logging import getLogger
 from typing import Callable, NamedTuple, Optional, cast
 
 import torch
 import torch.nn.functional as F
+from PIL import Image
 from torch import Tensor
 from torch.nn import MSELoss, Parameter
 from torch.optim import Adam, Optimizer
 from torch.utils.checkpoint import checkpoint
 from torch.utils.tensorboard import SummaryWriter
+from torchvision.transforms.functional import to_pil_image, to_tensor
 from tqdm import tqdm
 
 import u2fold.math.linear_operators as lin
@@ -22,11 +25,9 @@ from u2fold.config_parsing.config_dataclasses import (
     U2FoldConfig,
 )
 from u2fold.data import get_dataloaders
-from u2fold.data.dataloader_generics.base import U2FoldDataLoader
-from u2fold.math import convolution, proximities
+from u2fold.math import convolution
 from u2fold.math.background_light_estimation import estimate_background_light
 from u2fold.math.compute_first_term import (
-    compute_I2,
     estimate_fidelity_and_transmission_map,
 )
 from u2fold.math.primal_dual import PrimalDualSchema
@@ -77,14 +78,16 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         self._logger.info(f"Initializing orchestrator.")
         self._config = config
         self.__weight_handler = weigth_handler
-        image_bundle = kernel_bundle = ModelInitBundle(
+        image_bundle = ModelInitBundle(
             config.model_config,
             get_from_tag(f"model/{config.model_name}"),
             device=config.device,
         )
 
-        self._models = self.__weight_handler.load_models(
-            image_bundle, kernel_bundle
+        self._models = self.__weight_handler.load_models(image_bundle)
+
+        self._model_optimizer = Adam(
+            torch.nn.ModuleList(chain.from_iterable(self._models)).parameters()
         )
 
         self.__kernel_size = 7
@@ -170,7 +173,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
             self._config.device,
         )
 
-    @torch.compile
     def optimize_kernel(
         self,
         kernel_bundle: KernelBundle,
@@ -208,7 +210,9 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
     def tensorboard_log_text(self, text: str, tag: str) -> None: ...
 
-    def tensorboard_log_loss(self, val: float) -> None: ...
+    def tensorboard_log_loss(
+        self, val: float, tag: str, epoch: int
+    ) -> None: ...
 
     def forward_pass(
         self,
@@ -230,8 +234,13 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         kernel = cast(Tensor, None)
         N_ITERS = 150
 
+        primal_variable = primal_dual_bundle.primal_variable
+        dual_variable = primal_dual_bundle.dual_variable
+
         for greedy_iter, greedy_iter_models in tqdm(
-            enumerate(self._models, start=1), desc="Greedy iterations"
+            enumerate(self._models, start=1),
+            total=len(self._models),
+            desc="Greedy iterations",
         ):
             # Fix image, estimate kernel
             kernel = self.optimize_kernel(
@@ -247,20 +256,11 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
             )
 
             # Fix kernel, estimate image
-            model = next(iter(greedy_iter_models.image))
-            for stage_n, _ in enumerate(greedy_iter_models.image, start=1):
-                primal_variable, dual_variable = (
+            for stage_n, model in enumerate(greedy_iter_models, start=1):
+                backward_checkpoint = checkpoint(
                     primal_dual_bundle.schema.with_primal_proximity(
                         model, False
-                    ).run(
-                        primal_dual_bundle.primal_variable,
-                        primal_dual_bundle.dual_variable,
-                        N_ITERS,
-                    )
-                )
-
-                backward_checkpoint = checkpoint(
-                    primal_dual_bundle.schema.run,
+                    ).run,
                     primal_variable,
                     dual_variable,
                     N_ITERS,
@@ -275,13 +275,13 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                 kernel, f"Kernel; greedy iteration {greedy_iter}"
             )
             self.tensorboard_log_image(
-                primal_dual_bundle.primal_variable
+                primal_variable
                 / deterministic_components.transmission_map.clamp(0.1),
                 f"Radiance estimation; greedy iteration {greedy_iter}",
             )
 
         return ForwardPassResult(
-            primal_dual_bundle.primal_variable,
+            primal_variable,
             kernel,
             deterministic_components.transmission_map,
             deterministic_components.fidelity,
@@ -318,19 +318,10 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
         )
 
         self.__loss_function = train_loss
-        self._tensorboard_logger = SummaryWriter(
-            config.tensorboard_log_dir,
-            flush_secs=2,  # TODO: remove this; this is for debugging only
-        )
+        self._tensorboard_logger = SummaryWriter(config.tensorboard_log_dir)
         self._logger.info(f"Finished initializing orchestrator!")
 
-    def forward_pass(self, input: Tensor) -> ForwardPassResult:
-        res = super().forward_pass(input)
-
-        return res
-
     def run(self):
-        # self.debug()
         print(f"Running!")
         if self._config.tensorboard_log_dir.exists():
             shutil.rmtree(self._config.tensorboard_log_dir)
@@ -342,7 +333,9 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
         min_valiation_loss = torch.inf
         for epoch in tqdm(
-            range(1, self._config.n_epochs + 1), desc="Training epochs"
+            range(1, self._config.n_epochs + 1),
+            total=self._config.n_epochs,
+            desc="Training epochs",
         ):
             print(f"Epoch {epoch}")
             train_loss = self.run_train_epoch()
@@ -350,12 +343,17 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
             if validation_loss < min_valiation_loss:
                 min_valiation_loss = validation_loss
-                print(f"Min loss @ epoch {epoch}")
+                self._logger.info(
+                    f"Validation loss minimum achieved at epoch {epoch}."
+                    " saving new weigths to disk."
+                )
+                self.__weight_handler.save_models(self._models)
+
             test_loss = self.run_validation_epoch()
 
             self.tensorboard_log_loss(train_loss, "Train loss", epoch)
             self.tensorboard_log_loss(validation_loss, "Validation loss", epoch)
-            self.tensorboard_log_loss(test_loss, "Validation loss", epoch)
+            self.tensorboard_log_loss(test_loss, "Test loss", epoch)
 
         print(
             "Traning has finished, but the tensorboard process will be kept"
@@ -373,14 +371,14 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             output = self.forward_pass(first_input)
 
             loss = self.__loss_function(output, first_ground_truth)
-            cumulative_loss += loss.item()
+            cumulative_loss += loss.detach().item()
 
-            # self.tensorboard_log_image(first_input, "Input")
+            self.tensorboard_log_image(first_input, "Input")
             for input, ground_truth in test_iter:
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
-                cumulative_loss += loss.item()
+                cumulative_loss += loss.detach().item()
 
         return cumulative_loss / len(self.__dataloaders.validation)
 
@@ -392,7 +390,7 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
-                cumulative_loss += loss.item()
+                cumulative_loss += loss.detach().item()
 
         return cumulative_loss / len(self.__dataloaders.validation)
 
@@ -400,28 +398,31 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
         cumulative_loss = 0.0
 
         for input, ground_truth in self.__dataloaders.training:
+            self._model_optimizer.zero_grad()
             output = self.forward_pass(input)
 
             loss = self.__loss_function(output, ground_truth)
 
-            cumulative_loss += loss.item()
+            cumulative_loss += loss.detach().item()
 
             loss.backward()
+            self._model_optimizer.step()
 
         return cumulative_loss / len(self.__dataloaders.training)
 
     def tensorboard_log_image(self, image: Tensor, tag: str) -> None:
         self._tensorboard_logger.add_images(
             tag,
-            image,
+            image.detach(),
         )
 
     def tensorboard_log_hist(self, image: Tensor, tag: str) -> None:
+        img = image.detach()
         for i in range(image.size(0)):
             for c in range(image.size(1)):
                 self._tensorboard_logger.add_histogram(
                     f"{tag}_channel{c}_image{i}",
-                    image[i][c].flatten(),
+                    img[i][c].flatten(),
                     global_step=i,
                 )
 
@@ -434,7 +435,25 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
 class ExecOrchestrator(Orchestrator[ExecConfig, ExecWeightHandler]):
     def run(self) -> None:
-        raise NotImplementedError("Hehehe")
+        self._logger.info(f"Executing model on {self._config.input}")
+
+        input_image = Image.open(self._config.input).convert("RGB")
+        input_tensor = (
+            to_tensor(input_image).unsqueeze(0).to(self._config.device)
+        )
+
+        with torch.no_grad():
+            output = self.forward_pass(input_tensor)
+
+        restored_image_tensor = (
+            (output.primal_variable / output.transmission_map.clamp(min=1e-4))
+            .squeeze(0)
+            .clamp(0, 1)
+        )
+
+        restored_image = to_pil_image(restored_image_tensor.cpu())
+        restored_image.save(self._config.output)
+        self._logger.info(f"Saved output to {self._config.output}")
 
 
 def get_orchestrator(config: U2FoldConfig) -> Orchestrator:

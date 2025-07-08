@@ -111,7 +111,7 @@ def save_mock_weights(greedy_iters: int, stages: int):
     filetree = handler._filetree
 
     nested_map(
-        lambda file: handler.save_weights(cast(Path, file), model), filetree
+        lambda file: handler.__save_weights(cast(Path, file), model), filetree
     )
 
     return model.state_dict()

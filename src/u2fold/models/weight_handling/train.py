@@ -2,13 +2,13 @@ import math
 from pathlib import Path
 
 import torch
-
-from u2fold.models.generic import Model, ModelConfig
-
 from .generic import (
     ModelInitBundle,
     WeightHandler,
+    WeightTreeStructure,
 )
+
+from u2fold.models.generic import Model, ModelConfig
 
 
 class TrainWeightHandler(WeightHandler):
@@ -42,13 +42,6 @@ class TrainWeightHandler(WeightHandler):
         for name in dir_names:
             root_dir.joinpath(name).mkdir()
 
-    def _handle_nonexisting_subdir(self, subdir: Path) -> None:
-        self._logger.debug(
-            f"Found no {subdir.name} dir under {subdir.parent} when parsing"
-            f" weight tree. Creating it."
-        )
-        subdir.mkdir()
-
     def _handle_empty_stage_dir(self, stage_dir: Path) -> list[Path]:
         self._logger.debug(
             f"Found no weight files at stage level in {stage_dir}. Creating"
@@ -71,10 +64,25 @@ class TrainWeightHandler(WeightHandler):
 
         return model_bundle.class_(model_bundle.config, model_bundle.device)
 
-    def save_weights(self, weight_file: Path, model: Model) -> None:
+    def __save_weights(self, weight_file: Path, model: Model) -> None:
         self._logger.debug(
             f"Saving state dict for model {type(model).__name__}"
             f" at {weight_file}."
         )
         state_dict = model.state_dict()
         torch.save(state_dict, weight_file)
+
+    def save_models(self, models: WeightTreeStructure[Model]) -> None:
+        assert len(models) == len(self._filetree), (
+            "Models and filetree not paired"
+        )
+        for stage_models, dir in zip(models, self._filetree):
+            assert len(stage_models) == len(dir), (
+                "Models and filetree not paired"
+            )
+
+        for stage_models, dir in zip(models, self._filetree):
+            for model, file in zip(stage_models, dir):
+                self.__save_weights(file, model)
+
+

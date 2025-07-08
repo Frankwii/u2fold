@@ -1,10 +1,9 @@
 from functools import partial
 
 import torch
-from torch import Tensor, reshape
+from torch import Tensor
 
 
-@torch.compile
 def mean_filter(image: Tensor, patch_radius: int) -> Tensor:
     """Computes a shape-preserving mean filter with a square window for a batch
     of images.
@@ -32,14 +31,13 @@ def cross_multiply_channels(
     a: Tensor,  # (B, C, H, W)
     b: Tensor,  # (B, D, H, W)
 ) -> Tensor:  # (B, C, D, H, W)
-
     return a.unsqueeze(2) * b.unsqueeze(1)
+
 
 def identity(C: int) -> Tensor:  # (1, C, C, 1, 1)
     return torch.eye(C).reshape(1, C, C, 1, 1)
 
 
-@torch.compile
 def guided_filter(
     guide: Tensor,
     input: Tensor,
@@ -72,11 +70,15 @@ def guided_filter(
     _, D, _, _ = input.shape
 
     mf = partial(mean_filter, patch_radius=patch_radius)
-    meanI = mf(guide) # (B, C, H, W)
-    meanp = mf(input) # (B, D, H, W)
+    meanI = mf(guide)  # (B, C, H, W)
+    meanp = mf(input)  # (B, D, H, W)
 
-    corrI = mf(cross_multiply_channels(guide, guide).reshape(B, -1, H, W)).reshape(B, C, C, H, W)
-    corrIp = mf(cross_multiply_channels(guide, input).reshape(B, -1, H, W)).reshape(B, C, D, H, W)
+    corrI = mf(
+        cross_multiply_channels(guide, guide).reshape(B, -1, H, W)
+    ).reshape(B, C, C, H, W)
+    corrIp = mf(
+        cross_multiply_channels(guide, input).reshape(B, -1, H, W)
+    ).reshape(B, C, D, H, W)
 
     covI = corrI - cross_multiply_channels(meanI, meanI)  # (B, C, C, H, W)
     covIp = corrIp - cross_multiply_channels(meanI, meanp)  # (B, C, D, H, W)
@@ -90,8 +92,7 @@ def guided_filter(
                 )  # (B, H, W, C, C)
             ),
             covIp.permute(0, 3, 4, 1, 2),  # (B, H, W, C, D)
-        ) # (B, H, W, C, D)
-        .permute(0, 3, 4, 1, 2)  # (B, C, D, H, W)
+        ).permute(0, 3, 4, 1, 2)  # (B, H, W, C, D)  # (B, C, D, H, W)
     )
 
     b = meanp - (a * meanI.unsqueeze(2)).sum(dim=1)
