@@ -260,18 +260,24 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
             # Fix kernel, estimate image
             for stage_n, model in enumerate(greedy_iter_models, start=1):
-                backward_checkpoint = checkpoint(
+                # backward_checkpoint = checkpoint(
+                #     primal_dual_bundle.schema.with_primal_proximity(
+                #         model, False
+                #     ).run,
+                #     primal_variable,
+                #     dual_variable,
+                #     1,
+                #     use_reentrant=False,
+                # )
+                #
+                # primal_variable, dual_variable = cast(
+                #     tuple[Tensor, Tensor], backward_checkpoint
+                # )
+
+                primal_variable, dual_variable = (
                     primal_dual_bundle.schema.with_primal_proximity(
                         model, False
-                    ).run,
-                    primal_variable,
-                    dual_variable,
-                    1,
-                    use_reentrant=False,
-                )
-
-                primal_variable, dual_variable = cast(
-                    tuple[Tensor, Tensor], backward_checkpoint
+                    ).run(primal_variable, dual_variable, 1)
                 )
 
         return ForwardPassResult(
@@ -403,7 +409,6 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                     "Test/First_radiance",
                     epoch,
                 )
-
 
             for input, ground_truth in test_iter:
                 output = self.forward_pass(input)
