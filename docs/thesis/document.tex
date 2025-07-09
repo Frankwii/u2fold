@@ -19,6 +19,9 @@
 \SetKwComment{Comment}{/* }{ */}
 
 
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
 
 
 % % % % % % % % % % % % % % % % % %
@@ -80,9 +83,110 @@ Blabla cites SOTA etc avorrit.
 
 \section{Mathematical model}
 \subsection{Theoretical grounding and notation}\label{subsec:theoretical-grounding}
-Three representations of images will be used in this work, the equivalences between which will be described below.
+\subsubsection{Image representations}
 
-The most common representation is that of a \(2D\) or \(3D\) array, depending on whether the image is grayscale or colored.
+Two representations of digital images will be used in this work, the equivalences between which will be described below.
+
+The most common representation among computing frameworks is that of multidimensional arrays, sometimes also called \textit{tensors}. We shall refer to this one as the \textbf{discrete} representation. Since \textit{pytorch} will be used to implement the algorithms described in this text, the standard 4D representation will be used; that is, images will always have the \textit{Shape} \((B, C, H, W)\), where \(B\) is the batch size (\(1\) for a single image), \(C\) is the number of channels (\(3\) for an RGB image, \(1\) for a grayscale one), and \(H\) and \(W\) are the height and width of the image, respectively.
+
+The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will not be continuous in general.}. It will be the preferred one in the mathematical formulas of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
+
+In order to be able to comfortably extend continuous operations for images, it is useful to center the domain \(\Omega\) with respect to the origin. Concretely, for a batched image \(I\) with shape \((B, C, H, W)\), \(B\)  scalar fields are defined on the same domain \(\Omega\). Namely, \(I^1, \dots, I^B\colon\Omega\to \mathbb{R}^C\), where the domain \(\Omega\) is given by
+\[
+  \Omega = (-\lceil \tilde{w}\rceil - 1, \lfloor \tilde{w}\rfloor]\times(-\lceil \tilde{h}\rceil -1, \lfloor \tilde{h}\rfloor]
+,\]
+
+with \(\overline{w}=\frac{W-1}{2}\) and \(\overline{h}=\frac{H-1}{2}\). The relationship between the two representations is given by
+
+\begin{equation}\label{eq:discrete-continuous}
+  I[b][c][h][w] = I^{b+1}_{c+1}(w - \lceil\tilde{w}\rceil, h - \lceil\tilde{h}\rceil)
+\end{equation}
+
+where the left term follows a standard \(0\)-indexed array notation, and the right is standard mathematical function notation. Then, the functions \(I^b_c\) are extended to the rest of \(\Omega\) by imposing that they be constant on all right-semiclosed squares \((x-1,x]\times(y-1, y]\).
+
+It is also possible to extend the domain of the continuous representations to all of \(\mathbb{R}^2\) by simply setting them to \(0\) outside of \(\Omega\). Reciprocally, for a given set of functions \(I^1, \dots, I^B\colon \mathbb{R}^2\to \mathbb{R}^C\), it is possible to obtain a discrete representation of a digital image by fixing the desired dimensions \(H\) and \(W\) and sampling as in \cref{eq:discrete-continuous}.
+
+It is immediate to see that this relationship between the two representations respects pointwise operations (and, therefore, function sums and products). It is also possible to see that, for an appropriate translation, the convolution defined in \textit{pytorch} with a kernel \(g\) coincides with the continuous convolution with (the continuous version of) the inverted kernel \(\overline{g}(x) = g(-x)\).
+
+\subsubsection{\(L^p\) spaces}
+It will be useful to employ mathematical terminology and machinery that is best exposed in function spaces. The most important and suitable function spaces that will be employed are the \(L^p\) spaces.
+
+\begin{definition}
+  Let \(\Omega\) be a Borel measurable subset of \(\mathbb{R}^n\) for some \(n\in \mathbb{Z}^+\), and \(\mu\) the Lebesgue measure on the Borel sets of \(\mathbb{R}^n\).\footnote{Properly defining the Borel sets and the Lebesgue measure is out of the scope of this work. All rectangles, either open, closed or semiclosed are Borel measurable subsets of \(\mathbb{R}^2\). All integrals with respect to the Lebesgue measure coincide with their classical Riemmann integral counterpart, whenever the latter is defined.} For a given measurable function \(f\colon \Omega\to \overline{\mathbb{R}}\), where \(\overline{\mathbb{R}}\) is the extended real line equipped with its usual topology, define the quantity
+
+  \[
+    \|f\|_{p} = \left(\int_{\Omega}|f|^p~d\mu\right)^{\frac 1p}
+  \]
+
+  for each \(p\in[1, +\infty)\). Define the set of \(p\)-integrable functions as 
+  \[
+    \mathcal{L}^p(\Omega) = \left\{f\colon\Omega\to \mathbb{\overline{R}}~\left|~\|f\|_{p}<+\infty\right.\right\}
+  .\]
+
+  It is possible to show that \(\mathcal{L}^p(\Omega)\) is a normed vector space when equipped with \(\|\cdot\|_{p}\) as a norm.
+
+  Finally, define \(L^p(\Omega)\) by identifying functions in \(\mathcal{L}^p(\Omega)\) that coincide almost everywhere with respect to \(\mu\) and equipping the resulting equivalence classes with the norm of any of their elements. It is possible to show that \(L^p(\Omega)\) is a separable Banach space for any \(p\), and that it is a Hilbert space for \(p=2\).
+\end{definition}
+
+It is trivial to see that the continuous representation of a digital image \(I\) with domain \(\Omega\) is always an element of \(L^p(\Omega)\) for any \(p\in[1, +\infty)\).
+
+\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow us to work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulas often have much cleaner closed forms.
+
+==
+Said optimization algorithms often required that the involved terms are \textbf{convex}.
+
+The study of function spaces is an important topic in modern mathematics.
+==
+
+\begin{definition}
+  A normed vector space \(X\) is said to be a \textbf{Banach space} if it is complete under the metric induced by its norm. A \textbf{functional} on \(X\) is a function \(F\colon X\to\mathbb{R}\cup\{+\infty\}\).
+\end{definition}
+
+\begin{definition}
+  The \textbf{dual space} of \(X\) is defined as the set of all continuous linear functionals on \(X\) with codomain on \(\mathbb{R}\), where continuity is to be interpeted with respect to the topology induced on \(X\) by its norm and the usual topology in \(\mathbb{R}\). We denote it as \(X^*\)
+
+  We say that a given sequence \(\{x_n\}_{n\in\mathbb{N}}\subseteq X\) \textbf{converges weakly} to a given \(x\in X\) if the sequence \(\{f(x_n)\}_{n\in\mathbb{R}}\) converges (in \(\mathbb{R}\)) to \(f(x)\) for every \(f\in X^*\).
+\end{definition}
+
+It is immediate to check that the usual convergence of a sequence in \(X\) implies its weak convergence to the same limit.
+
+\begin{definition}
+  A given functional \(F\) on a Banach space \(X\) is said to be \textbf{weakly lower semicontinuous} if, for each weakly converging sequence \(\{x_n\}\subseteq X\) with weak limit \(\lim_nx_n\in X\),
+
+  \[
+    J(\lim_nx_n)\leq \liminf_n J(x_n)
+  .\]
+
+  Importantly, the norm of \(X\) is a weakly lower semicontinuous functional.
+\end{definition}
+
+\begin{definition}\label{def:convexity}
+
+  A given functional \(F\) on \(X\) is said to be \textbf{convex} whenever the condition
+  \[
+    F(\lamdba x + (1-\lambda)y) \leq \lambda F(x) + (1-\lambda) F(y)
+  \]
+  holds for any \(x, y\in X\) and any \(\lambda\in[0, 1]\). If, additionally, the inequality is strict whenever \(x\neq y\) and \(\lambda\in (0, 1)\), \(F\) is said to be \textbf{strictly convex}.
+\end{definition}
+
+\begin{definition}
+  A functional \(F\) is said to be \textbf{coercive} if for every sequence \(\{x_n\}\subseteq X\) such that \(\lim_n \|x_n\|=+\infty\), then \(\lim_nJ(x_n)=+\infty\).
+
+  It is said to be \textbf{proper} if there exists some \(x\in X\) such that \(F(x) < +\infty\).
+\end{definition}
+
+\begin{theorem}[The direct method]
+  Let \(X\) be a reflexive Banach space and let \(F\) be a proper, coercive and weakly lower semicontinuous functional on \(X\). Then, the minimization problem
+  \[
+    \min_{x\in X} F(x)
+  \]
+  admits a solution.
+\end{theorem}
+
+Another important property is that of 
+
+One thing that most of these algorithms have in common is that they require the 
+
 
 Explicar:
 \begin{enumerate}

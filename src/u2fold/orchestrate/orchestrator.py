@@ -238,7 +238,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
         # silence "possibly unbound" type-checker complaints
         kernel = cast(Tensor, None)
-        N_ITERS = 150
+        n_iters = 150
 
         primal_variable = primal_dual_bundle.primal_variable
         dual_variable = primal_dual_bundle.dual_variable
@@ -250,7 +250,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                 primal_dual_bundle.primal_variable,
                 deterministic_components.fidelity,
                 self.__kernel_centrality_penalty,
-                N_ITERS,
+                n_iters,
             )
 
             primal_dual_bundle.schema.with_linear_argument(
@@ -265,7 +265,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                     ).run,
                     primal_variable,
                     dual_variable,
-                    N_ITERS,
+                    1,
                     use_reentrant=False,
                 )
 
