@@ -386,23 +386,24 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             loss = self.__loss_function(output, first_ground_truth)
             cumulative_loss += loss.detach().item()
 
-            if epoch == 1:
-                self.tensorboard_log_image(first_input, "Test/Input", epoch)
-
             restored_image = (
                 output.primal_variable / output.transmission_map.clamp(min=1e-4)
             )
             self.tensorboard_log_image(restored_image, "Test/Output", epoch)
+            self.tensorboard_log_image(output.kernel, "Test/Kernel", epoch)
 
             radiance_estimation = (
                 output.fidelity / output.transmission_map.clamp(min=1e-4)
             )
 
-            self.tensorboard_log_image(
-                radiance_estimation,
-                "Test/First_radiance",
-                epoch,
-            )
+            if epoch == 1:
+                self.tensorboard_log_image(first_input, "Test/Input", epoch)
+                self.tensorboard_log_image(
+                    radiance_estimation,
+                    "Test/First_radiance",
+                    epoch,
+                )
+
 
             for input, ground_truth in test_iter:
                 output = self.forward_pass(input)
