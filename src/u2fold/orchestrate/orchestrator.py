@@ -104,13 +104,15 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         with torch.no_grad():
             background_light = estimate_background_light(input)
 
-            transmission_map_config = self._config.transmission_map_estimation_config
+            transmission_map_config = (
+                self._config.transmission_map_estimation_config
+            )
             fidelity, transmission_map = estimate_fidelity_and_transmission_map(
                 input,
                 background_light,
                 transmission_map_config.patch_radius,
                 transmission_map_config.saturation_coefficient,
-                transmission_map_config.regularization_coefficient
+                transmission_map_config.regularization_coefficient,
             )
 
         return DeterministicComponents(fidelity, transmission_map)
@@ -241,11 +243,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         primal_variable = primal_dual_bundle.primal_variable
         dual_variable = primal_dual_bundle.dual_variable
 
-        for greedy_iter, greedy_iter_models in tqdm(
-            enumerate(self._models, start=1),
-            total=len(self._models),
-            desc="Greedy iterations",
-        ):
+        for greedy_iter, greedy_iter_models in enumerate(self._models, start=1):
             # Fix image, estimate kernel
             kernel = self.optimize_kernel(
                 kernel_bundle,
@@ -323,8 +321,7 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
         print(f"Running!")
         if self._config.tensorboard_log_dir.exists():
             self._logger.warning(
-                "Found an existing tensorboard log directory."
-                " Emptying it."
+                "Found an existing tensorboard log directory. Emptying it."
             )
             shutil.rmtree(self._config.tensorboard_log_dir)
             self._config.tensorboard_log_dir.mkdir()
@@ -371,12 +368,18 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
         cumulative_loss = 0.0
 
         with torch.no_grad():
-            test_iter = iter(self.__dataloaders.test)
-            
+            test_iter = iter(
+                tqdm(
+                    self.__dataloaders.test,
+                    desc="Test",
+                    total=len(self.__dataloaders.test),
+                )
+            )
+
             first_input, first_ground_truth = next(test_iter)
-            
+
             output = self.forward_pass(first_input)
-            
+
             loss = self.__loss_function(output, first_ground_truth)
             cumulative_loss += loss.detach().item()
 
@@ -384,16 +387,12 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                 self.tensorboard_log_image(first_input, "Test/Input", epoch)
 
             restored_image = (
-                output.primal_variable
-                / output.transmission_map.clamp(min=1e-4)
+                output.primal_variable / output.transmission_map.clamp(min=1e-4)
             )
-            self.tensorboard_log_image(
-                restored_image, "Test/Output", epoch
-            )
+            self.tensorboard_log_image(restored_image, "Test/Output", epoch)
 
             radiance_estimation = (
-                output.fidelity
-                / output.transmission_map.clamp(min=1e-4)
+                output.fidelity / output.transmission_map.clamp(min=1e-4)
             )
 
             self.tensorboard_log_image(
@@ -408,14 +407,17 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                 loss = self.__loss_function(output, ground_truth)
                 cumulative_loss += loss.detach().item()
 
-
         return cumulative_loss / len(self.__dataloaders.test)
 
     def run_validation_epoch(self) -> float:
         cumulative_loss = 0.0
 
         with torch.no_grad():
-            for input, ground_truth in self.__dataloaders.validation:
+            for input, ground_truth in tqdm(
+                self.__dataloaders.validation,
+                desc="Validation",
+                total=len(self.__dataloaders.validation),
+            ):
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
@@ -426,7 +428,11 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
     def run_train_epoch(self) -> float:
         cumulative_loss = 0.0
 
-        for input, ground_truth in self.__dataloaders.training:
+        for input, ground_truth in tqdm(
+            self.__dataloaders.training,
+            desc="Training",
+            total=len(self.__dataloaders.training),
+        ):
             self._model_optimizer.zero_grad()
             output = self.forward_pass(input)
 
