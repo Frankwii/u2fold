@@ -1,3 +1,4 @@
+import shlex
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
@@ -328,7 +329,9 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
         self._logger.debug("Starting tensorboard process")
         tensorboard_process = subprocess.Popen(
-            ["tensorboard", "--logdir", self._config.tensorboard_log_dir]
+            shlex.split(
+                f"tensorboard --port 6066 --logdir {self._config.tensorboard_log_dir}"
+            )
         )
 
         self._logger.info("Starting training.")
