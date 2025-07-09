@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from itertools import chain
+from itertools import chain, tee
 from typing import Optional
 
 import torch
@@ -139,28 +139,40 @@ class UNet(Model[ConfigUNet]):
             ]
         )
 
+        all_normalization_layers = nn.ModuleList(
+            torch.nn.InstanceNorm2d(in_channels, device=device)
+            for in_channels in size_sequence[:-1]
+        )
+
         self.__down_sublayers = all_layers[: self.__depth]
+        self.__down_normalizations = all_normalization_layers[: self.__depth]
         pooling_class = components.get_pooling_layer(config.pooling)
         self.__downsample = pooling_class(2, 2)
 
         self.__bottleneck = all_layers[self.__depth]
+        self.__bottleneck_normalization = all_normalization_layers[self.__depth]
 
         self.__up_sublayers = all_layers[self.__depth + 1 :]
+        self.__up_normalizations = all_normalization_layers[self.__depth + 1 :]
         self.__upsample = Upsample(scale_factor=2)
 
     def forward(self, input: torch.Tensor, *_) -> torch.Tensor:
         down_layer_outputs = [torch.Tensor() for _ in range(self.__depth)]
 
         x = input
-        for idx, sublayer in enumerate(self.__down_sublayers):
-            x = sublayer(x)
+        for idx, (sublayer, sublayer_norm) in enumerate(
+            zip(self.__down_sublayers, self.__down_normalizations)
+        ):
+            x = sublayer(sublayer_norm(x))
             down_layer_outputs[idx] = x
             x = self.__downsample(x)
 
-        x = self.__bottleneck(x)
+        x = self.__bottleneck(self.__bottleneck_normalization(x))
 
-        for idx, sublayer in enumerate(self.__up_sublayers):
+        for idx, (sublayer, sublayer_norm) in enumerate(
+            zip(self.__up_sublayers, self.__up_normalizations)
+        ):
             x = self.__upsample(x)
-            x = sublayer(x + down_layer_outputs[~idx])
+            x = sublayer(sublayer_norm(x) + down_layer_outputs[~idx])
 
         return input + x
