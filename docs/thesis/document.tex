@@ -132,18 +132,15 @@ It is trivial to see that the continuous representation of a digital image \(I\)
 
 \subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow us to work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulas often have much cleaner closed forms.
 
-==
-Said optimization algorithms often required that the involved terms are \textbf{convex}.
-
-The study of function spaces is an important topic in modern mathematics.
-==
-
 \begin{definition}
   A normed vector space \(X\) is said to be a \textbf{Banach space} if it is complete under the metric induced by its norm. A \textbf{functional} on \(X\) is a function \(F\colon X\to\mathbb{R}\cup\{+\infty\}\).
 \end{definition}
 
 \begin{definition}
-  The \textbf{dual space} of \(X\) is defined as the set of all continuous linear functionals on \(X\) with codomain on \(\mathbb{R}\), where continuity is to be interpeted with respect to the topology induced on \(X\) by its norm and the usual topology in \(\mathbb{R}\). We denote it as \(X^*\)
+  The \textbf{dual space} of \(X\) is defined as the set of all continuous linear functionals on \(X\) with codomain on \(\mathbb{R}\), where continuity is to be interpeted with respect to the topology induced on \(X\) by its norm and the usual topology in \(\mathbb{R}\). We denote it as \(X^*\). It can be shown that \(X^*\) is a Banach space when equipped with the operator norm
+  \[
+    \|x^*\|_{X^*} = \sup_{x\in X, \|x\|=1}\|x^*(x)\|
+  .\]
 
   We say that a given sequence \(\{x_n\}_{n\in\mathbb{N}}\subseteq X\) \textbf{converges weakly} to a given \(x\in X\) if the sequence \(\{f(x_n)\}_{n\in\mathbb{R}}\) converges (in \(\mathbb{R}\)) to \(f(x)\) for every \(f\in X^*\).
 \end{definition}
@@ -174,6 +171,14 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
 
   It is said to be \textbf{proper} if there exists some \(x\in X\) such that \(F(x) < +\infty\).
 \end{definition}
+
+\begin{definition}
+  Let \(X\) be a Banach space. The \textbf{bidual} space of \(X\), denoted by \(X^{**}\), is the dual space of its dual space, that is, \(X^{**}=(X^*)^*\). There is a canonical linear mapping from \(X\) to \(X^{**}\) given by
+  \[
+    x\mapsto(x^*\mapsto x^*(x))
+  \]
+  which can be shown to always be isometric and therefore injective. \(X\) is said to be \textbf{reflexive} whenever the canonical mapping above is also surjective.
+\end{{definition}
 
 \begin{theorem}[The direct method]
   Let \(X\) be a reflexive Banach space and let \(F\) be a proper, coercive and weakly lower semicontinuous functional on \(X\). Then, the minimization problem

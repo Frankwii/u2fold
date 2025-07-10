@@ -13,7 +13,7 @@ from PIL import Image
 from torch import Tensor
 from torch.nn import Parameter
 from torch.optim import Adam, Optimizer
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import OneCycleLR, ReduceLROnPlateau
 from torch.utils.checkpoint import checkpoint
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms.functional import to_pil_image, to_tensor
@@ -93,7 +93,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         )
 
         self.__kernel_size = 7
-        self.__kernel_centrality_weight = 1e-4
+        self.__kernel_centrality_weight = 1
         self.__kernel_centrality_penalty = (
             self.initialize_kernel_centrality_penalty(
                 self.__kernel_size, self.__kernel_centrality_weight
@@ -283,14 +283,23 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     fidelity_term = torch.nn.functional.mse_loss(
         convolution.conv(output.primal_variable, output.kernel), output.fidelity
     )
-    restored_image = output.primal_variable / output.transmission_map.clamp(
+    radiance = output.primal_variable / output.transmission_map.clamp(
         min=1e-4
     )
     ground_truth_term = torch.nn.functional.mse_loss(
-        restored_image, ground_truth
+        radiance, ground_truth
     )
 
-    return fidelity_term + ground_truth_term
+    tv_loss = torch.mean(
+        torch.abs(radiance[..., 1:] - radiance[:-1])
+        + torch.abs(radiance[..., 1:, :] - radiance[..., :-1, :])
+    )
+
+    red, green, blue = radiance.mean(dim = (-2, -1)).split(split_size=1, dim=-1)
+
+    gray_world_loss = torch.abs(red - green) + torch.abs(red - blue) + torch.abs(green - blue)
+
+    return fidelity_term + 0.5 * ground_truth_term + 0.1 * tv_loss + 0.1 * gray_world_loss
 
 
 class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
@@ -307,8 +316,11 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
         self.__loss_function = train_loss
         self._tensorboard_logger = SummaryWriter(config.tensorboard_log_dir)
-        self._model_scheduler = ReduceLROnPlateau(
-            self._model_optimizer, "min"
+        self._model_scheduler = OneCycleLR(
+            self._model_optimizer,
+            max_lr = 1e-3,
+            steps_per_epoch=len(self.__dataloaders.training),
+            epochs=self._config.n_epochs
         )
         self._logger.info(f"Finished initializing orchestrator!")
 
@@ -338,7 +350,7 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             print(f"Epoch {epoch}")
             train_loss = self.run_train_epoch()
             validation_loss = self.run_validation_epoch()
-            self._model_scheduler.step(validation_loss)
+            self._model_scheduler.step()
 
             if validation_loss < min_valiation_loss:
                 min_valiation_loss = validation_loss
