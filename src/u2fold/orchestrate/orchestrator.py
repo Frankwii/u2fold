@@ -287,14 +287,14 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     radiance = output.primal_variable / output.transmission_map.clamp(min=1e-4)
     ground_truth_term = torch.nn.functional.mse_loss(radiance, ground_truth)
 
-    tv_loss = torch.mean(
-        torch.abs(radiance[..., 1:] - radiance[..., :-1])
-        + torch.abs(radiance[..., 1:, :] - radiance[..., :-1, :])
+    tv_loss = (
+        torch.abs(radiance[..., 1:] - radiance[..., :-1]).mean()
+        + torch.abs(radiance[..., 1:, :] - radiance[..., :-1, :]).mean()
     )
 
     red, green, blue = radiance.mean(dim=(-2, -1)).split(split_size=1, dim=-1)
 
-    gray_world_loss = (
+    gray_world_loss = torch.mean(
         torch.abs(red - green) + torch.abs(red - blue) + torch.abs(green - blue)
     )
 
