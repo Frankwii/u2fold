@@ -147,8 +147,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         kernel_preimage = torch.rand(batch_size, 3, 1, 1)
 
         kernel_preimage = Parameter(
-            kernel_preimage.to(self._config.device),
-            requires_grad=True
+            kernel_preimage.to(self._config.device), requires_grad=True
         )
 
         optimizer_kwargs = {}
@@ -238,12 +237,14 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
         # silence "possibly unbound" type-checker complaints
         kernel = cast(Tensor, None)
-        n_iters = 20
+        kernel_iterations = [20, 10, 10]
 
         primal_variable = primal_dual_bundle.primal_variable
         dual_variable = primal_dual_bundle.dual_variable
 
-        for greedy_iter, greedy_iter_models in enumerate(self._models, start=1):
+        for greedy_iter, (greedy_iter_models, n_iters) in enumerate(
+            zip(self._models, kernel_iterations), start=1
+        ):
             # Fix image, estimate kernel
             kernel = self.optimize_kernel(
                 kernel_bundle,
@@ -283,23 +284,26 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     fidelity_term = torch.nn.functional.mse_loss(
         convolution.conv(output.primal_variable, output.kernel), output.fidelity
     )
-    radiance = output.primal_variable / output.transmission_map.clamp(
-        min=1e-4
-    )
-    ground_truth_term = torch.nn.functional.mse_loss(
-        radiance, ground_truth
-    )
+    radiance = output.primal_variable / output.transmission_map.clamp(min=1e-4)
+    ground_truth_term = torch.nn.functional.mse_loss(radiance, ground_truth)
 
     tv_loss = torch.mean(
         torch.abs(radiance[..., 1:] - radiance[:-1])
         + torch.abs(radiance[..., 1:, :] - radiance[..., :-1, :])
     )
 
-    red, green, blue = radiance.mean(dim = (-2, -1)).split(split_size=1, dim=-1)
+    red, green, blue = radiance.mean(dim=(-2, -1)).split(split_size=1, dim=-1)
 
-    gray_world_loss = torch.abs(red - green) + torch.abs(red - blue) + torch.abs(green - blue)
+    gray_world_loss = (
+        torch.abs(red - green) + torch.abs(red - blue) + torch.abs(green - blue)
+    )
 
-    return fidelity_term + 0.5 * ground_truth_term + 0.1 * tv_loss + 0.1 * gray_world_loss
+    return (
+        fidelity_term
+        + 0.5 * ground_truth_term
+        + 0.1 * tv_loss
+        + 0.1 * gray_world_loss
+    )
 
 
 class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
@@ -318,9 +322,9 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
         self._tensorboard_logger = SummaryWriter(config.tensorboard_log_dir)
         self._model_scheduler = OneCycleLR(
             self._model_optimizer,
-            max_lr = 1e-3,
+            max_lr=1e-3,
             steps_per_epoch=len(self.__dataloaders.training),
-            epochs=self._config.n_epochs
+            epochs=self._config.n_epochs,
         )
         self._logger.info(f"Finished initializing orchestrator!")
 
