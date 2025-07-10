@@ -6,7 +6,7 @@ from u2fold.cli_parsing.cli_argument import FileCLIArgument
 from u2fold.utils.track import tag
 
 
-@tag("cli_argument/exec/input_image")
+@tag("cli_argument/exec/input")
 class InputPath(FileCLIArgument):
     def short_name(self) -> str:
         return "-i"
@@ -25,7 +25,7 @@ class InputPath(FileCLIArgument):
             raise UnidentifiedImageError(errmsg)
 
 
-@tag("cli_argument/exec/output_image")
+@tag("cli_argument/exec/output")
 class OutputPath(FileCLIArgument):
     def short_name(self) -> str:
         return "-o"

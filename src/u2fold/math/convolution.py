@@ -1,5 +1,6 @@
 import math
 from typing import NamedTuple
+
 import torch
 
 
@@ -46,6 +47,7 @@ def conv(input: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
         groups=batch_size * n_channels,
     ).reshape(batch_size, n_channels, height, width)
 
+
 class CenteredDimensions(NamedTuple):
     down: int
     up: int
@@ -54,25 +56,20 @@ class CenteredDimensions(NamedTuple):
 
     def to_height_and_width(self) -> tuple[int, int]:
         return (self.up - self.down + 1, self.right - self.left + 1)
-    
+
     @staticmethod
-    def from_height_width(
-        height: int,
-        width: int
-    ) -> "CenteredDimensions":
+    def from_height_width(height: int, width: int) -> "CenteredDimensions":
         half_height = (height - 1) // 2
         half_width = (width - 1) // 2
         return CenteredDimensions(
-            down = -(height - 1 - half_height),
-            up = half_height,
-            left = -(width - 1 - half_width),
-            right= half_width
+            down=-(height - 1 - half_height),
+            up=half_height,
+            left=-(width - 1 - half_width),
+            right=half_width,
         )
 
     def to_tensor_coordinates(
-        self,
-        height: int,
-        width: int
+        self, height: int, width: int
     ) -> tuple[tuple[int, int], tuple[int, int]]:
         half_height = math.ceil(height / 2)
         half_width = math.ceil(width / 2)
@@ -85,7 +82,7 @@ class CenteredDimensions(NamedTuple):
             (
                 half_width + self.left,
                 half_width + self.right + 1,
-            )
+            ),
         )
 
 
@@ -98,16 +95,16 @@ def _crop_input(
     kernel_cdims = CenteredDimensions.from_height_width(*kernel_dims)
     output_cdims = CenteredDimensions.from_height_width(*output_dims)
 
-    cropped_input_up    = output_cdims.up    - kernel_cdims.down
-    cropped_input_down  = output_cdims.down  - kernel_cdims.up
-    cropped_input_left  = output_cdims.left  - kernel_cdims.right
+    cropped_input_up = output_cdims.up - kernel_cdims.down
+    cropped_input_down = output_cdims.down - kernel_cdims.up
+    cropped_input_left = output_cdims.left - kernel_cdims.right
     cropped_input_right = output_cdims.right - kernel_cdims.left
 
     cropped_input_cdims = CenteredDimensions(
         down=cropped_input_down,
         up=cropped_input_up,
         left=cropped_input_left,
-        right=cropped_input_right
+        right=cropped_input_right,
     )
 
     print(f"CROPPED CDIMS: {cropped_input_cdims}")
@@ -116,6 +113,7 @@ def _crop_input(
 
     print(f"Slices: [{d}:{u},{l}:{r}]")
     return reshaped_input[..., d:u, l:r]
+
 
 def _pad_input(
     reshaped_input: torch.Tensor,
@@ -132,15 +130,11 @@ def _pad_input(
     left_pad = input_cdims.left - output_cdims.left + kernel_cdims.right
     right_pad = output_cdims.right - input_cdims.right - kernel_cdims.left
 
-
     padding = (left_pad, right_pad, up_pad, down_pad)
 
     return torch.nn.functional.pad(
-            reshaped_input,
-            (*padding,),
-            mode="constant",
-            value=0
-        )
+        reshaped_input, (*padding,), mode="constant", value=0
+    )
 
 
 def flexible_conv(
@@ -176,28 +170,34 @@ def flexible_conv(
             Shape: (B, C, H'', W'')
 
     NOTE: Actually, pytorch implements cross correlation and not convolution, so
-    symmetry should be assumed on either tensor for this to be an actual 
+    symmetry should be assumed on either tensor for this to be an actual
     convolution; or, by always using this method, variables will be flipped.
     """
     kernel_height, kernel_width = kernel.shape[-2:]
     batch_size, n_channels, input_height, input_width = input.shape
     output_height, output_width = output_shape
 
-    reshaped_input = input.reshape(1, batch_size * n_channels, input_height, input_width)
-    reshaped_kernel=kernel.expand(
+    reshaped_input = input.reshape(
+        1, batch_size * n_channels, input_height, input_width
+    )
+    reshaped_kernel = kernel.expand(
         batch_size, n_channels, kernel_height, kernel_width
     ).reshape(-1, 1, kernel_height, kernel_width)
 
-    if (output_height > input_height - kernel_height 
-        and output_width > output_height - kernel_height):
+    if (
+        output_height > input_height - kernel_height
+        and output_width > output_height - kernel_height
+    ):
         reshaped_input = _pad_input(
             reshaped_input=reshaped_input,
             kernel_dims=(kernel_height, kernel_width),
             input_dims=(input_height, input_width),
             output_dims=(output_height, output_width),
         )
-    elif (output_height <= input_height - kernel_height
-          and output_width <= input_width - kernel_width):
+    elif (
+        output_height <= input_height - kernel_height
+        and output_width <= input_width - kernel_width
+    ):
         reshaped_input = _crop_input(
             reshaped_input=reshaped_input,
             kernel_dims=(kernel_height, kernel_width),
@@ -214,8 +214,9 @@ def flexible_conv(
         stride=1,
         padding=0,
         dilation=1,
-        groups=batch_size * n_channels
+        groups=batch_size * n_channels,
     ).reshape(batch_size, n_channels, output_height, output_width)
+
 
 def initialize_dirac_delta(
     batch_size: int,
@@ -231,13 +232,33 @@ def initialize_dirac_delta(
     left = right - ((width + 1) % 2)
     right += 1
 
-    n_elements = (up-down)*(right-left)
+    n_elements = (up - down) * (right - left)
 
     delta = torch.zeros(batch_size, channels, height, width)
 
     delta[:, :, down:up, left:right] = 1 / n_elements
 
     return delta
+
+
+def compute_centered_gaussian_kernel(
+    standard_deviations: torch.Tensor,  # (B, C, 1, 1)
+    kernel_size: int,
+) -> torch.Tensor:
+    center = kernel_size // 2
+
+    x = (
+        (torch.arange(kernel_size) - center)
+        .reshape(kernel_size, 1)
+        .to(standard_deviations.device)
+    )
+    y = x.transpose(0, 1)
+
+    distances_squared = (x**2 + y**2).unsqueeze(0).unsqueeze(0)
+
+    exponentials = torch.exp(-distances_squared / (2 * standard_deviations**2))
+
+    return exponentials / exponentials.sum(dim=(-1, -2), keepdim=True)
 
 
 def double_flip(x: torch.Tensor) -> torch.Tensor:
