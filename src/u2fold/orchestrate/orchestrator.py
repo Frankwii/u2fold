@@ -13,6 +13,7 @@ from PIL import Image
 from torch import Tensor
 from torch.nn import Parameter
 from torch.optim import Adam, Optimizer
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.checkpoint import checkpoint
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms.functional import to_pil_image, to_tensor
@@ -306,6 +307,9 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
         self.__loss_function = train_loss
         self._tensorboard_logger = SummaryWriter(config.tensorboard_log_dir)
+        self._model_scheduler = ReduceLROnPlateau(
+            self._model_optimizer, "min"
+        )
         self._logger.info(f"Finished initializing orchestrator!")
 
     def run(self):
@@ -334,6 +338,7 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             print(f"Epoch {epoch}")
             train_loss = self.run_train_epoch()
             validation_loss = self.run_validation_epoch()
+            self._model_scheduler.step(validation_loss)
 
             if validation_loss < min_valiation_loss:
                 min_valiation_loss = validation_loss
