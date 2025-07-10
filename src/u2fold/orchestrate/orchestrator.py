@@ -137,21 +137,43 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
             fidelity.clone(),
         )
 
+    # def initialize_kernel(
+    #     self,
+    #     batch_size: int,
+    #     kernel_size: int,
+    #     learning_rate: Optional[float] = None,
+    # ) -> KernelBundle:
+    #     kernel_preimage = torch.full(
+    #         (batch_size, 3, kernel_size, kernel_size), -1e3
+    #     )
+    #     kernel_preimage[..., kernel_size // 2, kernel_size // 2] = 0
+    #
+    #     kernel_preimage = Parameter(
+    #         kernel_preimage.reshape(batch_size, 3, -1).to(self._config.device),
+    #         requires_grad=True,
+    #     )
+    #
+    #     optimizer_kwargs = {}
+    #     if learning_rate is not None:
+    #         optimizer_kwargs["lr"] = learning_rate
+    #
+    #     return KernelBundle(
+    #         preimage=kernel_preimage,
+    #         preimage_to_kernel_mapping=partial(
+    #             unroll_kernel, kernel_size=kernel_size
+    #         ),
+    #         optimizer=Adam([kernel_preimage], **optimizer_kwargs),
+    #     )
+
     def initialize_kernel(
         self,
         batch_size: int,
         kernel_size: int,
         learning_rate: Optional[float] = None,
     ) -> KernelBundle:
-        kernel_preimage = torch.full(
-            (batch_size, 3, kernel_size, kernel_size), -1e3
-        )
-        kernel_preimage[..., kernel_size // 2, kernel_size // 2] = 0
+        kernel_preimage = torch.rand(batch_size, 3, 1, 1)
 
-        kernel_preimage = Parameter(
-            kernel_preimage.reshape(batch_size, 3, -1).to(self._config.device),
-            requires_grad=True,
-        )
+        kernel_preimage = Parameter(kernel_preimage, requires_grad=True)
 
         optimizer_kwargs = {}
         if learning_rate is not None:
@@ -160,7 +182,8 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         return KernelBundle(
             preimage=kernel_preimage,
             preimage_to_kernel_mapping=partial(
-                unroll_kernel, kernel_size=kernel_size
+                convolution.compute_centered_gaussian_kernel,
+                kernel_size=kernel_size,
             ),
             optimizer=Adam([kernel_preimage], **optimizer_kwargs),
         )
@@ -239,7 +262,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
         # silence "possibly unbound" type-checker complaints
         kernel = cast(Tensor, None)
-        n_iters = 150
+        n_iters = 50
 
         primal_variable = primal_dual_bundle.primal_variable
         dual_variable = primal_dual_bundle.dual_variable
@@ -260,20 +283,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
             # Fix kernel, estimate image
             for stage_n, model in enumerate(greedy_iter_models, start=1):
-                # backward_checkpoint = checkpoint(
-                #     primal_dual_bundle.schema.with_primal_proximity(
-                #         model, False
-                #     ).run,
-                #     primal_variable,
-                #     dual_variable,
-                #     1,
-                #     use_reentrant=False,
-                # )
-                #
-                # primal_variable, dual_variable = cast(
-                #     tuple[Tensor, Tensor], backward_checkpoint
-                # )
-
                 primal_variable, dual_variable = (
                     primal_dual_bundle.schema.with_primal_proximity(
                         model, False
