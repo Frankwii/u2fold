@@ -248,9 +248,15 @@ def compute_centered_gaussian_kernel(
     center = kernel_size // 2
 
     x = (
-        (torch.arange(kernel_size) - center)
+        (
+            torch.arange(
+                kernel_size,
+                device=standard_deviations.device,
+                dtype=standard_deviations.dtype,
+            )
+            - center
+        )
         .reshape(kernel_size, 1)
-        .to(standard_deviations.device)
     )
     y = x.transpose(0, 1)
 

@@ -137,34 +137,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
             fidelity.clone(),
         )
 
-    # def initialize_kernel(
-    #     self,
-    #     batch_size: int,
-    #     kernel_size: int,
-    #     learning_rate: Optional[float] = None,
-    # ) -> KernelBundle:
-    #     kernel_preimage = torch.full(
-    #         (batch_size, 3, kernel_size, kernel_size), -1e3
-    #     )
-    #     kernel_preimage[..., kernel_size // 2, kernel_size // 2] = 0
-    #
-    #     kernel_preimage = Parameter(
-    #         kernel_preimage.reshape(batch_size, 3, -1).to(self._config.device),
-    #         requires_grad=True,
-    #     )
-    #
-    #     optimizer_kwargs = {}
-    #     if learning_rate is not None:
-    #         optimizer_kwargs["lr"] = learning_rate
-    #
-    #     return KernelBundle(
-    #         preimage=kernel_preimage,
-    #         preimage_to_kernel_mapping=partial(
-    #             unroll_kernel, kernel_size=kernel_size
-    #         ),
-    #         optimizer=Adam([kernel_preimage], **optimizer_kwargs),
-    #     )
-
     def initialize_kernel(
         self,
         batch_size: int,
@@ -173,7 +145,10 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
     ) -> KernelBundle:
         kernel_preimage = torch.rand(batch_size, 3, 1, 1)
 
-        kernel_preimage = Parameter(kernel_preimage, requires_grad=True)
+        kernel_preimage = Parameter(
+            kernel_preimage.to(self._config.device),
+            requires_grad=True
+        )
 
         optimizer_kwargs = {}
         if learning_rate is not None:
@@ -262,7 +237,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 
         # silence "possibly unbound" type-checker complaints
         kernel = cast(Tensor, None)
-        n_iters = 50
+        n_iters = 20
 
         primal_variable = primal_dual_bundle.primal_variable
         dual_variable = primal_dual_bundle.dual_variable
