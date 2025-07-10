@@ -288,7 +288,7 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     ground_truth_term = torch.nn.functional.mse_loss(radiance, ground_truth)
 
     tv_loss = torch.mean(
-        torch.abs(radiance[..., 1:] - radiance[:-1])
+        torch.abs(radiance[..., 1:] - radiance[..., :-1])
         + torch.abs(radiance[..., 1:, :] - radiance[..., :-1, :])
     )
 
