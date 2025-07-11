@@ -27,6 +27,7 @@ from u2fold.config_parsing.config_dataclasses import (
 )
 from u2fold.data import get_dataloaders
 from u2fold.math import convolution
+from u2fold.math.rescale_image import color_rescaling, histogram_color_rescaling
 from u2fold.math.background_light_estimation import estimate_background_light
 from u2fold.math.compute_first_term import (
     estimate_fidelity_and_transmission_map,
@@ -271,7 +272,7 @@ def compute_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
         convolution.conv(output.primal_variable, output.kernel),
         output.deterministic_components.fidelity,
     )
-    radiance = (
+    radiance = color_rescaling(
         output.primal_variable
         / output.deterministic_components.transmission_map.clamp(min=0.1)
     )
@@ -382,7 +383,7 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             loss = self.__loss_function(output, first_ground_truth)
             cumulative_loss += loss.detach().item()
 
-            restored_image = (
+            restored_image = color_rescaling(
                 output.primal_variable
                 / output.deterministic_components.transmission_map.clamp(
                     min=0.01
@@ -392,7 +393,7 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             self.tensorboard_log_image(output.kernel, "Test/Kernel", epoch)
 
             if epoch == 1:
-                radiance_estimation = (
+                radiance_estimation = color_rescaling(
                     output.deterministic_components.fidelity
                     / output.deterministic_components.transmission_map.clamp(
                         min=0.01
