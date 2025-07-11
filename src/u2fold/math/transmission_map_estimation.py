@@ -148,7 +148,7 @@ def estimate_transmission_map(
 
     coefficients = (coefficients / coefficients[:, 0:1, :, :]).to(images.device)
 
-    exponents = coefficients * (background_light / (background_light[:, 0:1, :, :] + 1e-4))
+    exponents = coefficients * (background_light[:, 0:1, :, :]/(background_light /  + 1e-4))
 
     return torch.pow(fine_red_transmission_map.clamp(0.1), exponents)
 
