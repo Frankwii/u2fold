@@ -13,10 +13,7 @@ from PIL import Image
 from torch import Tensor
 from torch.nn import Parameter
 from torch.optim import Adam, Optimizer
-from torch.optim.lr_scheduler import (
-    CosineAnnealingLR,
-    CosineAnnealingWarmRestarts,
-)
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms.functional import to_pil_image, to_tensor
 from tqdm import tqdm
@@ -40,13 +37,6 @@ from u2fold.models.weight_handling.generic import ModelInitBundle, WeightHandler
 from u2fold.utils.track import get_from_tag
 
 
-class ForwardPassResult(NamedTuple):
-    primal_variable: Tensor
-    kernel: Tensor
-    transmission_map: Tensor
-    fidelity: Tensor
-
-
 class KernelBundle(NamedTuple):
     preimage: Parameter
     preimage_to_kernel_mapping: Callable[[Tensor], Tensor]
@@ -65,6 +55,13 @@ class PrimalDualBundle(NamedTuple):
 class DeterministicComponents(NamedTuple):
     fidelity: Tensor
     transmission_map: Tensor
+    background_light: Tensor
+
+
+class ForwardPassResult(NamedTuple):
+    primal_variable: Tensor
+    kernel: Tensor
+    deterministic_components: DeterministicComponents
 
 
 def unroll_kernel(kernel_preimage: Tensor, kernel_size: int) -> Tensor:
@@ -113,7 +110,9 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                 transmission_map_config.regularization_coefficient,
             )
 
-        return DeterministicComponents(fidelity, transmission_map)
+        return DeterministicComponents(
+            fidelity, transmission_map, background_light
+        )
 
     def initialize_primal_dual(self, fidelity: Tensor) -> PrimalDualBundle:
         primal_dual_schema = (
@@ -257,10 +256,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                 )
 
         return ForwardPassResult(
-            primal_variable,
-            kernel,
-            deterministic_components.transmission_map,
-            deterministic_components.fidelity,
+            primal_variable, kernel, deterministic_components
         )
 
     @abstractmethod
@@ -272,9 +268,13 @@ type Loss = Tensor
 
 def compute_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     fidelity_term = torch.nn.functional.mse_loss(
-        convolution.conv(output.primal_variable, output.kernel), output.fidelity
+        convolution.conv(output.primal_variable, output.kernel),
+        output.deterministic_components.fidelity,
     )
-    radiance = output.primal_variable / output.transmission_map.clamp(min=0.1)
+    radiance = (
+        output.primal_variable
+        / output.deterministic_components.transmission_map.clamp(min=0.1)
+    )
     ground_truth_term = torch.nn.functional.mse_loss(radiance, ground_truth)
 
     tv_loss = (
@@ -287,10 +287,10 @@ def compute_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     )
 
     return (
-        0.5 * fidelity_term + 
-        ground_truth_term + 
-        0.01 * tv_loss + 
-        0.01 * color_similarity_term
+        0.5 * fidelity_term
+        + ground_truth_term
+        + 0.01 * tv_loss
+        + 0.1 * color_similarity_term
     )
 
 
@@ -383,16 +383,22 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             cumulative_loss += loss.detach().item()
 
             restored_image = (
-                output.primal_variable / output.transmission_map.clamp(min=0.1)
+                output.primal_variable
+                / output.deterministic_components.transmission_map.clamp(
+                    min=0.01
+                )
             )
             self.tensorboard_log_image(restored_image, "Test/Output", epoch)
             self.tensorboard_log_image(output.kernel, "Test/Kernel", epoch)
 
-            radiance_estimation = (
-                output.fidelity / output.transmission_map.clamp(min=0.1)
-            )
-
             if epoch == 1:
+                radiance_estimation = (
+                    output.deterministic_components.fidelity
+                    / output.deterministic_components.transmission_map.clamp(
+                        min=0.01
+                    )
+                )
+
                 self.tensorboard_log_image(first_input, "Test/Input", epoch)
                 self.tensorboard_log_image(
                     radiance_estimation,
@@ -401,6 +407,11 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                 )
                 self.tensorboard_log_image(
                     first_ground_truth, "Test/Ground_truth", epoch
+                )
+                self.tensorboard_log_image(
+                    output.deterministic_components.background_light,
+                    "Test/Background_light",
+                    epoch,
                 )
 
             for input, ground_truth in test_iter:
