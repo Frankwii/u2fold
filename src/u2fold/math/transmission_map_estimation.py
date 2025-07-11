@@ -146,9 +146,9 @@ def estimate_transmission_map(
         wavelength_coefficient * channel_wavelengths + wavelength_bias
     )
 
-    coefficients /= coefficients[:, 0, :, :]
+    coefficients = coefficients / coefficients[:, 0:1, :, :]
 
-    exponents = coefficients * (background_light / (background_light[:, 0, :, :] + 1e-4))
+    exponents = coefficients * (background_light / (background_light[:, 0:1, :, :] + 1e-4))
 
     return torch.pow(fine_red_transmission_map.clamp(0.1), exponents)
 
