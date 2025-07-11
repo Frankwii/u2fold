@@ -146,7 +146,7 @@ def estimate_transmission_map(
         wavelength_coefficient * channel_wavelengths + wavelength_bias
     )
 
-    coefficients = coefficients / coefficients[:, 0:1, :, :]
+    coefficients = (coefficients / coefficients[:, 0:1, :, :]).to(images.device)
 
     exponents = coefficients * (background_light / (background_light[:, 0:1, :, :] + 1e-4))
 
