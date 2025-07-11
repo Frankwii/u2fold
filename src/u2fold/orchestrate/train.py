@@ -2,12 +2,13 @@ import shlex
 import shutil
 import subprocess
 
-import functional as F
 import torch
+from torch import Tensor
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+import u2fold.orchestrate.functional as F
 from u2fold.config_parsing.config_dataclasses import TrainConfig
 from u2fold.data.get_dataloaders import get_dataloaders
 from u2fold.models.weight_handling.train import TrainWeightHandler

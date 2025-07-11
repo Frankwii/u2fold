@@ -4,7 +4,7 @@ from pathlib import Path
 from u2fold import build_parser
 from u2fold.config_parsing import parse_and_validate_config
 from u2fold.config_parsing.config_dataclasses import U2FoldConfig
-from u2fold.orchestrate.orchestrator import get_orchestrator
+from u2fold.orchestrate import get_orchestrator
 
 
 def main() -> None:

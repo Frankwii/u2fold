@@ -3,17 +3,16 @@ from itertools import chain, repeat
 from logging import getLogger
 from typing import Iterable, cast
 
-import functional as F
 import torch
 from torch import Tensor
 from torch.optim import Adam
 
+import u2fold.orchestrate.functional as F
 from u2fold.config_parsing.config_dataclasses import (
     U2FoldConfig,
 )
 from u2fold.math import convolution
 from u2fold.models.generic import Model
-from u2fold.models.weight_handling import ExecWeightHandler, TrainWeightHandler
 from u2fold.models.weight_handling.generic import ModelInitBundle, WeightHandler
 from u2fold.orchestrate.functional.initialization import (
     initialize_square_matrix_with_square_distances_to_center,
