@@ -144,12 +144,15 @@ def estimate_transmission_map(
 
     coefficients = (
         wavelength_coefficient * channel_wavelengths + wavelength_bias
+    ).to(background_light.device)
+
+    divisions = coefficients / (background_light + 1e-4)
+
+    exponents = divisions / divisions[:, 0:1, :, :]
+
+    return torch.pow(
+        input=fine_red_transmission_map.clamp(0.1),
+        exponent=exponents
     )
-
-    coefficients = (coefficients / coefficients[:, 0:1, :, :]).to(images.device)
-
-    exponents = coefficients * (background_light[:, 0:1, :, :]/(background_light /  + 1e-4))
-
-    return torch.pow(fine_red_transmission_map.clamp(0.1), exponents)
 
 
