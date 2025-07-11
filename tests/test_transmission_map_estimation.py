@@ -3,7 +3,7 @@ import torch
 from u2fold.math.background_light_estimation import estimate_background_light
 from u2fold.math.transmission_map_estimation import (
     compute_saturation_map,
-    estimate_coarse_transmission_map,
+    estimate_coarse_red_transmission_map,
 )
 
 
@@ -47,7 +47,7 @@ def test_estimate_coarse_transmission_map():
     expected_coarse_tm = torch.ones(B, 1, H, W)
     expected_coarse_tm[0, 0, 0, 0] = 0
 
-    output_coarse_tm = estimate_coarse_transmission_map(
+    output_coarse_tm = estimate_coarse_red_transmission_map(
         input, background_lights, patch_radius, 1
     )
 

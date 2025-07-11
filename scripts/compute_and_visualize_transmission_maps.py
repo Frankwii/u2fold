@@ -35,7 +35,7 @@ from u2fold.math.background_light_estimation import estimate_background_light
 from u2fold.math.guided_filter import guided_filter
 from u2fold.math.transmission_map_estimation import (
     compute_saturation_map,
-    estimate_coarse_transmission_map,
+    estimate_coarse_red_transmission_map,
 )
 
 TRANSMISSION_MAPS_ROOT_DIR = Path("/tmp/u2fold/transmission_maps")
@@ -55,7 +55,7 @@ def compute_transmission_maps(
     saturation_map = compute_saturation_map(batched).reshape(1, H, W)
 
     background_light = estimate_background_light(batched)
-    coarse_transmission_map = estimate_coarse_transmission_map(
+    coarse_transmission_map = estimate_coarse_red_transmission_map(
         batched, background_light, rcp_patch_radius, saturation_coef
     ).reshape(1, H, W)
 

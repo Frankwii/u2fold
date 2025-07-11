@@ -34,7 +34,7 @@ def compute_saturation_map(images: Tensor) -> Tensor:
 
 
 @torch.compile
-def estimate_coarse_transmission_map(
+def estimate_coarse_red_transmission_map(
     images: Tensor,
     background_lights: Tensor,
     patch_radius: int,
@@ -74,7 +74,7 @@ def estimate_coarse_transmission_map(
     )  # (B, 4, H, W)
 
     copy_background_lights = background_lights.detach().clone()
-    copy_background_lights[:, 0, 0, 0] = (1 - background_lights[:, 0, 0, 0])
+    copy_background_lights[:, 0, 0, 0] = 1 - background_lights[:, 0, 0, 0]
     copy_background_lights = 1 / copy_background_lights.clamp(min=1e-3)
 
     coefficients = torch.cat(
@@ -119,18 +119,37 @@ def estimate_transmission_map(
             enforced) to be used as the coefficient of the L^2 regularization
             for the guided filter.
     Returns:
-        fine_red_map: Shape (B, 1, H, W)
+        fine_transmission_map: Shape (B, 3, H, W)
     """
-    coarse_transmission_map = estimate_coarse_transmission_map(
+    coarse_red_transmission_map = estimate_coarse_red_transmission_map(
         images=images,
         background_lights=background_light,
         saturation_coefficient=saturation_coefficient,
         patch_radius=patch_radius,
     )
 
-    return guided_filter(
+    fine_red_transmission_map = guided_filter(
         guide=images,
-        input=coarse_transmission_map,
+        input=coarse_red_transmission_map,
         patch_radius=patch_radius * 2 - 1,
         regularization_coefficient=regularization_coefficient,
     )
+
+
+    # As specified in https://doi.org/10.1109/TIP.2016.2612882
+    wavelength_coefficient = -0.00113
+    wavelength_bias = 1.62517
+    ## in nanometers, for red, green, blue
+    channel_wavelengths = torch.Tensor([620, 540, 450]).reshape(1, 3, 1, 1)
+
+    coefficients = (
+        wavelength_coefficient * channel_wavelengths + wavelength_bias
+    )
+
+    coefficients /= coefficients[:, 0, :, :]
+
+    exponents = coefficients * (background_light / (background_light[:, 0, :, :] + 1e-4))
+
+    return torch.pow(fine_red_transmission_map.clamp(0.1), exponents)
+
+

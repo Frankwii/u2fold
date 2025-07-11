@@ -13,7 +13,10 @@ from PIL import Image
 from torch import Tensor
 from torch.nn import Parameter
 from torch.optim import Adam, Optimizer
-from torch.optim.lr_scheduler import CosineAnnealingLR, CosineAnnealingWarmRestarts
+from torch.optim.lr_scheduler import (
+    CosineAnnealingLR,
+    CosineAnnealingWarmRestarts,
+)
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms.functional import to_pil_image, to_tensor
 from tqdm import tqdm
@@ -267,7 +270,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
 type Loss = Tensor
 
 
-def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
+def compute_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     fidelity_term = torch.nn.functional.mse_loss(
         convolution.conv(output.primal_variable, output.kernel), output.fidelity
     )
@@ -279,20 +282,15 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
         + torch.abs(radiance[..., 1:, :] - radiance[..., :-1, :]).mean()
     )
 
-    red, green, blue = radiance.mean(dim=(-2, -1)).split(split_size=1, dim=-1)
-
-    gray_world_loss = torch.mean(
-        torch.abs(red - green) + torch.abs(red - blue) + torch.abs(green - blue)
+    color_similarity_term = (
+        1 - torch.cosine_similarity(radiance, ground_truth, dim=1).mean()
     )
 
-    color_similarity_term = 1 - torch.cosine_similarity(radiance, ground_truth, dim=1).mean()
-
     return (
-        0.5 * fidelity_term +
-        ground_truth_term +
-        0.01 * tv_loss +
-        0.33 * gray_world_loss +
-        color_similarity_term
+        0.5 * fidelity_term + 
+        ground_truth_term + 
+        0.01 * tv_loss + 
+        0.01 * color_similarity_term
     )
 
 
@@ -308,11 +306,10 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             config.device,
         )
 
-        self.__loss_function = train_loss
+        self.__loss_function = compute_loss
         self._tensorboard_logger = SummaryWriter(config.tensorboard_log_dir)
         self._model_scheduler = CosineAnnealingLR(
-            self._model_optimizer,
-            T_max=self._config.n_epochs
+            self._model_optimizer, T_max=self._config.n_epochs
         )
         self._logger.info(f"Finished initializing orchestrator.")
 
@@ -403,9 +400,7 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                     epoch,
                 )
                 self.tensorboard_log_image(
-                    first_ground_truth,
-                    "Test/Ground_truth",
-                    epoch
+                    first_ground_truth, "Test/Ground_truth", epoch
                 )
 
             for input, ground_truth in test_iter:
