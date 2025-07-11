@@ -144,7 +144,7 @@ def _pad_input(
 def flexible_conv(
     kernel: torch.Tensor,
     input: torch.Tensor,
-    output_shape: tuple[int, int] | torch.Size,
+    output_shape: tuple[int, ...] | torch.Size,
     padding_strategy: Optional[PaddingStrategy],
 ) -> torch.Tensor:
     """Batched 2D channel-wise convolution. Computes padding automatically.
@@ -180,7 +180,7 @@ def flexible_conv(
     """
     kernel_height, kernel_width = kernel.shape[-2:]
     batch_size, n_channels, input_height, input_width = input.shape
-    output_height, output_width = output_shape
+    *_, output_height, output_width = output_shape
 
     reshaped_input = input.reshape(
         1, batch_size * n_channels, input_height, input_width
