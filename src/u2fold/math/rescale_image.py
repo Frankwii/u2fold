@@ -1,7 +1,8 @@
 import torch
 from torch import Tensor
 
-def color_rescaling(image: Tensor) -> Tensor:
+@torch.compile
+def rescale_color(image: Tensor) -> Tensor:
     B, C = image.shape[:2]
     
     min = image.reshape(B, C, -1).min(dim=-1, keepdim=True).values.unsqueeze(-1)
@@ -19,4 +20,4 @@ def histogram_color_rescaling(image: Tensor, threshold: float) -> Tensor:
         dim=-1
     ).view(2, B, C, 1, 1)
 
-    return color_rescaling(image.clamp(min=quantiles[0], max=quantiles[1]))
+    return rescale_color(image.clamp(min=quantiles[0], max=quantiles[1]))

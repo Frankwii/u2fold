@@ -241,32 +241,6 @@ def initialize_dirac_delta(
     return delta
 
 
-def compute_centered_gaussian_kernel(
-    standard_deviations: torch.Tensor,  # (B, C, 1, 1)
-    kernel_size: int,
-) -> torch.Tensor:
-    center = kernel_size // 2
-
-    x = (
-        (
-            torch.arange(
-                kernel_size,
-                device=standard_deviations.device,
-                dtype=standard_deviations.dtype,
-            )
-            - center
-        )
-        .reshape(kernel_size, 1)
-    )
-    y = x.transpose(0, 1)
-
-    distances_squared = (x**2 + y**2).unsqueeze(0).unsqueeze(0)
-
-    exponentials = torch.exp(-distances_squared / (2 * standard_deviations**2))
-
-    return exponentials / exponentials.sum(dim=(-1, -2), keepdim=True)
-
-
 def double_flip(x: torch.Tensor) -> torch.Tensor:
     return x.fliplr().flipud()
 
