@@ -287,7 +287,7 @@ def compute_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     )
 
     return (
-        0.5 * fidelity_term
+        0.1 * fidelity_term
         + ground_truth_term
         + 0.01 * tv_loss
         + 0.1 * color_similarity_term
@@ -413,6 +413,11 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                     "Test/Background_light",
                     epoch,
                 )
+                self.tensorboard_log_image(
+                    output.deterministic_components.transmission_map,
+                    "Test/Transmission_map",
+                    epoch,
+                )
 
             for input, ground_truth in test_iter:
                 output = self.forward_pass(input)
@@ -495,7 +500,7 @@ class ExecOrchestrator(Orchestrator[ExecConfig, ExecWeightHandler]):
             output = self.forward_pass(input_tensor)
 
         restored_image_tensor = (
-            (output.primal_variable / output.transmission_map.clamp(min=0.1))
+            (output.primal_variable / output.deterministic_components.transmission_map.clamp(min=0.1))
             .squeeze(0)
             .clamp(0, 1)
         )
