@@ -13,8 +13,7 @@ from PIL import Image
 from torch import Tensor
 from torch.nn import Parameter
 from torch.optim import Adam, Optimizer
-from torch.optim.lr_scheduler import OneCycleLR, ReduceLROnPlateau
-from torch.utils.checkpoint import checkpoint
+from torch.optim.lr_scheduler import CosineAnnealingLR, CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.transforms.functional import to_pil_image, to_tensor
 from tqdm import tqdm
@@ -93,12 +92,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         )
 
         self.__kernel_size = 7
-        self.__kernel_centrality_weight = 1
-        self.__kernel_centrality_penalty = (
-            self.initialize_kernel_centrality_penalty(
-                self.__kernel_size, self.__kernel_centrality_weight
-            )
-        )
 
     def compute_deterministic_components(
         self, input: Tensor
@@ -144,7 +137,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         kernel_size: int,
         learning_rate: Optional[float] = None,
     ) -> KernelBundle:
-        kernel_preimage = torch.rand(batch_size, 3, 1, 1)
+        kernel_preimage = torch.ones(batch_size, 3, 1, 1)
 
         kernel_preimage = Parameter(
             kernel_preimage.to(self._config.device), requires_grad=True
@@ -183,7 +176,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         kernel_bundle: KernelBundle,
         primal_variable: Tensor,
         fidelity: Tensor,
-        centrality_penalty_matrix: Tensor,
         n_iters: int,
     ) -> Tensor:
         for _ in range(n_iters):
@@ -197,11 +189,7 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                 approximation, fidelity
             )
 
-            centrality_loss = torch.mean(
-                torch.sum(kernel * centrality_penalty_matrix, dim=(-2, -1))
-            )
-
-            (fidelity_loss + centrality_loss).backward()
+            fidelity_loss.backward()
 
             kernel_bundle.optimizer.step()
 
@@ -250,7 +238,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
                 kernel_bundle,
                 primal_dual_bundle.primal_variable,
                 deterministic_components.fidelity,
-                self.__kernel_centrality_penalty,
                 n_iters,
             )
 
@@ -284,7 +271,7 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
     fidelity_term = torch.nn.functional.mse_loss(
         convolution.conv(output.primal_variable, output.kernel), output.fidelity
     )
-    radiance = output.primal_variable / output.transmission_map.clamp(min=1e-4)
+    radiance = output.primal_variable / output.transmission_map.clamp(min=0.1)
     ground_truth_term = torch.nn.functional.mse_loss(radiance, ground_truth)
 
     tv_loss = (
@@ -298,11 +285,14 @@ def train_loss(output: ForwardPassResult, ground_truth: Tensor) -> Loss:
         torch.abs(red - green) + torch.abs(red - blue) + torch.abs(green - blue)
     )
 
+    color_similarity_term = 1 - torch.cosine_similarity(radiance, ground_truth, dim=1).mean()
+
     return (
-        fidelity_term
-        + 0.5 * ground_truth_term
-        + 0.1 * tv_loss
-        + 0.1 * gray_world_loss
+        0.5 * fidelity_term +
+        ground_truth_term +
+        0.01 * tv_loss +
+        0.33 * gray_world_loss +
+        color_similarity_term
     )
 
 
@@ -320,13 +310,11 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
 
         self.__loss_function = train_loss
         self._tensorboard_logger = SummaryWriter(config.tensorboard_log_dir)
-        self._model_scheduler = OneCycleLR(
+        self._model_scheduler = CosineAnnealingLR(
             self._model_optimizer,
-            max_lr=1e-3,
-            steps_per_epoch=len(self.__dataloaders.training),
-            epochs=self._config.n_epochs,
+            T_max=self._config.n_epochs
         )
-        self._logger.info(f"Finished initializing orchestrator!")
+        self._logger.info(f"Finished initializing orchestrator.")
 
     def run(self):
         print(f"Running!")
@@ -371,10 +359,10 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             self.tensorboard_log_loss(test_loss, "Test loss", epoch)
         msg = (
             "Traning has finished, but the tensorboard process will be kept"
-            " running. Please kill the process to stop it."
+            " running."
         )
         self._logger.warning(msg)
-        print(msg)
+        print(msg + " Please kill the process to stop it.")
 
         tensorboard_process.wait()
 
@@ -398,13 +386,13 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             cumulative_loss += loss.detach().item()
 
             restored_image = (
-                output.primal_variable / output.transmission_map.clamp(min=1e-4)
+                output.primal_variable / output.transmission_map.clamp(min=0.1)
             )
             self.tensorboard_log_image(restored_image, "Test/Output", epoch)
             self.tensorboard_log_image(output.kernel, "Test/Kernel", epoch)
 
             radiance_estimation = (
-                output.fidelity / output.transmission_map.clamp(min=1e-4)
+                output.fidelity / output.transmission_map.clamp(min=0.1)
             )
 
             if epoch == 1:
@@ -413,6 +401,11 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
                     radiance_estimation,
                     "Test/First_radiance",
                     epoch,
+                )
+                self.tensorboard_log_image(
+                    first_ground_truth,
+                    "Test/Ground_truth",
+                    epoch
                 )
 
             for input, ground_truth in test_iter:
@@ -496,7 +489,7 @@ class ExecOrchestrator(Orchestrator[ExecConfig, ExecWeightHandler]):
             output = self.forward_pass(input_tensor)
 
         restored_image_tensor = (
-            (output.primal_variable / output.transmission_map.clamp(min=1e-4))
+            (output.primal_variable / output.transmission_map.clamp(min=0.1))
             .squeeze(0)
             .clamp(0, 1)
         )
