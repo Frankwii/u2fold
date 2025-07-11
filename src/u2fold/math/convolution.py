@@ -1,10 +1,20 @@
 import math
-from typing import NamedTuple
+from enum import Enum
+from functools import partial
+from typing import NamedTuple, Optional
 
 import torch
 
 
-def conv(input: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
+class PaddingStrategy(Enum):
+    Mirror = partial(torch.nn.functional.pad, mode="reflect")
+    Zero = partial(torch.nn.functional.pad, mode="constant", value=0)
+
+
+def conv(
+    kernel: torch.Tensor,
+    input: torch.Tensor,
+) -> torch.Tensor:
     """Batched 2D channel-wise convolution. Respects size of "input".
 
     Each channel of each image in the batch is convolved with the
@@ -16,6 +26,8 @@ def conv(input: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
     convolve every channel of a multi-channel (RGB) image. Similarly, and
     compatibly with the channel broadcasting, a (single or multi-channelled)
     kernel can be broadcast to convolve every image of a batched input.
+
+    The input is padded via mirroring in order to maintain shapes.
 
     NOTE: Actually, pytorch implements cross correlation and not convolution, so
     symmetry should be assumed on \\(g\\) for this to be an actual convolution;
@@ -32,20 +44,13 @@ def conv(input: torch.Tensor, kernel: torch.Tensor) -> torch.Tensor:
         \\(input\\ast kernel\\)
             Shape: (B, C, H, W)
     """
-    batch_size, n_channels, height, width = input.shape
-    kernel_height, kernel_width = kernel.shape[-2:]
 
-    return torch.nn.functional.conv2d(
-        input=input.reshape(1, batch_size * n_channels, height, width),
-        weight=kernel.expand(
-            batch_size, n_channels, kernel_height, kernel_width
-        ).reshape(-1, 1, kernel_height, kernel_width),
-        bias=None,
-        stride=1,
-        padding="same",
-        dilation=1,
-        groups=batch_size * n_channels,
-    ).reshape(batch_size, n_channels, height, width)
+    return flexible_conv(
+        kernel=kernel,
+        input=input,
+        output_shape=input.shape,
+        padding_strategy=PaddingStrategy.Mirror,
+    )
 
 
 class CenteredDimensions(NamedTuple):
@@ -120,6 +125,7 @@ def _pad_input(
     kernel_dims: tuple[int, int],
     input_dims: tuple[int, int],
     output_dims: tuple[int, int],
+    padding_strategy: PaddingStrategy,
 ) -> torch.Tensor:
     kernel_cdims = CenteredDimensions.from_height_width(*kernel_dims)
     input_cdims = CenteredDimensions.from_height_width(*input_dims)
@@ -132,15 +138,14 @@ def _pad_input(
 
     padding = (left_pad, right_pad, up_pad, down_pad)
 
-    return torch.nn.functional.pad(
-        reshaped_input, (*padding,), mode="constant", value=0
-    )
+    return padding_strategy.value(reshaped_input, pad=(*padding,))
 
 
 def flexible_conv(
     kernel: torch.Tensor,
     input: torch.Tensor,
     output_shape: tuple[int, int] | torch.Size,
+    padding_strategy: Optional[PaddingStrategy],
 ) -> torch.Tensor:
     """Batched 2D channel-wise convolution. Computes padding automatically.
 
@@ -188,11 +193,13 @@ def flexible_conv(
         output_height > input_height - kernel_height
         and output_width > output_height - kernel_height
     ):
+        assert padding_strategy is not None
         reshaped_input = _pad_input(
             reshaped_input=reshaped_input,
             kernel_dims=(kernel_height, kernel_width),
             input_dims=(input_height, input_width),
             output_dims=(output_height, output_width),
+            padding_strategy=padding_strategy,
         )
     elif (
         output_height <= input_height - kernel_height
@@ -243,10 +250,3 @@ def initialize_dirac_delta(
 
 def double_flip(x: torch.Tensor) -> torch.Tensor:
     return x.fliplr().flipud()
-
-
-def convex_conjugate(
-    x: torch.Tensor,
-    y: torch.Tensor,
-) -> torch.Tensor:
-    return conv(x, double_flip(y))
