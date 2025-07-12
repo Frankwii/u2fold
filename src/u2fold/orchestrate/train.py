@@ -1,10 +1,12 @@
+from itertools import chain
 import shlex
 import shutil
 import subprocess
 
 import torch
 from torch import Tensor
-from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.optim import Adam
+from torch.optim.lr_scheduler import CosineAnnealingLR, StepLR
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
@@ -29,10 +31,16 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             config.device,
         )
 
+        self._model_optimizer = Adam(
+            torch.nn.ModuleList(chain.from_iterable(self._models)).parameters(), lr=0.1
+        )
+
         self.__loss_function = F.loss
         self._tensorboard_logger = SummaryWriter(config.tensorboard_log_dir)
-        self._model_scheduler = CosineAnnealingLR(
-            self._model_optimizer, T_max=self._config.n_epochs
+        self._model_scheduler = StepLR(
+            self._model_optimizer,
+            gamma = 0.5 ** 0.5,
+            step_size=50
         )
         self._logger.info(f"Finished initializing orchestrator.")
 

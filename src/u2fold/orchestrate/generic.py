@@ -5,8 +5,6 @@ from typing import Iterable, cast
 
 import torch
 from torch import Tensor
-from torch.optim import Adam
-
 import u2fold.orchestrate.functional as F
 from u2fold.config_parsing.config_dataclasses import (
     U2FoldConfig,
@@ -84,10 +82,6 @@ class Orchestrator[T: U2FoldConfig, W: WeightHandler](ABC):
         )
 
         self._models = self._weight_handler.load_models(image_bundle)
-
-        self._model_optimizer = Adam(
-            torch.nn.ModuleList(chain.from_iterable(self._models)).parameters()
-        )
 
         self.__kernel_size = 7
         self.__kernel_square_distances_to_center = (
