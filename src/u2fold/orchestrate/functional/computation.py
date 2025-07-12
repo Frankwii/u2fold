@@ -38,7 +38,7 @@ def loss(output: ForwardPassResult, ground_truth: Tensor) -> Tensor:
     final_primal_variable = output.primal_variable_history[-1]
     final_kernel = output.kernel_history[-1]
     radiance = rescale_color(
-        final_kernel
+        final_primal_variable
         / output.deterministic_components.transmission_map.clamp(min=0.1)
     )
     pairwise_primal_variables = list(
