@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
+from u2fold.math.rescale_image import rescale_color
 import u2fold.orchestrate.functional as F
 from u2fold.config_parsing.config_dataclasses import TrainConfig
 from u2fold.data.get_dataloaders import get_dataloaders
@@ -105,14 +106,14 @@ class TrainOrchestrator(Orchestrator[TrainConfig, TrainWeightHandler]):
             cumulative_loss += loss.detach().item()
 
             restored_image = rescale_color(
-                output.primal_variable_history
+                output.primal_variable_history[-1]
                 / output.deterministic_components.transmission_map.clamp(
                     min=0.01
                 )
             )
             self.tensorboard_log_image(restored_image, "Test/Output", epoch)
             self.tensorboard_log_image(
-                output.kernel_history, "Test/Kernel", epoch
+                output.kernel_history[-1], "Test/Kernel", epoch
             )
 
             if epoch == 1:
