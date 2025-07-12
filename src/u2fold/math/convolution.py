@@ -1,5 +1,5 @@
 import math
-from enum import Enum
+from enum import Enum, member
 from functools import partial
 from typing import NamedTuple, Optional
 
@@ -7,8 +7,8 @@ import torch
 
 
 class PaddingStrategy(Enum):
-    Mirror = partial(torch.nn.functional.pad, mode="reflect")
-    Zero = partial(torch.nn.functional.pad, mode="constant", value=0)
+    Mirror = member(partial(torch.nn.functional.pad, mode="reflect"))
+    Zero = member(partial(torch.nn.functional.pad, mode="constant", value=0))
 
 
 def conv(
