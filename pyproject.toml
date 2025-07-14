@@ -7,7 +7,12 @@ authors = [
     { name = "Frankwii", email = "frank.william.hammond@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pydantic>=2.11.7",
+    "tensorboard>=2.19.0",
+    "torch>=2.7.1",
+    "torchvision>=0.22.1",
+]
 
 [project.scripts]
 u2fold = "u2fold:main"
@@ -15,3 +20,11 @@ u2fold = "u2fold:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "json-schema-for-humans>=1.4.1",
+    "pytest>=8.4.1",
+    "pytest-xdist>=3.8.0",
+    "ruff>=0.12.3",
+]
