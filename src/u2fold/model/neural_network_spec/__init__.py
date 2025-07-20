@@ -1,4 +1,5 @@
-from torch import NoneType
+from .unet import UNetConfig
 
+type NeuralNetworkSpec = UNetConfig
 
-type NeuralNetworkSpec = NoneType # TODO: Implement
+__all__ = ["UNetConfig", "NeuralNetworkSpec"]
