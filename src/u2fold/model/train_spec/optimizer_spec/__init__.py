@@ -1,6 +1,6 @@
-from .adam import AdamModel
-from .sgd import SGDModel
+from .adam import AdamSpec
+from .sgd import SGDSpec
 
-type OptimizerSpec = AdamModel | SGDModel
+type OptimizerSpec = AdamSpec | SGDSpec
 
-__all__ = ["AdamModel", "SGDModel"]
+__all__ = ["AdamSpec", "SGDSpec"]

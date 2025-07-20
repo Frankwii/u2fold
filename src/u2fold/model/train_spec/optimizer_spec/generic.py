@@ -5,7 +5,7 @@ from torch.optim import Optimizer
 from torch.optim.optimizer import ParamsT
 
 
-class OptimizerModel[Optim: Optimizer](BaseModel, ABC):
+class BaseOptimizerSpec[Optim: Optimizer](BaseModel, ABC):
     learning_rate: PositiveFloat = Field(
         title="Learning rate.",
         description="Step size for the optimizer (~gradient) updates. May be "

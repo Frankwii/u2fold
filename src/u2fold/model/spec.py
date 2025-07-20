@@ -1,16 +1,19 @@
-from types import NoneType
 from typing import Literal
 from pydantic import BaseModel, Field
 
 from .neural_network_spec import NeuralNetworkSpec
-from .train_spec.spec import TrainSpec
+from .train_spec import TrainSpec
+from .exec_spec import ExecSpec
 from .algorithmic_spec import AlgorithmicSpec
 
-type ExecSpec = NoneType # TODO: Implment
-
 class U2FoldSpec(BaseModel):
-    mode_spec: TrainSpec | ExecSpec = Field(discriminator="mode")
+    mode_spec: TrainSpec | ExecSpec = Field(
+        title="Mode",
+        discriminator="mode"
+    )
 
-    neural_network_spec: NeuralNetworkSpec
-    algorithmic_spec: AlgorithmicSpec
-    log_level: Literal["debug", "train", "warning", "error", "critical"]
+    neural_network_spec: NeuralNetworkSpec = Field(title="Neural network specification")
+    algorithmic_spec: AlgorithmicSpec = Field(title="Algorithmic specification")
+    log_level: Literal["debug", "train", "warning", "error", "critical"] = Field(
+        title="Log level"
+    )

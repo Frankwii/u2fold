@@ -5,13 +5,19 @@ from torch import Tensor
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.optim.optimizer import Optimizer
 
-from .generic import BaseLearningRateSchedulerModel
+from .generic import BaseLRScheduler, BaseLRSchedulerSpec
 
 
-class CosineAneallingLRModel(BaseLearningRateSchedulerModel[CosineAnnealingLR]):
+class CosineAnnealingLRScheduler(BaseLRScheduler[CosineAnnealingLR]):
+    def step(self, loss: Tensor) -> None:
+        self._scheduler.step()
+
+
+class CosineAneallingLRSpec(BaseLRSchedulerSpec):
     """Varies the learning rate between its initial value and a lower bound
     in a sinusoidal fashion, starting with a peak (cosine).
     """
+
     scheduler: Literal["cosine_annealing_lr"]
 
     semiperiod: PositiveInt = Field(
@@ -26,11 +32,9 @@ class CosineAneallingLRModel(BaseLearningRateSchedulerModel[CosineAnnealingLR]):
         default=0,
     )
 
-    def instantiate(self, optimizer: Optimizer) -> CosineAnnealingLR:
-        return CosineAnnealingLR(
-            optimizer, T_max=self.semiperiod, eta_min=self.minimum_learning_rate
+    def instantiate(self, optimizer: Optimizer) -> CosineAnnealingLRScheduler:
+        return CosineAnnealingLRScheduler(
+            CosineAnnealingLR(
+                optimizer, T_max=self.semiperiod, eta_min=self.minimum_learning_rate
+            )
         )
-
-    @staticmethod
-    def take_step(scheduler: CosineAnnealingLR, loss: Tensor) -> None:
-        scheduler.step()

@@ -1,6 +1,8 @@
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, ConfigDict, Field
+
+from .dataset_spec import DatasetSpec
 
 from .learning_rate_scheduler_spec import LRSchedulerSpec
 from .loss_spec import LossSpec
@@ -8,17 +10,28 @@ from .optimizer_spec import OptimizerSpec
 
 
 class TrainSpec(BaseModel):
+    model_config = ConfigDict(frozen=True)
     mode: Literal["train"]
 
-    n_epochs: PositiveInt
-    batch_size: PositiveInt
-
     optimizer_spec: OptimizerSpec = Field(
-        description="Optimizer specification", discriminator="optimizer"
+        title="Optimizer",
+        description="Optimizer specification.", discriminator="optimizer"
     )
 
-    learning_rate_spec: LRSchedulerSpec = Field(
-        description="Learning rate scheduler specification", discriminator="scheduler"
+    learning_rate_scheduler_spec: LRSchedulerSpec = Field(
+        title="LR scheduler",
+        description="Learning rate scheduler specification.", discriminator="scheduler"
     )
 
-    losses: frozenset[Annotated[LossSpec, Field(discriminator="loss")]]
+    dataset_spec: DatasetSpec = Field(
+        title="Dataset specification",
+        description="Specifications for the dataset used to train the model.\n"
+        "Also includes information about the number of epochs and how to load the dataset."
+    )
+
+    losses: list[Annotated[LossSpec, Field(
+        title = "Loss function specification",
+        description="Specification for the loss functions to be used.\n"
+        "The final loss function will be the sum of the losses specified in this attribute.",
+        discriminator="loss"
+    )]]

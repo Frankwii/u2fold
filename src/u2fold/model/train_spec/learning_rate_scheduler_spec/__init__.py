@@ -1,12 +1,12 @@
-from .cosine_annealing_lr import CosineAneallingLRModel
-from .reduce_lr_on_plateau import ReduceLROnPlateauModel
+from .cosine_annealing_lr import CosineAneallingLRSpec
+from .reduce_lr_on_plateau import ReduceLROnPlateauSpec
 from .step_lr import StepLRModel
 
-type LRSchedulerSpec = StepLRModel | CosineAneallingLRModel | ReduceLROnPlateauModel
+type LRSchedulerSpec = StepLRModel | CosineAneallingLRSpec | ReduceLROnPlateauSpec
 
 __all__ = [
-    "CosineAneallingLRModel",
+    "CosineAneallingLRSpec",
     "StepLRModel",
-    "ReduceLROnPlateauModel",
+    "ReduceLROnPlateauSpec",
     "LRSchedulerSpec",
 ]

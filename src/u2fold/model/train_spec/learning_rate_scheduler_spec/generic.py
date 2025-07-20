@@ -1,15 +1,21 @@
 from abc import ABC, abstractmethod
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from torch import Tensor
-from torch.optim.optimizer import Optimizer
 from torch.optim.lr_scheduler import LRScheduler
+from torch.optim.optimizer import Optimizer
 
 
-class BaseLearningRateSchedulerModel[Sched: LRScheduler](BaseModel, ABC):
+class BaseLRScheduler[Sched: LRScheduler](ABC):
+    def __init__(self, scheduler: Sched):
+        self._scheduler = scheduler
+
     @abstractmethod
-    def instantiate(self, optimizer: Optimizer) -> Sched: ...
+    def step(self, loss: Tensor) -> None: ...
+
+
+class BaseLRSchedulerSpec(BaseModel, ABC):
+    model_config = ConfigDict(frozen=True)
 
     @abstractmethod
-    @staticmethod
-    def take_step(scheduler: Sched, loss: Tensor) -> None: ...
+    def instantiate(self, optimizer: Optimizer) -> BaseLRScheduler[LRScheduler]: ...

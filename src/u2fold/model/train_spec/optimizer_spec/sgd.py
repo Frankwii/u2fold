@@ -4,10 +4,10 @@ from pydantic import Field, NonNegativeFloat
 from torch.optim import SGD
 from torch.optim.optimizer import ParamsT
 
-from .generic import OptimizerModel
+from .generic import BaseOptimizerSpec
 
 
-class SGDModel(OptimizerModel[SGD]):
+class SGDSpec(BaseOptimizerSpec[SGD]):
     """Stochastic Gradient Descent"""
 
     optimizer: Literal["sgd"]

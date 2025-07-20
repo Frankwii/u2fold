@@ -1,14 +1,14 @@
-from .color_cosine_similarity import ColorCosineSimilarityLoss
-from .consistency import ConsistencyLoss
-from .fidelity import FidelityLoss
-from .ground_truth import GroundTruthLoss
+from .color_cosine_similarity import ColorCosineSimilarityLossSpec
+from .consistency import ConsistencyLossSpec
+from .fidelity import FidelityLossSpec
+from .ground_truth import GroundTruthLossSpec
 
-type LossSpec = ColorCosineSimilarityLoss | ConsistencyLoss | FidelityLoss | GroundTruthLoss
+type LossSpec = ColorCosineSimilarityLossSpec | ConsistencyLossSpec | FidelityLossSpec | GroundTruthLossSpec
 
 __all__ = [
-    "ColorCosineSimilarityLoss",
-    "ConsistencyLoss",
-    "FidelityLoss",
-    "GroundTruthLoss",
+    "ColorCosineSimilarityLossSpec",
+    "ConsistencyLossSpec",
+    "FidelityLossSpec",
+    "GroundTruthLossSpec",
     "LossSpec"
 ]

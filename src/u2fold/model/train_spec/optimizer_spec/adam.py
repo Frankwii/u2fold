@@ -2,9 +2,9 @@ from typing import Literal
 from torch.optim import Adam
 from torch.optim.optimizer import ParamsT
 
-from .generic import OptimizerModel
+from .generic import BaseOptimizerSpec
 
-class AdamModel(OptimizerModel[Adam]):
+class AdamSpec(BaseOptimizerSpec[Adam]):
     """Adam: Adaptive Moment Estimation"""
     optimizer: Literal["adam"]
 
