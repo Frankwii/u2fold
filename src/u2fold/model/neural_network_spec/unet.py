@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from .components.activation import Activation
 from .components.pooling import PoolSpec
@@ -8,8 +8,6 @@ from .components.pooling import PoolSpec
 
 class UNetConfig(BaseModel):
     """Config for a UNet-like architecture"""
-
-    model_config = ConfigDict(frozen=True)
 
     name: Literal["unet"]
     activation: Activation = Field(title="Activation function", discriminator="name")

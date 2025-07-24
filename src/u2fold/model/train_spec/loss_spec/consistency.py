@@ -16,7 +16,7 @@ class ConsistencyModule(BaseLossModule):
             itertools.pairwise(result.primal_variable_history),
         )
 
-        return torch.mean(torch.stack(tuple(losses)))
+        return torch.mean(torch.stack(list(losses)))
 
 
 class ConsistencyLossSpec(BaseLossSpec):

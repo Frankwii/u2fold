@@ -131,21 +131,21 @@ def test_train_forward_pass(valid_train_spec):
     scheduler = train_spec.learning_rate_scheduler_spec.instantiate(optimizer)
     losses = [loss.instantiate() for loss in train_spec.losses]
 
-    mock_input = torch.Tensor([1.0])
+    mock_input = torch.Tensor([1.0]).reshape(1,1,1,1)
     model_output = model(mock_input)
 
     from u2fold.model.common_namespaces import ForwardPassResult
     result = ForwardPassResult(
-        primal_variable_history=[model_output],
-        kernel_history=[model_output], 
+        primal_variable_history=[model_output] * 2,
+        kernel_history=[model_output] * 2, 
         deterministic_components=DeterministicComponents(
-            fidelity=torch.Tensor([1.0]),
-            transmission_map=torch.Tensor([1.0]),
-            background_light=torch.Tensor([1.0])
+            fidelity=torch.Tensor([1.0]).reshape_as(mock_input),
+            transmission_map=torch.Tensor([1.0]).reshape_as(mock_input),
+            background_light=torch.Tensor([1.0]).reshape_as(mock_input)
     ))
 
     loss = sum(
-        loss(result, torch.Tensor([1.0])) for loss in losses
+        loss(result, torch.Tensor([1.0]).reshape_as(mock_input)) for loss in losses
     )
 
     

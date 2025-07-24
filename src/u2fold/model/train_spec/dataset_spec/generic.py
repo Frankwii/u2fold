@@ -1,14 +1,15 @@
-from torch.utils.data import Dataset
 from abc import ABC, abstractmethod
 from pathlib import Path
 from pydantic import BaseModel, PositiveInt
 
+from u2fold.data.dataloader_generics.base import U2FoldDataLoader
+from u2fold.data.dataset_splits import SplitData
 
-class BaseDatasetSpec(BaseModel, ABC):
+
+class BaseDatasetSpec[D: U2FoldDataLoader](BaseModel, ABC):
     path: Path
-    eager_load: bool
     n_epochs: PositiveInt
     batch_size: PositiveInt
 
     @abstractmethod
-    def instantiate(self) -> Dataset: ...
+    def instantiate(self) -> SplitData[D]: ...
