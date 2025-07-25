@@ -4,7 +4,6 @@ from torch import Tensor
 from u2fold.math.guided_filter import guided_filter
 
 
-@torch.compile
 def compute_saturation_map(images: Tensor) -> Tensor:
     """Computes the saturation map for a batch of images.
 
@@ -33,7 +32,6 @@ def compute_saturation_map(images: Tensor) -> Tensor:
     )
 
 
-@torch.compile
 def estimate_coarse_red_transmission_map(
     images: Tensor,
     background_lights: Tensor,
@@ -95,7 +93,6 @@ def estimate_coarse_red_transmission_map(
     return 1 - overall_minima
 
 
-@torch.compile
 def estimate_transmission_map(
     images: Tensor,
     background_light: Tensor,

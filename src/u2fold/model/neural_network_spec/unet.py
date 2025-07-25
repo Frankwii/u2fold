@@ -1,12 +1,14 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import Field, field_validator
+
+from .generic import BaseNeuralNetworkSpec
 
 from .components.activation import Activation
 from .components.pooling import PoolSpec
 
 
-class UNetConfig(BaseModel):
+class UNetSpec(BaseNeuralNetworkSpec):
     """Config for a UNet-like architecture"""
 
     name: Literal["unet"]

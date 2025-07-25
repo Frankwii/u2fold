@@ -1,7 +1,6 @@
 import torch
 from torch import Tensor
 
-@torch.compile
 def rescale_color(image: Tensor) -> Tensor:
     B, C = image.shape[:2]
     

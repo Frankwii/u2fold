@@ -2,7 +2,6 @@ import torch
 from torch import Tensor
 
 
-@torch.compile
 def _assign_scores(patches: Tensor) -> Tensor:
     """Returns the average minus standard deviation along the image pixels.
 
@@ -17,7 +16,6 @@ def _assign_scores(patches: Tensor) -> Tensor:
     return (avg - std).sum(dim=-1)
 
 
-@torch.compile
 def _linear_search_background_light(
     patches: Tensor,
 ) -> Tensor:
@@ -63,12 +61,10 @@ def _linear_search_background_light(
     )  # (B, C, 1, 1)
 
 
-@torch.compile
 def _MAX_ALLOWED_SIZE(batch_size: int, channels: int) -> int:
     return batch_size * channels * 16  # 4 x 4 patches are the biggest allowed.
 
 
-@torch.compile
 def _split_image_batch_into_quadrants(
     images: Tensor,  # Shape(B, C, H, W)
     channels: int,
@@ -99,7 +95,6 @@ def _split_image_batch_into_quadrants(
         )
 
 
-@torch.compile
 def estimate_background_light(
     images: Tensor,
 ) -> Tensor:

@@ -20,3 +20,6 @@ class BasePoolingMethod(BaseModel, ABC):
 
     @abstractmethod
     def instantiate(self) -> nn.Module: ...
+
+    def format_value(self) -> str:
+        return f"{getattr(self, 'method')}-{self.kernel_size}-{self.stride}"

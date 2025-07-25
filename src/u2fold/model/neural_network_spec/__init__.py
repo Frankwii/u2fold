@@ -1,5 +1,5 @@
-from .unet import UNetConfig
+from .unet import UNetSpec
 
-type NeuralNetworkSpec = UNetConfig
+type NeuralNetworkSpec = UNetSpec
 
-__all__ = ["UNetConfig", "NeuralNetworkSpec"]
+__all__ = ["UNetSpec", "NeuralNetworkSpec"]

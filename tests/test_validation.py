@@ -7,7 +7,7 @@ import torch
 
 from tests.utils.file import TmpFiles
 from u2fold.model.common_namespaces import DeterministicComponents
-from u2fold.model.neural_network_spec.unet import UNetConfig
+from u2fold.model.neural_network_spec.unet import UNetSpec
 from u2fold.model.spec import U2FoldSpec
 from u2fold.model.train_spec.spec import TrainSpec
 
@@ -105,7 +105,7 @@ def test_exec_spec_initialization_from_python(valid_exec_spec):
 
 import torch.nn as nn
 class MockUnet(nn.Module):
-    def __init__(self, conf: UNetConfig) -> None:
+    def __init__(self, conf: UNetSpec) -> None:
         super().__init__()
         self.fc = nn.Linear(1,1)
 

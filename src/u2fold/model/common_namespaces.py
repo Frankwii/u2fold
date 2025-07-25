@@ -1,6 +1,29 @@
 from dataclasses import dataclass
+from typing import Callable
 
 from torch import Tensor
+
+from torch.nn import Parameter
+from torch.optim import Optimizer
+
+from u2fold.math.primal_dual import PrimalDualSchema
+
+@dataclass
+class KernelBundle:
+    preimage: Parameter
+    preimage_to_kernel_mapping: Callable[[Tensor], Tensor]
+    optimizer: Optimizer
+
+    def compute_kernel(self):
+        return self.preimage_to_kernel_mapping(self.preimage)
+
+
+@dataclass
+class PrimalDualBundle:
+    schema: PrimalDualSchema
+    primal_variable: Tensor
+    dual_variable: Tensor
+
 
 
 @dataclass

@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+from typing import Sequence
 
 from pydantic import BaseModel, ConfigDict, NonNegativeFloat
 from torch import Tensor, nn
+import torch
 
 from u2fold.model.common_namespaces import ForwardPassResult
 
@@ -25,3 +27,18 @@ class BaseLossSpec(BaseModel, ABC):
 
     @abstractmethod
     def instantiate(self) -> BaseLossModule: ...
+
+
+class Loss(nn.Module):
+    def __init__(self, losses: Sequence[BaseLossModule]):
+        super().__init__()
+        self.losses = nn.ModuleList(list(losses))
+
+    def forward(
+        self,
+        result: ForwardPassResult,
+        ground_truth: Tensor,
+    ) -> Tensor:
+        return torch.stack(
+            [l(result, ground_truth) for l in self.losses]
+        ).sum(dim=0)

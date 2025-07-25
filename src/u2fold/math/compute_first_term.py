@@ -4,7 +4,6 @@ from torch import Tensor
 from .transmission_map_estimation import estimate_transmission_map
 
 
-@torch.compile
 def estimate_fidelity_and_transmission_map(
     images: Tensor,  # I; (B, C, H, W)
     background_light: Tensor,  # B; (B, C, 1, 1)
@@ -25,7 +24,6 @@ def estimate_fidelity_and_transmission_map(
     return fidelity, transmission_map_estimation
 
 
-@torch.compile
 def compute_I2(
     images: Tensor,  # I; (B, C, H, W)
     scene_radiance: Tensor,  # J; (B, C, H, W)

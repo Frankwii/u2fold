@@ -23,7 +23,6 @@ type LinearBundle[LinearArg] = tuple[
 ]
 
 
-@torch.compile
 def _primal_dual_iteration[X, Y, Z](
     primal_variable: Tensor,
     dual_variable: Tensor,
@@ -51,7 +50,6 @@ def _primal_dual_iteration[X, Y, Z](
     return primal, dual
 
 
-@torch.compile
 def _apply_proximity[X](
     input: Tensor,
     proximity_bundle: ProximityBundle[X],

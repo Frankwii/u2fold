@@ -1,11 +1,11 @@
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .dataset_spec import DatasetSpec
 
 from .learning_rate_scheduler_spec import LRSchedulerSpec
-from .loss_spec import LossSpec
+from .loss_spec import LossSpec, Loss
 from .optimizer_spec import OptimizerSpec
 
 
@@ -33,5 +33,15 @@ class TrainSpec(BaseModel):
         title = "Loss function specification",
         description="Specification for the loss functions to be used.\n"
         "The final loss function will be the sum of the losses specified in this attribute.",
-        discriminator="loss"
+        discriminator="loss",
     )]]
+
+    @field_validator("losses", mode="after")
+    @classmethod
+    def validate_losses(cls, losses: list[LossSpec]) -> list[LossSpec]:
+        assert len(losses) > 0
+
+        return losses
+
+    def instantiate_loss(self) -> Loss:
+        return Loss([l.instantiate() for l in self.losses])
