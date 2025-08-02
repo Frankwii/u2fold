@@ -20,13 +20,12 @@
     },
     "learning_rate_scheduler_spec":{
       "scheduler":"step_lr",
-      "step_size":50,
+      "step_size":20,
       "factor":0.2
-    }
-  },
+    }},
   "algorithmic_spec":{
     "transmission_map_patch_radius":8,
-    "guided_filter_patch_radius":8,
+    "guided_filter_patch_radius":15,
     "transmission_map_saturation_coefficient":0.5,
     "guided_filter_regularization_coefficient": 0.01,
     "step_size":0.01

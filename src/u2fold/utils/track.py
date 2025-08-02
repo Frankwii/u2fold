@@ -1,10 +1,10 @@
 from logging import getLogger
-from typing import Callable, Union, cast
+from typing import Callable, cast
 
 logger = getLogger("tracking_logger")
 
 
-NestedDict = dict[str, Union["NestedDict", type]]
+NestedDict = dict[str, "NestedDict | type"]
 _TRACKED: NestedDict = {}
 
 def _split_group_and_level(tag: str) -> tuple[list[str], str]:
@@ -19,7 +19,7 @@ def _get_last_level(levels: list[str]) -> dict[str, type]:
 
     curlevel = _TRACKED
     for level in levels:
-        curlevel = cast(NestedDict, curlevel)
+        curlevel = cast(NestedDict, curlevel)  # pyright: ignore[reportUnnecessaryCast]
         curlevel = curlevel.get(level, {})
 
     logger.debug(f"Tracked at levels {levels}: {curlevel}.")
@@ -37,7 +37,7 @@ def _set_last_level(
 
     curlevel = _TRACKED
     for level in levels:
-        curlevel = cast(NestedDict, curlevel)
+        curlevel = cast(NestedDict, curlevel)  # pyright: ignore[reportUnnecessaryCast]
         if level in curlevel.keys():
             curlevel = curlevel.get(level)
         else:
@@ -69,4 +69,4 @@ def get_tag_group(group_tag: str) -> dict[str, type]:
 
 def get_from_tag(tag: str) -> type:
 
-    return cast(type, _get_last_level(tag.split("/")))
+    return cast(type, _get_last_level(tag.split("/")))  # pyright: ignore[reportInvalidCast]

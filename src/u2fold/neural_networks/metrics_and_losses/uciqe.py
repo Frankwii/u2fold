@@ -1,0 +1,58 @@
+from .colorspace_utilities import rgb_to_lab
+import torch
+from torch import Tensor
+
+# As defined in https://doi.org/10.1109/TIP.2015.2491020
+def uciqe(input: Tensor) -> Tensor:
+    batch_size = input.size(0)
+    lab_input = rgb_to_lab(input)
+
+    luminance_contrast = (
+        torch.quantile(
+            input=lab_input[:, 0, :, :].reshape(batch_size, -1),
+            q=torch.Tensor([0.01, 0.99]),
+            dim=-1,
+        )
+        .diff(dim=0)
+        .reshape(batch_size)
+    )
+
+    chroma_std = (
+        (lab_input[:, 1:, :, :] ** 2)
+        .sum(dim=1)  # a**2 + b**2
+        .sqrt()
+        .std(dim=(-2, -1))
+        .reshape_as(luminance_contrast)
+    )
+
+    saturation_mean = (
+        (chroma_std / lab_input[:, :1, :, :])
+        .squeeze(1)
+        .mean(dim=(-2, -1))
+        .reshape_as(luminance_contrast)
+    )
+
+    submetrics = torch.stack(
+        (saturation_mean, luminance_contrast, chroma_std), dim=1
+    )
+
+    coefficients = torch.Tensor([0.468, 0.2745, 0.2576]).unsqueeze(0)
+
+    return torch.sum(coefficients * submetrics, dim = 1).mean()
+
+def uciqe_minimizable(input: Tensor) -> Tensor:
+    """One minus the UCIQE metric for the input
+
+    As seen in its original paper, the UCIQE metric lies in the range [0, 1] and
+    increases with the quality of the image. This is the opposite of what is desired
+    when trying to minimize a quantity in order to measure good quality outputs.
+
+    Therefore, it makes sense to "invert" the metric by subtracting it to 1, turning
+    it into a "minimizable" metric.
+    """
+    return 1 - uciqe(input)
+
+def uciqe_minimizable_calibrated(input: Tensor) -> Tensor:
+    uieb_average = 10.590411186218262
+
+    return uciqe_minimizable(input) / uieb_average

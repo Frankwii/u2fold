@@ -1,0 +1,9 @@
+{
+  "uciqe_minimizable": {"average": 10.590411186218262, "standard_deviation": 2.169753074645996},
+  "total_variation": {"average": 0.05879312381148338, "standard_deviation": 0.03238452598452568},
+  "psnr_minimizable": {"average": 0.05976884812116623, "standard_deviation": 0.02899237535893917},
+  "dssim": {"average": 0.11068128794431686, "standard_deviation": 0.062036823481321335},
+  "mse": {"average": 0.025612633675336838, "standard_deviation": 0.022647229954600334},
+  "color_minimizable": {"average": 0.035978469997644424, "standard_deviation": 0.03859851509332657},
+  "fidelity": {"average": 0.03710788115859032, "standard_deviation": 0.029906896874308586}
+}

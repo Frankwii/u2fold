@@ -188,7 +188,7 @@ def flexible_conv(
 
     if (
         output_height > input_height - kernel_height
-        and output_width > output_height - kernel_height
+        and output_width > output_width - kernel_width
     ):
         assert padding_strategy is not None
         reshaped_input = _pad_input(

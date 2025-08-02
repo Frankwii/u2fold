@@ -12,20 +12,20 @@ SPEC_DOCS_DIR = get_project_home() / Path("docs/spec")
 def _dump_model_schema(target_file: Path):
     with open(target_file, 'w') as f:
         
-        f.write(
+        _ = f.write(
             orjson.dumps(U2FoldSpec.model_json_schema()).decode()
         )
 
 def _generate_html(schema_file: Path):
     args = [PYTHON_VENV_BINARIES / "generate-schema-doc", schema_file.name]
-    subprocess.run(
+    _ = subprocess.run(
         args,
         cwd=schema_file.parent,
         stdout=subprocess.DEVNULL
     )
 
 def _show_html(html_dir: Path):
-    subprocess.Popen([
+    _ = subprocess.Popen([
         os.getenv("BROWSER", "firefox"), "schema_doc.html"
      ],   cwd = html_dir
     )

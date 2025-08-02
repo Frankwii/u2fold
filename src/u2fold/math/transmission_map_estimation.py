@@ -96,7 +96,8 @@ def estimate_coarse_red_transmission_map(
 def estimate_transmission_map(
     images: Tensor,
     background_light: Tensor,
-    patch_radius: int,
+    guided_filter_patch_radius: int,
+    transmission_map_patch_radius: int,
     saturation_coefficient: float,
     regularization_coefficient: float,
 ) -> Tensor:
@@ -122,13 +123,13 @@ def estimate_transmission_map(
         images=images,
         background_lights=background_light,
         saturation_coefficient=saturation_coefficient,
-        patch_radius=patch_radius,
+        patch_radius=transmission_map_patch_radius,
     )
 
     fine_red_transmission_map = guided_filter(
         guide=images,
         input=coarse_red_transmission_map,
-        patch_radius=patch_radius * 2 - 1,
+        patch_radius=guided_filter_patch_radius,
         regularization_coefficient=regularization_coefficient,
     )
 

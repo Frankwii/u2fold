@@ -1,7 +1,6 @@
 from .computation import (
     DeterministicComponents,
     compute_deterministic_components,
-    loss
 )
 from .initialization import (
     KernelBundle,
@@ -19,5 +18,4 @@ __all__ = [
     "initialize_gaussian_kernel",
     "initialize_square_matrix_with_square_distances_to_center",
     "initialize_primal_dual",
-    "loss"
 ]

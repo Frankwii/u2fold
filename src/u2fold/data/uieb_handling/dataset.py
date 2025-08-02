@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import override
 
 import PIL.Image
 from PIL.Image import Image
@@ -9,7 +10,7 @@ from u2fold.utils.track import tag
 
 
 @tag("data/dataset/uieb")
-class UIEBDataset(RAMLoadedDataset[Image], GroundTruthDataset[Image]):
+class UIEBDataset(RAMLoadedDataset[Image], GroundTruthDataset[Image]):  # pyright: ignore[reportUnsafeMultipleInheritance]
     """Subclass of PyTorch's Dataset for the UIEB dataset.
 
     Importantly, this loads the full (preprocessed) dataset into memory as
@@ -17,12 +18,14 @@ class UIEBDataset(RAMLoadedDataset[Image], GroundTruthDataset[Image]):
     inheritance.
     """
 
+    @override
     def _postvalidate_part_pairing(self) -> None:
         """Check whether corresponding input and ground truth Tensors have
         the same shape.
         """
         self.assert_pairing_homogeneity_of_mapping(lambda tensor: tensor.shape)
 
+    @override
     def _prevalidate_part_pairing(self) -> None:
         input_names = self.__get_names_of_directory(
             self._get_part_path("input")
@@ -47,6 +50,7 @@ class UIEBDataset(RAMLoadedDataset[Image], GroundTruthDataset[Image]):
     def __get_names_of_directory(self, dir: Path) -> set[str]:
         return set(file.name for file in dir.iterdir())
 
+    @override
     @staticmethod
     def _load_element(path: Path) -> Image:
         return PIL.Image.open(path).convert("RGB")

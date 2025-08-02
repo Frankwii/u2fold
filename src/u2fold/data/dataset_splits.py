@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Callable, Generic, Optional, TypeVar, cast
 
-from torch import Generator
+from torch import Generator, Tensor
 from torch.utils.data import Dataset, random_split
 
 RANDOM_SEED = 42
@@ -26,7 +26,7 @@ class SplitData(Generic[T]):
     def map[A, U](
         self,
         f: Callable[[T, A], U] | Callable[[T], U],
-        params: Optional["SplitData[A]"] = None,
+        params: "SplitData[A] | None" = None,
     ) -> "SplitData[U]":
         if params is not None:
             f = cast(Callable[[T, A], U], f)
@@ -54,7 +54,7 @@ class DatasetSplits(SplitData[float]):
                 raise ValueError("All split fractions must be positive.")
 
 
-def split_dataset[T: Dataset](
+def split_dataset[T: Dataset[Tensor]](
     dataset: T,
     splits: DatasetSplits,
 ) -> SplitData[T]:

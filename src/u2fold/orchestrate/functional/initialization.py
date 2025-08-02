@@ -7,7 +7,8 @@ from torch.optim import Adam
 import u2fold.math.linear_operators as linear_operators
 import u2fold.math.proximities as proximities
 from u2fold.math.primal_dual import PrimalDualSchema
-from u2fold.model.common_namespaces import KernelBundle, Parameter, PrimalDualBundle
+from u2fold.model.common_namespaces import KernelBundle, PrimalDualBundle
+from torch.nn import Parameter
 
 
 def initialize_square_matrix_with_square_distances_to_center(
@@ -45,7 +46,7 @@ def initialize_primal_dual(
     )
 
 
-def _get_gaussian_kernel(
+def get_gaussian_kernel(
     standard_deviations: Tensor,  # (B, C, 1, 1)
     square_distances_to_center: Tensor,  # (B, C, 1, 1)
 ) -> Tensor:
@@ -65,7 +66,7 @@ def initialize_gaussian_kernel(
     return KernelBundle(
         preimage=standard_deviations,
         preimage_to_kernel_mapping=partial(
-            _get_gaussian_kernel,
+            get_gaussian_kernel,
             square_distances_to_center=square_distances_to_center,
         ),
         optimizer=Adam([standard_deviations], lr=learning_rate),

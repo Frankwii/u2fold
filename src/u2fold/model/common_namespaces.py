@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, final
 
 from torch import Tensor
 
@@ -20,7 +20,7 @@ class KernelBundle:
 
 @dataclass
 class PrimalDualBundle:
-    schema: PrimalDualSchema
+    schema: PrimalDualSchema  # pyright: ignore[reportMissingTypeArgument]
     primal_variable: Tensor
     dual_variable: Tensor
 
@@ -33,6 +33,7 @@ class DeterministicComponents:
     background_light: Tensor
 
 
+@final
 class ForwardPassResult:
     def __init__(
         self,

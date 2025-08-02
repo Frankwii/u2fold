@@ -5,6 +5,7 @@ from typing import Iterable, cast
 
 import torch
 from torch import Tensor
+from u2fold.model.neural_network_spec import NeuralNetworkSpec
 from u2fold.model.spec import U2FoldSpec
 import u2fold.orchestrate.functional as F
 from u2fold.math.convolution import convolve
@@ -46,9 +47,9 @@ def optimize_kernel(
     return kernel_bundle.compute_kernel()
 
 
-def optimize_primal_dual(
+def optimize_primal_dual[Spec: NeuralNetworkSpec](
     primal_dual_bundle: PrimalDualBundle,
-    greedy_iteration_models: Iterable[NeuralNetwork],
+    greedy_iteration_models: Iterable[NeuralNetwork[Spec]],
     current_primal_variable: Tensor,
     current_dual_variable: Tensor,
 ) -> tuple[list[Tensor], list[Tensor]]:
@@ -99,6 +100,7 @@ class Orchestrator[W: WeightHandler](ABC):
         deterministic_components = F.compute_deterministic_components(
             input,
             algorithmic_spec.guided_filter_patch_radius, 
+            algorithmic_spec.transmission_map_patch_radius,
             algorithmic_spec.transmission_map_saturation_coefficient,
             algorithmic_spec.guided_filter_regularization_coefficient
         )
@@ -117,7 +119,7 @@ class Orchestrator[W: WeightHandler](ABC):
         )
 
         # silence "possibly unbound" type-checker complaints
-        kernel = cast(Tensor, None)
+        kernel = cast(Tensor, None)  # pyright: ignore[reportInvalidCast]
         kernel_iterations = chain((20,), repeat(10))
 
         primal_variable = primal_dual_bundle.primal_variable
