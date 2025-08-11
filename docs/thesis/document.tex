@@ -1,0 +1,408 @@
+\documentclass[twocolumn,twoside,a4paper,10pt]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[noadjust]{cite}
+    \renewcommand{\citepunct}{,\penalty\citepunctpenalty\,}
+    \renewcommand{\citedash}{--}
+\usepackage{lipsum}
+\usepackage{url}
+\usepackage{graphicx}
+% ADD THE PACKAGES YOU MIGHT NEED
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[future]{hyperref}
+\usepackage{cleveref}
+\usepackage{xcolor}
+\usepackage[ruled]{algorithm2e}
+\SetKwComment{Comment}{/* }{ */}
+
+
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+
+
+% % % % % % % % % % % % % % % % % %
+%     EDIT THE THESIS' DETAILS    %
+% % % % % % % % % % % % % % % % % %
+
+
+\usepackage[english]{babel}     % Use either `english`, `catalan` or `spanish` to change titles and other template text
+\title{Untitled thesis}
+\author{Frank William Hammond Espinosa}
+\email{frank.william.hammond@gmail.com}
+\tutors{Julia Navarro Oliver and Ana Belén Petro Balaguer}
+\specialization{Artificial Intelligence}
+\academicyear{2024/25}
+\keywords{Underwater imaging, Applied mathematics}
+% \showedisslogo  % Uncomment this command if you are an EDISS student.
+\newcommand{\Frank}[1]{\textcolor{red}{#1}}
+\DeclareMathOperator*{\argmin}{\operatorname*{argmin}}
+\DeclareMathOperator*{\argmax}{\operatorname*{argmax}}
+
+\setlength{\parindent}{0px}
+
+\crefname{algorithm}{algorithm}{algorithms}
+\Crefname{algorithm}{Algorithm}{Algorithms}
+
+\begin{document}
+
+\include{titlepage}
+\maketitle
+
+
+
+% % % % % % % % % % % % % % % %
+%     EDIT THE MANUSCRIPT     %
+% % % % % % % % % % % % % % % %
+
+\begin{abstract}
+\noindent This is a very abstract abstractionary abstract.
+\end{abstract}
+
+\section{Introduction}
+Blabla cites SOTA etc avorrit.
+
+% \begin{figure}[!ht]
+%     \begin{center}
+%     	\includegraphics[width = \linewidth]{figures/example1.png}
+%     \end{center}
+%     \caption{Figure within the column.}
+%     \label{fig:fig1}
+% \end{figure}
+% *PARA FIGURA A DOBLE COLUMNA
+% \begin{figure*}[!ht]
+%     \begin{center}
+%     	\includegraphics[width = \linewidth]{figures/example2.png}
+%     \end{center}
+%     \caption{Figure within the body. Source: phdcomics.} 
+%     \label{fig:fig2}
+% \end{figure*}
+
+\section{Mathematical model}
+\subsection{Theoretical grounding and notation}\label{subsec:theoretical-grounding}
+\subsubsection{Image representations}
+
+Two representations of digital images will be used in this work, the equivalences between which will be described below.
+
+The most common representation among computing frameworks is that of multidimensional arrays, sometimes also called \textit{tensors}. We shall refer to this one as the \textbf{discrete} representation. Since \textit{pytorch} will be used to implement the algorithms described in this text, the standard 4D representation will be used; that is, images will always have the \textit{Shape} \((B, C, H, W)\), where \(B\) is the batch size (\(1\) for a single image), \(C\) is the number of channels (\(3\) for an RGB image, \(1\) for a grayscale one), and \(H\) and \(W\) are the height and width of the image, respectively.
+
+The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will not be continuous in general.}. It will be the preferred one in the mathematical formulas of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
+
+In order to be able to comfortably extend continuous operations for images, it is useful to center the domain \(\Omega\) with respect to the origin. Concretely, for a batched image \(I\) with shape \((B, C, H, W)\), \(B\)  scalar fields are defined on the same domain \(\Omega\). Namely, \(I^1, \dots, I^B\colon\Omega\to \mathbb{R}^C\), where the domain \(\Omega\) is given by
+\[
+  \Omega = (-\lceil \tilde{w}\rceil - 1, \lfloor \tilde{w}\rfloor]\times(-\lceil \tilde{h}\rceil -1, \lfloor \tilde{h}\rfloor]
+,\]
+
+with \(\overline{w}=\frac{W-1}{2}\) and \(\overline{h}=\frac{H-1}{2}\). The relationship between the two representations is given by
+
+\begin{equation}\label{eq:discrete-continuous}
+  I[b][c][h][w] = I^{b+1}_{c+1}(w - \lceil\tilde{w}\rceil, h - \lceil\tilde{h}\rceil)
+\end{equation}
+
+where the left term follows a standard \(0\)-indexed array notation, and the right is standard mathematical function notation. Then, the functions \(I^b_c\) are extended to the rest of \(\Omega\) by imposing that they be constant on all right-semiclosed squares \((x-1,x]\times(y-1, y]\).
+
+It is also possible to extend the domain of the continuous representations to all of \(\mathbb{R}^2\) by simply setting them to \(0\) outside of \(\Omega\). Reciprocally, for a given set of functions \(I^1, \dots, I^B\colon \mathbb{R}^2\to \mathbb{R}^C\), it is possible to obtain a discrete representation of a digital image by fixing the desired dimensions \(H\) and \(W\) and sampling as in \cref{eq:discrete-continuous}.
+
+It is immediate to see that this relationship between the two representations respects pointwise operations (and, therefore, function sums and products). It is also possible to see that, for an appropriate translation, the convolution defined in \textit{pytorch} with a kernel \(g\) coincides with the continuous convolution with (the continuous version of) the inverted kernel \(\overline{g}(x) = g(-x)\).
+
+\subsubsection{\(L^p\) spaces}
+It will be useful to employ mathematical terminology and machinery that is best exposed in function spaces. The most important and suitable function spaces that will be employed are the \(L^p\) spaces.
+
+\begin{definition}
+  Let \(\Omega\) be a Borel measurable subset of \(\mathbb{R}^n\) for some \(n\in \mathbb{Z}^+\), and \(\mu\) the Lebesgue measure on the Borel sets of \(\mathbb{R}^n\).\footnote{Properly defining the Borel sets and the Lebesgue measure is out of the scope of this work. All rectangles, either open, closed or semiclosed are Borel measurable subsets of \(\mathbb{R}^2\). All integrals with respect to the Lebesgue measure coincide with their classical Riemmann integral counterpart, whenever the latter is defined.} For a given measurable function \(f\colon \Omega\to \overline{\mathbb{R}}\), where \(\overline{\mathbb{R}}\) is the extended real line equipped with its usual topology, define the quantity
+
+  \[
+    \|f\|_{p} = \left(\int_{\Omega}|f|^p~d\mu\right)^{\frac 1p}
+  \]
+
+  for each \(p\in[1, +\infty)\). Define the set of \(p\)-integrable functions as 
+  \[
+    \mathcal{L}^p(\Omega) = \left\{f\colon\Omega\to \mathbb{\overline{R}}~\left|~\|f\|_{p}<+\infty\right.\right\}
+  .\]
+
+  It is possible to show that \(\mathcal{L}^p(\Omega)\) is a normed vector space when equipped with \(\|\cdot\|_{p}\) as a norm.
+
+  Finally, define \(L^p(\Omega)\) by identifying functions in \(\mathcal{L}^p(\Omega)\) that coincide almost everywhere with respect to \(\mu\) and equipping the resulting equivalence classes with the norm of any of their elements. It is possible to show that \(L^p(\Omega)\) is a separable Banach space for any \(p\), and that it is a Hilbert space for \(p=2\).
+\end{definition}
+
+It is trivial to see that the continuous representation of a digital image \(I\) with domain \(\Omega\) is always an element of \(L^p(\Omega)\) for any \(p\in[1, +\infty)\).
+
+\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow us to work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulas we obtain often have much cleaner closed forms.
+
+\begin{definition}
+  A normed vector space \(X\) is said to be a \textbf{Banach space} if it is complete under the metric induced by its norm. A \textbf{functional} on \(X\) is a function \(F\colon X\to\mathbb{R}\cup\{+\infty\}\).
+\end{definition}
+
+\begin{definition}
+  The \textbf{dual space} of \(X\) is defined as the set of all continuous linear functionals on \(X\) with codomain on \(\mathbb{R}\), where continuity is to be interpeted with respect to the topology induced on \(X\) by its norm and the usual topology in \(\mathbb{R}\). We denote it as \(X^*\). It can be shown that \(X^*\) is a Banach space when equipped with the operator norm
+  \[
+    \|x^*\|_{X^*} = \sup_{x\in X, \|x\|=1}\|x^*(x)\|
+  .\]
+
+  We say that a given sequence \(\{x_n\}_{n\in\mathbb{N}}\subseteq X\) \textbf{converges weakly} to a given \(x\in X\) if the sequence \(\{f(x_n)\}_{n\in\mathbb{R}}\) converges (in \(\mathbb{R}\)) to \(f(x)\) for every \(f\in X^*\).
+\end{definition}
+
+It is immediate to check that the usual convergence of a sequence in \(X\) implies its weak convergence to the same limit.
+
+\begin{definition}
+  A given functional \(F\) on a Banach space \(X\) is said to be \textbf{weakly lower semicontinuous} if, for each weakly converging sequence \(\{x_n\}\subseteq X\) with weak limit \(\lim_nx_n\in X\),
+
+  \[
+    J(\lim_nx_n)\leq \liminf_n J(x_n)
+  .\]
+
+  Importantly, the norm of \(X\) is a weakly lower semicontinuous functional.
+\end{definition}
+
+\begin{definition}\label{def:convexity}
+
+  A given functional \(F\) on \(X\) is said to be \textbf{convex} whenever the condition
+  \[
+    F(\lamdba x + (1-\lambda)y) \leq \lambda F(x) + (1-\lambda) F(y)
+  \]
+  holds for any \(x, y\in X\) and any \(\lambda\in[0, 1]\). If, additionally, the inequality is strict whenever \(x\neq y\) and \(\lambda\in (0, 1)\), \(F\) is said to be \textbf{strictly convex}.
+\end{definition}
+
+\begin{definition}
+  A functional \(F\) is said to be \textbf{coercive} if for every sequence \(\{x_n\}\subseteq X\) such that \(\lim_n \|x_n\|=+\infty\), then \(\lim_nJ(x_n)=+\infty\).
+
+  It is said to be \textbf{proper} if there exists some \(x\in X\) such that \(F(x) < +\infty\).
+\end{definition}
+
+\begin{definition}
+  Let \(X\) be a Banach space. The \textbf{bidual} space of \(X\), denoted by \(X^{**}\), is the dual space of its dual space, that is, \(X^{**}=(X^*)^*\). There is a canonical linear mapping from \(X\) to \(X^{**}\) given by
+  \[
+    x\mapsto(x^*\mapsto x^*(x))
+  \]
+  which can be shown to always be isometric and therefore injective. \(X\) is said to be \textbf{reflexive} whenever the canonical mapping above is also surjective.
+\end{{definition}
+
+\begin{theorem}[The direct method]
+  Let \(X\) be a reflexive Banach space and let \(F\) be a proper, coercive and weakly lower semicontinuous functional on \(X\). Then, the minimization problem
+  \[
+    \min_{x\in X} F(x)
+  \]
+  admits a solution.
+\end{theorem}
+
+\subsubsection{Prima}
+Explicar:
+\begin{enumerate}
+  \item Molt breument espais \(L^p\), modelització d'imatges com a funcions a \(L^p\).
+  \item Resum molt resumit d'anàlisi convexa: conjugada convexa; diferenciabilitat de Gateaux i principi de Pascal.
+  \item Resum molt resumit d'operador proximal i algorisme de Chambolle-Pock.
+\end{enumerate}
+
+\subsection{Physical model and formalization of the problem} \label{subsec:physical-model}
+\subsubsection{Underwater Image Formation Model}
+PENDENT: Explicar un mínim d'on surt aquella equació (UIFM) i posar cites.
+
+Let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e., the desired image), \(t\) the transmission map, \(g\) the point-spread funcion and \(B\) the background light. According to the UIFM, for each color channel \(c\in\{r, g, b\}\) and pixel \(x\),
+
+\begin{equation}\label{eq:physical-model}
+  I^c(x) = B^c\left(1 - t(x)\right) + \left(g^c\ast\left(J^c t\right)\right) (x) + \xi^c(x),
+\end{equation}
+
+where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as white noise (i.i.d. centered gaussians).
+
+Ideally, the desired image \(J\) is obtained by inverting the previous formula from the captured image \(I\). However, due to the ill-posedness and general analytical untractability of the problem, it is convenient to split it into two subproblems: define, for each color channel \(c\in\{r, g, b\}\), the auxiliary maps given by
+
+\begin{equation}\label{eq:I1}
+  I_1^c(x)=J^c(x)t(x) + B^c(1-t(x))
+\end{equation}
+and 
+\begin{equation}\label{eq:I2}
+  I_2^c(x) = \left(\left(J^ct\right)\ast g^c\right)(x) + \xi^c(x),
+\end{equation}
+
+so that \(I = I_1 + I_2\). In fact, in order to avoid inverting the convolution present in \cref{eq:I2}, traditional techniques simply assume \(g\equiv 0\) and get rid of \(I_2\) altogether (CITA) by incorporating the noise into \(I_1\). This, of course, simplifies the problem but results in a biased model which does not capture the full array of physical phenomena involved in the image formation process.
+
+\Frank{Aquí pentura citar s'article de referència.}
+
+\subsection{Formalization of the problem}
+Our approach consists of firstly estimating \(B\), \(t\) and a preliminary version of \(J\) with traditional methods. This allows the use of \cref{eq:I1} to obtain an estimation of \(I_1\) and take \(I_2 = I - I_1\). Finally, we utilize an unfolded variational approach to invert \cref{eq:I2}. Concretely, since \(t\) is fixed, we perform a substitution \(Jt\to J\) (which is to be inverted later) and pose the following minimization problem, separately for each channel \(c\in\{r, g, b\}\):
+
+\begin{equation}\label{eq:full-I2-functional}
+  \argmin_{(J, g)\in D} E(J, g) = \frac12\|J\ast g - I_2^c\|_2^2 + \mathcal{R}_1(J) + \mathcal{R}_2(g),
+\end{equation}
+
+where \(D = L^2(\Omega)\times L^2(\Omega)\), and \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are some regularization functions in \(\mathcal{L}(L^2(\Omega), \mathbb{R})\). The reason behind the use of a generic regularization will become clear when discussing the algorithmic approach to the solution via unfolding.
+
+This problem is still mathematically intractable, since the resulting functional is not convex due to the convolution being bilinear w.r.t. the variable functions. A further simplification is made, whereby the functional is alternatively minimized by each of the two variables separately instead of jointly. To compensate for this simplification, the process is repeated a few times:
+\begin{equation}\label{eq:greedy-iterations}
+  \left\{\begin{split}
+    g_{n+1}^c &= \argmin_{g\in L^2(\Omega)} E(J_n^c, g) \\
+    J_{n+1}^c &= \argmin_{J\in L^2(\Omega)} E(J, g_{n+1}^c)
+  \end{split}\right.
+\end{equation}
+
+Due to the symmetry of the target functional \(E\), both subproblems can be studied and solved via the same schema. To see this, consider the following minimization problem: let \(s, y\in L^2(\Omega)\) and \(R\colon L^2(\Omega)\to\mathbb{R}\). Fixed those symbols, the idea is to solve for
+
+\[
+  \argmin_{x\in L^2(\Omega)}F(x) = \frac12\|x\ast y - s\|_2^2 + R(x)
+.\]
+
+Both problems in \cref{eq:greedy-iterations} can be trivially reduced to one of this form by appropriately setting \(s\) to \(I_2\), and \(y\) and \(R\) to either \(J_n\) and \(\mathcal{R}_2\) or \(g_{n+1}\) and \(\mathcal{R}_1\). Thus, studying this problem will yield solutions for both subproblems above.
+
+First, it is necessary to show that it is well-posed, meaning that the operations taking place are well-defined and a unique solution exists. Define the auxiliary linear operator \(K\colon L^2(\Omega)\to L^2(\Omega)\) given by
+
+\[
+  Kx=x\ast y.
+.\]
+
+To see that the codomain of this function is, in fact, \(L^2\), we employ the Young inequality together with the well-known fact that \(L^2(\Omega)\subseteq L^1(\Omega)\) for a finitely-measured \(\Omega\):
+
+\[
+  \|x\ast y\|_2 \leq \|x\|_{2}\|y\|_{1} < +\infty
+.\]
+
+This also implies the boundedness of \(K\).
+
+Also define \(N\colon L^2(\Omega)\to \mathbb{R}\) by \(N(a) = \|a - s\|_{2}^2\), which is clearly strictly convex. In this way, we can express
+
+\[
+  F(x) = N(Kx) + R(x),
+\]
+
+which is a problem of the same shape of (REFERENCIAR PART DE BACKGROUND MATEMATIC) and satisfies the hypotheses of the Chambolle-Pock algorithm. It yields the following iterates:
+
+\begin{equation}\label{eq:iterates}
+  \left\{
+  \begin{split}
+    x_{n+1} & = \text{prox}_{\tau R}(x_n - \tau K^*z_n) \\
+    \tilde{x}_{n+1} & = 2x_{n+1} - x_n \\
+    z_{n+1} & = \text{prox}_{\sigma N^*}(z_n + \sigma K\tilde{x}_{n+1})
+  \end{split}
+  \right.
+\end{equation}
+
+Closed-form expressions for \(K^*\) and \(\text{prox}_{\sigma N^*}\) can be derived analytically (cf. (REF APENDIX)). They are given by
+
+\begin{equation}\label{eq:primal-dual-analytical}
+  \text{prox}_{\sigma N^*}(x) = \frac{x-\sigma s}{\sigma + 1} ~~ \text{and} ~~ K^*z = z\ast \overline{y},
+\end{equation}
+where \(\overline{y}(x) = y(-x)\).
+
+
+\section{Algorithmic approach}
+\subsection{First half of the problem (\(I_1\)).}
+\Frank{Falta: explicar RCP; potser DCP}
+
+The way of inverting the formula in \cref{eq:I1} is the same as in (CITAR ARTICLE REFERÈNCIA), although the implementation is fully self-made (the original implementation is written in MATLAB and, to the best of the author's knowledge, only publicly available in binary form).
+
+First, the background light is chosen by iteratively splitting the image into four regions. Out of those regions, the one with the highest score, given by the average minus the standard deviation of the pixel values in the region, is selected and split again. The process stops once the selected region is smaller than a given threshold (\(16\) colored pixels in our implementation). Then, the background light of the image is chosen as the pixel closest to white (in euclidean norm) in that small patch. This process is summarized in Algorithm \ref{al:background-light}.
+
+\Frank{Falta explicar com se calcula es transmission map i es guided filter. He posat s'algoritme pes transmission map a \ref{al:I1}.}
+
+Once the background light \(B\) has been computed, it is possible to estimate the trasmission map \(t\). We proceed in a similar fashion to (CITAR ART. REF): first, a coarse version of the transmission map \(t_0\) is obtained via
+\[
+  t_0(x) = 1 - \min_{y\in\Omega_x}\left(\min\left(\frac{1-I^r(y)}{1-B^r}, \frac{I^g(y)}{B^g}, \frac{I^b(y)}{B^b}, \lambda S(y)\right)\right)
+,\]
+
+where the \textit{saturation map} \(S\) is defined as \(0\) for black \((0, 0, 0)\) pixels and \(S=1-\frac{\min(I^r, I^g, I^b)}{\max(I^r, I^g, I^b)}\) otherwise.
+
+Then, a fine version of the transmission map, \(t\), is obtained by passing \(t_0\) through a guided filter with \(I^r\) as the guide. \Frank{Cal explicar què fa es guided filter? O basta citar?}
+
+Finally, we estimate a first version of \(J\) as follows, for each color channel \(c\in\{r, g, b\}\):
+\begin{equation}\label{eq:J0}
+  J^c(x) = \frac{I^c(x) - B^c}{\max(t(x), 0.1)} + (1-B^c)\cdot B^c
+\end{equation}
+
+\begin{algorithm}\label{al:background-light}
+\caption{Estimate background light.}
+\KwData{\(I\)}
+\KwResult{\(J\)}
+
+img \(\gets I\)\;
+\While{Size(img) > min\_size}{
+  quadrants \(\gets\) Split(img)\;
+  max\_score \(\gets 0\)\;
+  \For{\(q\) in quadrants}{
+    \(\mu\gets\) Mean(\(q\))\;
+    \(\sigma\gets\) Std(\(q\))\;
+    score \(\gets \mu - \sigma\)\;
+    \If{score > max\_score}{
+      max\_score \(\gets\) score\;
+      img \(\gets q\) \;
+    }
+  }
+}
+\end{algorithm}
+
+\begin{algorithm}\label{al:I1}
+\caption{Estimate scene radiance and transmission map.}
+\KwData{\(I, B\), patch radius \(r\)}
+\KwResult{\(J_0, t\)}
+
+\Comment*[l]{Compute coarse transmission map}
+\(S\gets \) Saturation(\(I\))\;
+Initialize \(t\) with the width and height of \(I\)\;
+\For{pixel \(x\)}{
+  \Comment*[l]{\(\Omega_x\): patch around \(x\), radius \(r\)}
+  r\_min \(\gets \min_{y\in \Omega_x}\)(\(1 - I^r\)[y])\(/(1-B^r)\)\;
+  g\_min \(\gets \min_{y\in \Omega_x}\)(\(I^g\)[y])\(/B^g\)\;
+  b\_min \(\gets \min_{y\in \Omega_x}\)(\(I^b\)[y])\(/B^b\)\;
+  s\_min \(\gets \min_{y\in \Omega_x}\)(\(S\)[y])\(\cdot \lambda\)\;
+
+  \(t[x] \gets 1 -\min\)(r\_min, g\_min, b\_min, s\_min)
+}
+\Comment*[l]{Refine transmission map}
+\(t \gets GuidedFilter(I^r, t)\)\;
+\Comment*[l]{Estimate \(J_0\)}
+\For{channel \(c\)}{
+  \(J_0^c\gets (I^c - B^c)/(max(t, 0.1)) + (1-B^c)\cdot B^c\)
+}
+
+\Return{\(J_0, t\)}
+\end{algorithm}
+
+\subsection{Second half of the problem (\(I_2\)).}
+In order to solve the minimization subproblems in \cref{eq:greedy-iterations}, the iterative schema in \cref{eq:iterates} with the formulae in \cref{eq:primal-dual-analytical} is used, with the aforementioned symbolic substitutions. The missing operator \(\text{prox}_{\tau R}\) is unfolded, meaning that it is substituted by a neural network instead of explicitly derived. The architecture and training of said neural network will be discussed later.
+
+The final algorithm used for obtaining an approximate solution to \cref{eq:full-I2-functional} is summarized in Algorithm \ref{al:I2-estimation}.
+
+\begin{algorithm}\caption{Solve second half of the problem.}
+\label{al:I2-estimation}
+\KwData{\(I_2, t, J_0\)}
+\KwData{\sigma, \tau}
+\KwResult{\(J\)}
+\(J\gets J_0\)\;
+Initialize \(g\)\; 
+Initialize dual variables \(\tilde{g}\), \(\tilde{J}\)\;
+\For{\(n=1\) \KwTo \(G\)}{
+  \Comment*[l]{Fix \(J\), estimate \(g\).}
+  \(\overline{J} \gets DoubleFlip(J)\)\;
+  \For{\(s=1\) \KwTo \(S\)}{
+    \(tmp \gets NeuralNet_{ns}^g\left(g - \tau\cdot\tilde{g} * \overline{J}\right)\)\;
+    \(g\gets 2 \cdot tmp - g\)\;
+    \(\tilde{g}\gets (\tilde{g} + \sigma\cdot(g * J) - \sigma\cdot I_2)/(\sigma + 1)\)\;
+  }
+
+  \Comment*[l]{Fix \(g\), estimate \(J\).}
+  \(\overline{g} \gets DoubleFlip(g)\)\;
+  \For{\(s=1\) \KwTo \(S\)}{
+    \(tmp \gets NeuralNet_{ns}^J\left(J - \tau\cdot\left(\tilde{J} * \overline{g}\right)\right)\)\;
+    \(J\gets 2 \cdot tmp - J\)\;
+    \(\tilde{J}\gets (\tilde{J} + \sigma\cdot (J* g) - \sigma \cdot I_2)/(\sigma + 1)\)\;
+  }
+}
+\Return J / t
+\end{algorithm}
+
+\subsection{Implementation}
+\Frank{Xerrar de U2Fold, la implementació en pytorch dels algoritmes d'abans i de la UNET (he de mirar bé si lo que faig és realment una UNET pq això de sumar en comptes de concatenar és raro), etc.}
+\section{Experimentation}
+
+\section{Conclusions}
+
+\section{Appendix}
+
+Only if deemed necessary.
+
+\bibliographystyle{abbrv}
+\bibliography{bibliography} % EDIT THE FILE `bibliography.bib` WITH YOUR REFERENCES
+
+\end{document}

@@ -1,0 +1,278 @@
+\documentclass{article}
+
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{theorem}{Theorem}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{cleveref}
+\usepackage{empheq}
+
+\setlength{\parindent}{0px}
+
+\DeclareMathOperator*{\argmin}{\operatorname*{argmin}}
+\DeclareMathOperator*{\argmax}{\operatorname*{argmax}}
+
+\newcommand\restr[2]{{% we make the whole thing an ordinary symbol
+  \left.\kern-\nulldelimiterspace % automatically resize the bar with \right
+  #1 % the function
+  \vphantom{\big|} % pretend it's a little taller at normal size
+  \right|_{#2} % this is the delimiter
+  }}
+
+\begin{document}
+% The Underwater Image Formation Model proposes that an underwater image $I$ is obtained from the ``original'' image $J$ via the following equation:
+% \[
+%   I(x) = J(x)\cdot t(x) + B\left(1 - t(x)\right) + \left((J\cdot t)\ast g\right)(x) + n(x)
+% ,\]
+%
+% where $t$ is the medium transmission, $g$ is the point-spread function, $B$ is the underwater background light and $n$ is random noise.
+%
+% This equation is decomposed into $I = I_1 + I_2$, where
+% \[
+%   I_1(x) = J(x)\cdot t(x) + B\left(1 - t(x)\right)
+% \]
+%
+% and
+% \[
+%   I_2(x) = \left(\left(J\cdot t)\right) \ast g\right)(x) + n(x)
+% .\]
+%
+% $I_1$ is first estimated via analytic means, which also yield an estimation for $t$. Then, $I_2$ is taken as $I_2 = J - I_1$. Finally $J$ and $g$ are estimated variationally. Define
+%
+% \[
+%   E(J, g) = \|g\ast J - I_2\|_2^2 + \mathcal{R}_1(J) + \mathcal{R}_2(g)
+% ,\]
+%
+% where \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are regularization functions. Thus, \(J\) and \(g\) are obtained by solving the following minimization problem:
+%
+% \[
+%   J, g = \text{argmin}_{\hat{J}, \hat{g}} E(\hat{J}, \hat{g})
+% .\]
+%
+% Given the complexity of such problem, a greedy approach is used, whereby \(E\) is alternatively minimized with respect to one of the variables while fixing the other. Thus, the proposed algorithm is the following:
+%
+% \begin{empheq}[left=\empheqlbrace]{align}
+%     J_{n+1} &= \operatornamewithlimits{argmin}_{\hat{J}} E(\hat{J}, \hat{g}_n)\label{eq:greedy-iter-J} \\
+%     g_{n+1} &= \argmin_{\hat{g}} E(\hat{J}_{n+1}, \hat{g})\label{eq:greedy-iter-g}
+% \end{empheq}
+%
+%
+%
+% Each of the iteration steps above presents a minimization problem of its own. Due to the symmetrical nature of \(E\), it is possible to solve both problems with the same approach, which we describe
+% in the following.
+%
+%
+%
+% Let \(\Omega\) be an open, finitely-measured subset of \(\mathbb{R}^n\) and denote by \(L^2(\Omega)\) the Hilbert space formed by the square-integrable real-valued functions on \(\Omega\), with the usual identification of almost-everywhere-identical functions. 
+% Let \(y, s\in L^2(\Omega)\) with \(y\neq 0\), and \(R\colon L^2(\Omega)\to \mathbb{R}\) convex. We shall refer to \(s\) as ``shift'' and to \(R\) as ``regularitazion function''. Consider the proper and strictly convex functional
+%
+% \[
+%   F(x; y, s, R) = \frac12\|x\ast y - s\|^2 + R(x)
+% .\]
+%
+% We aim to solve the following optimization problem, which by the direct method admits a unique solution:
+% \begin{equation}\label{eq:minimization_problem}
+%   \argmin_{x} F(x; y, s, R)
+% \end{equation}
+%
+% The Chambolle-Pock primal-dual algorithm can be applied in a standard fashion to yield iterates for this problem. In order to apply it, it is necessary to introduce some additional notation.
+%
+% Consider the endomorphism \(K\in \mathcal{L}\left(L^2(\Omega), L^2(\Omega)\right)\) given by \(K(x)=x\ast y\). To see that this is, in fact, an endomorphism, we employ the fact that, since \(\Omega\) is finitely-measured, then \(L^2(\Omega)\subseteq L^1(\Omega)\), together with the Young inequality: since \(y\in L^2(\Omega)\subseteq L^1(\Omega)\), for all \(x\in L^2(\Omega)\) it follows that
+%
+% \[
+%   \|x\ast y\|_{2} \leq \|x\|_{2}\cdot\|y\|_{1} < +\infty
+% .\]
+%
+% Thus \(x\ast y \in L^2(\Omega)\). This inequality also implies the boundedness of \(K\). Linearity is immediate.
+%
+% Now define \(N\colon L^2(\Omega)\to\mathbb{R}\) by \(N(a)=\frac12\|a - s\|_{2}^2\). It is clear that \(N\) is strictly convex. Thus, we can re-express our functional in the form
+%
+% \begin{equation}\label{eq:functional}
+%   F(x; y, s, R) = N(K(x; y); s) + R(x),
+% \end{equation}
+%
+% with which the Chambolle-Pock algorithm has its hypotheses satisfied and can be applied. It yields the following iterates:
+%
+% \begin{equation}
+%   \left\{
+%   \begin{split}
+%     x_{n+1} & = \text{prox}_{\tau R}(x_n - \tau K^*z_n) \\
+%     \overline{x}_{n+1} & = 2x_{n+1} - x_n \\
+%     z_{n+1} & = \text{prox}_{\sigma N^*}(z_n + \sigma K\overline{x}_{n+1})
+%   \end{split}
+%   \right.
+% \end{equation}
+%
+% Here, it is possible to obtain analytical expressions for both \(\text{prox}_{\sigma N^*}\) and \(K^*\). They are given by
+%
+% \begin{equation}\label{eq:primal_dual/analytical}
+%   \text{prox}_{\sigma N^*}(x) = \frac{x-\sigma s}{\sigma + 1} ~~ \text{and} ~~ K^*z = z\ast \overline{y},
+% \end{equation}
+%
+% with \(\overline{y}= y\circ(-Id)\). Detailed deductions for these expressions can be found in \cref{sec:computations}.
+%
+% We propose to unfold \(\text{prox}_{\tau R}\); that is, substitute it by a neural network.
+%
+% \section{Computations}\label{sec:computations}
+% \subsection{Proximity operator}
+% Let \(N\colon L^2(\Omega)\to \mathbb{R}\) be as in \cref{eq:functional}. In this subsection, the deduction of an analytical expression of the proximity operator \(\text{prox}_{\sigma N^*}\) will be presented.
+%
+% By the Moreau decomposition theorem,
+% \begin{equation}\label{eq:proximity/moreau}
+%   \text{prox}_{\sigma N^*}(x) = x - \sigma\text{prox}_{N/\sigma}\left(\frac x\sigma\right).
+% \end{equation}
+%
+% Thus, it is sufficient to compute \(\text{prox}_{\lambda N}\) for an arbitrary \(\lambda > 0\) and then replace \(\lambda = \frac 1\sigma\).
+%
+% For a fixed \(z\in L^2(\Omega)\), consider the functional \(J_{z, \lambda}(y) = \frac{\|y - z\|_{2}^2}{2\lambda} + \frac12 \|y - s\|_{2}^2\), so that
+% \[
+%   \text{prox}_{\lambda N}(z) = \text{argmin}_{y}J_{z, \lambda}(y)
+% .\]
+%
+% Clearly, \(J_{z, \lambda}\) is Gâteaux differentiable and
+% \[
+%   J_{z, \lambda}(y; h) = \langle h, \frac 1\lambda(y-z)\rangle + \langle h, y-s\rangle
+% .\]
+%
+% Whence \(\forall h\colon J_{z, \lambda}(y; h) = 0\) if, and only if, \(y=\frac{z + \lambda s}{\lambda + 1}\). Thus, by the Fermat principle, and taking \(\lambda = \frac 1\sigma\),
+% \[
+%   \text{prox}_{N / \sigma}(z) = \text{argmin}_{y}J_{z, 1/\sigma}(y) = \frac{\sigma z+ s}{\sigma + 1}
+% .\]
+%
+% Combining this last equation with \cref{eq:proximity/moreau}, we have that
+% \begin{equation}\label{eq:proximity/final}
+%   \text{prox}_{\sigma N^*}(x) = x -\frac{\sigma}{\sigma + 1}(x+s) = \frac{x - \sigma s}{\sigma + 1}
+% \end{equation}
+%
+% \subsection{Convolution}
+% Let \(K\colon L^2(\Omega)\to L^2(\Omega)\) be as in \cref{eq:functional}. In this subsection, the deduction of an analytical expression of the adjoint operator \(K^*\colon L^2(\Omega)\to L^2(\Omega)\) will be presented.
+%
+% By definition, \(K^*\) is the only operator satisfying the equality
+% \[
+%   \langle Ka, b \rangle = \langle a, K^* b\rangle
+% \]
+% for all \(a, b\in L^2(\Omega)\), where \(\langle\cdot,\cdot\rangle\) is the usual scalar product in \(L^2(\Omega)\): \(\langle f, g\rangle = \int_{\Omega}fg~dm\), where \(m\) is the Lebesgue measure restricted to \(\Omega\).
+%
+% Note that, in order to properly define convolution between functions with domain \(\Omega\subseteq\mathbb{R}^n\), it is first necessary to extend to \(\mathbb{R}^n\) by setting them to \(0\) in \(\Omega^c\).
+%
+% It is well-known that for any given \(\varphi, \phi, \psi\colon\mathbb{R}^n\to\mathbb{R}\) such that their pairwise convolutions are defined and integrable, the following equality holds:
+%
+% \begin{equation}\label{eq:convolution/inversion}
+%   \langle\varphi\ast\phi, \psi\rangle = \langle\phi, \psi\ast\overline{\varphi}\rangle
+% \end{equation}
+%
+% where \(\overline{\varphi}(x) = \varphi(-x)\). Therefore,
+% \[
+%   \langle a\ast y, b\rangle = \langle a, b\ast\overline{y} \rangle
+% .\]
+%
+% Thus, \(K^*\) is simply given by \(K^*b = b\ast \overline{y}\).
+
+\section{On the discrete convolution.}
+\begin{definition}
+  Define a \textbf{centered image domain} as a subset \(D\subseteq \mathbb{R}\) of the form \(D=[d, u]\times[l, r]\cap\mathbb{Z}^2\), where \(d, u, l, r\in \mathbb{Z}\), \(d\leq 0\leq u\) \(l \leq 0 \leq r\), and both \(-1\leq d + u\leq 0\) and \(-1\leq l+r\leq 0\).
+\end{definition}
+
+This means taking the usual representation for the domains of (grayscale) digital images (from \(0\) to the height or the width minus one), and centering it around the origin, with the negative parts of each dimension being one pixel larger than the strictly positive parts if the number of pixels in that dimension is even, and equal in size if it is odd.
+
+Consider a grayscale image \(I\) represented as a 2D centered function taking real values:
+\[
+  I\colon D(I)=\to \mathbb{R}
+,\]
+
+where \(D(I)\) is the unique centered image domain determined by the resolution of \(I\). Namely, if \(I\) has a height of \(H\) and a width of \(W\) (in pixels), then
+\begin{equation}\label{eq:domain-of-image}
+  D(I) = \left[-\left\lceil\frac{H-1}{2}\right\rceil, \left\lfloor\frac{H-1}{2}\right\rfloor\right]\times\left[-\left\lceil\frac{W-1}{2}\right\rceil, \left\lfloor\frac{W-1}{2}\right\rfloor\right]
+\end{equation}
+
+Conversely, if an image \(I\) has a centered domain \(D(I)=[d, u]\times[l, r]\cap\mathbb{Z}^2\), its height \(H\) and width \(W\) (in total pixels) are given by
+\begin{equation}\label{eq:dimensions-given-domain}
+  H = u - d + 1, \text{~~~~~~~~~} W = r - l + 1
+\end{equation}
+
+It is clear that one may extend this representation to an arbitrarily larger domain using different methods. This is usually referred to as \textbf{padding}. For instance, one could add zeros or mirror \(I\) around its edges forming an infinite pattern. It is also possible to do the converse: going from a given domain to an arbitrarily smaller domain by simply restricting it.
+
+\begin{definition}
+Given a \textbf{kernel} \(g\) and an \textbf{image} \(I\), we define the \textbf{convolution} \(g\ast I\) in the domain \(D\) as follows: for each \(x\in D\),
+\[
+  g\ast I(x) = \sum_{y\in D(g)}g(y)I(x-y)
+,\]
+
+where \(I\) has been extended if necessary to accommodate for out-of-bounds values \(x-y\).
+\end{definition}
+
+Note how one may \textbf{choose} the domain of \(g\ast I\) by simply padding \(I\) as necessary. However, the case where \(I\) needs not be extended and the domain is maximal is of particular interest. It is simple to check that this happens whenever \(x=(x_1, x_2)\) satisfies the constraints
+\[
+\begin{align}
+  d_I+u_g \leq x_1 \leq d_g + u_I\\
+  l_I+r_g \leq x_2 \leq l_g + r_I
+\end{align}
+,\]
+
+meaning that the output image would have height \((u_I-u_g)-(u_g-d_g) +1 = H_I - H_g + 1\) and width \((r_I-l_I) - (r_g - l_g) + 1 = W_I - W_g + 1\), where \(H_I, W_I\) and \(H_g, W_g\) are the height and width (in pixels) of \(I\) and \(g\), respectively.
+
+If one wishes to obtain a domain \(D=[d, u]\cap[l, r]\cap \mathbb{Z}^2\) with height \(H \geq H_I - W_g + 1\) and width \(W \geq W_I - W_g + 1\), it is possible to characterize the padding needed in \(I\): call \(d_p, u_p, l_p\) and \(r_p\) the bottom, top, left and right padding required, respectively (all are nonnegative quantities). Then, the following equalities should be satisfied:
+\[
+\left\{
+\begin{align}
+  d_I - d_p = d - u_g\\
+  u_I + u_p = u - d_g\\
+  l_I - l_p = l - r_g\\
+  r_I + r_p = r - l_g
+\end{align}
+\right.
+,\]
+from which it is trivial to obtain the padding amounts. Note that this may be combined with \cref{eq:domain-of-image} in order to obtain the padding amounts from the (more intuitive) height and width of the desired output.
+
+\begin{theorem}
+  For a fixed domain \(D\), zero-padded convolution is commutative:
+  \[
+    \restr{g\ast I}{D} = \restr{I\ast g}{D}
+  .\]
+\end{theorem}
+\textit{Proof.} For any given \(x\in D\), since \(I\) is being zero-padded,
+\[
+  g\ast I(x) = \sum_{y\in D(g)\cap\left(x - D(I)\right)}g(y)I(x-y),
+\]
+where \(x-D(I)\) is the usual set addition notation \(b+A = \{b + a | a\in A\}\). Now introduce a variable change \(z = x-y\) (invertible via \(y=x-z\)) and note that \(y\in D(g)\cap (x-D(I))\) if, and only if, \(z\in(x-D(g))\cap D(I)\). Therefore,
+\[
+  \sum_{y\in D(g)\cap\left(x - D(I)\right)}g(y)I(x-y) = \sum_{z\in (x-D(g))\cap D(I)}g(x-z)I(z)
+,\]
+and the last term is clearly \(I\ast g(x)\).~\qedsymbol
+
+\subsection{Derivative of convolution.}
+
+Consider the following functional:
+
+\[
+  \tilde{F}(g) = \frac12\|g\ast J - I_2\|_2^2
+,\]
+
+where \(J\) and \(I_2\) are images of the same resolution and the convolution domain is chosen so as to have the same resolution as them.
+
+\textbf{Claim:} \(\tilde{F}\) is Fréchet differentiable and \(\nabla{\tidle{F}}(g) = \left(g\ast J - I_2\right)\ast \overline{J}\), where the inner convolution has the same domain as \(I_2\), the outer convolution has the same domain as \(g\), and \(\overline{J}\) is given by \(\overline{J}(x)=J(-x)\).
+
+\textit{Proof.} First note that, for a given \(k\in D(g)\)
+\[
+\frac{\partial (g\ast J)}{\partial g(k)}=\frac{\partial\left(\sum_{y\in D(g)}g(y)J(x-y)\right)}{\partial g(k)} = J(x-k)
+.\]
+
+Now, fully ``unroll'' \(\tilde{F}\) into a summatory
+\[
+  \tilde{F}(g) = \frac12 \sum_{x\in D(J)}\left(g\ast J(x) - I_2(x)\right)^2
+.\]
+
+Combining the two previous equalities and the chain rule, we obtain
+\[
+  \frac{\partial\tilde{F}}{\partial g(k)} = \sum_{x\in D(J)} \left(g\ast J(x) - I_2(x)\right)\cdot J(x-k) = \sum_{x\in D(J)}\left(g\ast J - I_2)(x)\cdot\overline{J}(k-x)=\left(\left(g\ast J - I_2\right)\ast\overline{J}
+\right)(k).\]
+
+Therefore, \(\nabla\tilde{F}(g)=\left(g\ast J - I_2)\ast\overline{J}\), as claimed. \qedsymbol
+
+\end{document}
+
