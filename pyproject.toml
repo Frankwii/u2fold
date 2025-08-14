@@ -1,12 +1,13 @@
 [project]
 name = "u2fold"
-version = "0.2.0"
-description = "Add your description here"
+version = "0.3.0"
+description = "U2FOLD: Underwater image unfolding"
 readme = "README.md"
 authors = [
-    { name = "Frankwii", email = "frank.william.hammond@gmail.com" }
+    { name = "Frank William Hammond Espinosa", email = "frank.william.hammond@gmail.com" }
 ]
 requires-python = ">=3.12"
+keywords = ["Underwater imaging", "Unfolding", "Algorithm unrolling", "Algorithm unfolding"]
 dependencies = [
     "pydantic>=2.11.7",
     "standard-imghdr>=3.13.0",
@@ -22,6 +23,9 @@ u2fold = "u2fold:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[project.urls]
+repository = "https://github.com/Frankwii/u2fold"
 
 [dependency-groups]
 dev = [
