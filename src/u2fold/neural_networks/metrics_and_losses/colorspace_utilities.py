@@ -9,8 +9,7 @@ LINEAR_RGB_TO_CIEXYZ_MATRIX = torch.Tensor(
         [0.2126729, 0.7151522, 0.0721750],
         [0.0193339, 0.1191920, 0.9503041],
     ],
-    device=_DEVICE,
-)
+).to(_DEVICE)
 CIEXYZ_TO_LINEAR_RGB_MATRIX = LINEAR_RGB_TO_CIEXYZ_MATRIX.inverse()
 
 # X_n, Y_n, Z_n
@@ -26,12 +25,12 @@ CIEXYZ_TO_CIELAB_MATRIX = torch.Tensor(
         [500.0, -500.0, 0.0],
         [0.0, 200.0, -200.0],
     ],
-    device=_DEVICE,
-)
+).to(_DEVICE)
+
 CIELAB_TO_CIEXYZ_MATRIX = CIEXYZ_TO_CIELAB_MATRIX.inverse()
-CIEXYZ_TO_CIELAB_BIAS = torch.Tensor([-16, 0, 0], device=_DEVICE).reshape(
+CIEXYZ_TO_CIELAB_BIAS = torch.Tensor([-16, 0, 0]).reshape(
     1, 3, 1, 1
-)
+).to(_DEVICE)
 CIELAB_TO_CIEXYZ_BIAS = -CIEXYZ_TO_CIELAB_BIAS
 
 

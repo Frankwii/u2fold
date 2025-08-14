@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex document"] 1754930132.29332 "document.aux" "document.bbl" "document" 1754930292.15525 2
+["bibtex document"] 1754930132.29332 "document.aux" "document.bbl" "document" 1755188191.61738 2
   "./bibliography.bib" 1752345600.43163 0 d41d8cd98f00b204e9800998ecf8427e ""
   "/usr/share/texmf-dist/bibtex/bst/base/abbrv.bst" 1742685315 20329 b5fed53e10044d0f8112183785c759b1 ""
-  "document.aux" 1754930291.93471 5803 88f495290b528498591fe8ac03b1c10e "pdflatex"
-  "titlepage.aux" 1754930291.88227 801 4b4dbd5d722b8f71092053b20f2cb151 "pdflatex"
+  "document.aux" 1755188191.42744 5985 4e9e3632b1e346b13168b5404ab04050 "pdflatex"
+  "titlepage.aux" 1755188191.38174 801 4b4dbd5d722b8f71092053b20f2cb151 "pdflatex"
   (generated)
   "document.bbl"
   "document.blg"
   (rewritten before read)
-["pdflatex"] 1754930291.17015 "document.tex" "document.pdf" "document" 1754930292.15565 2
+["pdflatex"] 1755188190.71162 "document.tex" "document.pdf" "document" 1755188191.61768 2
   "/usr/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1742685315 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1742685315 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/adobe/courier/pcrr8r.tfm" 1742685315 1292 bd42be2f344128bff6d35d98474adfe3 ""
@@ -149,12 +149,12 @@
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1743488672 5314599 0b5da616e8ff14614a47569acfa7a4d9 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1743488635 2723343 b960aee5c31d245bff5e5c68814b4441 ""
   "IEEEtran.cls" 1752345600.43163 216647 bcd3b2c6eb8bc05980fc687c97021c22 ""
-  "document.aux" 1754930291.93471 5803 88f495290b528498591fe8ac03b1c10e "pdflatex"
+  "document.aux" 1755188191.42744 5985 4e9e3632b1e346b13168b5404ab04050 "pdflatex"
   "document.bbl" 1754930132.38612 0 d41d8cd98f00b204e9800998ecf8427e "bibtex document"
-  "document.out" 1754930291.93596 3153 577f16b90466e2c6474c8b52d3ea270d "pdflatex"
-  "document.tex" 1754930290.17851 25211 7209a0b77214e117dafd51dced4bc471 ""
+  "document.out" 1755188191.42877 3153 577f16b90466e2c6474c8b52d3ea270d "pdflatex"
+  "document.tex" 1755188190.04285 25676 6ecc4b0672d10d2a30d99b09c531fd02 ""
   "figures/logos/UIB_UniversitasBalearica_horizontal.png" 1752345600.43763 147029 4f5412d8312ce3709edf6e0284681a52 ""
-  "titlepage.aux" 1754930291.88227 801 4b4dbd5d722b8f71092053b20f2cb151 "pdflatex"
+  "titlepage.aux" 1755188191.38174 801 4b4dbd5d722b8f71092053b20f2cb151 "pdflatex"
   "titlepage.tex" 1752345600.43763 3216 d0f767df072ee989e6cd1e4f07639ee7 ""
   (generated)
   "document.aux"

@@ -208,7 +208,14 @@ Let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e
 
 where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as white noise (i.i.d. centered gaussians).
 
-Ideally, the desired image \(J\) is obtained by inverting the previous formula from the captured image \(I\). However, due to the ill-posedness and general analytical untractability of the problem, it is convenient to split it into two subproblems: define, for each color channel \(c\in\{r, g, b\}\), the auxiliary maps given by
+Ideally, the desired image \(J\) is obtained by inverting the previous formula from the captured image \(I\). However, due to the ill-posedness and general analytical untractability of the problem, it is convenient to simplify the problem by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
+
+\begin{equation}\label{eq:simplified-physical-model}
+  I^c(x) = B^c\left(1 - t(x)\right) + \left(J^c t\right) (x) + \xi^c(x),
+\end{equation}
+
+This is a common practice in the literature (\Frank{citar articles}) and can still yield good results.
+to split it into two subproblems: define, for each color channel \(c\in\{r, g, b\}\), the auxiliary maps given by
 
 \begin{equation}\label{eq:I1}
   I_1^c(x)=J^c(x)t(x) + B^c(1-t(x))
@@ -334,14 +341,14 @@ img \(\gets I\)\;
 
 \begin{algorithm}\label{al:I1}
 \caption{Estimate scene radiance and transmission map.}
-\KwData{\(I, B\), patch radius \(r\)}
-\KwResult{\(J_0, t\)}
+\KwData{Input image \(I\), background light \(B\), TM patch radius \(r_t\), guided filter patch radius \(r_g\)}
+\KwResult{Radiance estimation \(J_0\), TM estimation \(t\)}
 
-\Comment*[l]{Compute coarse transmission map}
+\Comment*[l]{Compute coarse TM}
 \(S\gets \) Saturation(\(I\))\;
 Initialize \(t\) with the width and height of \(I\)\;
 \For{pixel \(x\)}{
-  \Comment*[l]{\(\Omega_x\): patch around \(x\), radius \(r\)}
+  \Comment*[l]{\(\Omega_x\): patch around \(x\), radius \(r_t\)}
   r\_min \(\gets \min_{y\in \Omega_x}\)(\(1 - I^r\)[y])\(/(1-B^r)\)\;
   g\_min \(\gets \min_{y\in \Omega_x}\)(\(I^g\)[y])\(/B^g\)\;
   b\_min \(\gets \min_{y\in \Omega_x}\)(\(I^b\)[y])\(/B^b\)\;
@@ -350,7 +357,7 @@ Initialize \(t\) with the width and height of \(I\)\;
   \(t[x] \gets 1 -\min\)(r\_min, g\_min, b\_min, s\_min)
 }
 \Comment*[l]{Refine transmission map}
-\(t \gets GuidedFilter(I^r, t)\)\;
+\(t \gets GuidedFilter(I^r, t; r_g)\)\;
 \Comment*[l]{Estimate \(J_0\)}
 \For{channel \(c\)}{
   \(J_0^c\gets (I^c - B^c)/(max(t, 0.1)) + (1-B^c)\cdot B^c\)
