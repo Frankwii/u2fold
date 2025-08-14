@@ -9,7 +9,7 @@ import orjson
 from u2fold.model import U2FoldSpec
 
 type JSON = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
-type SequenceJSON = Mapping[str, "SequenceJSON" | Sequence[JSON]]
+type SequenceJSON = Mapping[str, "SequenceJSON" | Iterable[JSON]]
 from .evaluate_model import measure_spec
 
 
@@ -74,7 +74,11 @@ def generate_algorithmic_specs() -> Iterable[JSON]:
 
 def generate_learning_rate_scheduler_specs() -> Iterable[JSON]:
     step_spec = unroll_all_dict_combinations(
-        {"scheduler": ["adam_lr"], "step_size": [20, 50], "factor": [0.1, 0.2, 0.5]}
+        {
+            "scheduler": ["step_lr"],
+            "step_size": [10, 20, 50],
+            "factor": [0.1, 0.2, 0.5],
+        }
     )
 
     cosine_annealing_spec = unroll_all_dict_combinations(
@@ -99,6 +103,49 @@ def generate_optimizer_specs() -> Iterable[JSON]:
     return itertools.chain(adam, sgd)
 
 
+def generate_train_mode_specs() -> Iterable[JSON]:
+    combinations = {
+        "optimizer_spec": generate_optimizer_specs(),
+        "learning_rate_scheduler_spec": generate_learning_rate_scheduler_specs(),
+    }
+
+    fixed_mode_spec = {
+        "mode": "train",
+        "losses": [
+            {"loss": "ground_truth", "weight": 0.5},
+            {"loss": "fidelity", "weight": 0.3},
+            {"loss": "consistency", "weight": 0.1},
+            {"loss": "color_cosine_similarity", "weight": 0.1},
+        ],
+        "dataset_spec": {
+            "name": "uieb",
+            "path": "uieb/processed",
+            "n_epochs": 50,
+            "batch_size": 4,
+        },
+    }
+
+    return (  # pyright: ignore[reportUnknownVariableType]
+        {"mode_spec": fixed_mode_spec | d}  # pyright: ignore[reportOperatorIssue]
+        for d in unroll_all_dict_combinations(combinations)
+    )
+
+
+def generate_train_specs() -> list[JSON]:
+    fixed_top_level_spec = {
+        "log_level" : "warning",
+        "algorithmic_spec": {
+            "transmission_map_patch_radius": 8,
+            "guided_filter_patch_radius": 15,
+            "transmission_map_saturation_coefficient": 0.5,
+            "guided_filter_regularization_coefficient": 0.01,
+            "step_size": 0.01,
+        },
+    }
+
+    return [fixed_top_level_spec | train_mode_spec for train_mode_spec in generate_train_mode_specs()]  # pyright: ignore[reportUnknownVariableType, reportOperatorIssue]
+
+
 def base_training_spec() -> JSON:
     return {
         "log_level": "warning",
@@ -113,8 +160,8 @@ def base_training_spec() -> JSON:
             "dataset_spec": {
                 "name": "uieb",
                 "path": "uieb/processed",
-                "n_epochs": 1,
-                "batch_size": 8,
+                "n_epochs": 50,
+                "batch_size": 4,
             },
             "optimizer_spec": {
                 "optimizer": "adam",

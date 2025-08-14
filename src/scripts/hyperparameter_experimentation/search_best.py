@@ -1,7 +1,7 @@
 import orjson
 from tqdm import tqdm
 from .evaluate_model import measure_spec;
-from .generate_specs import base_training_spec, generate_unet_specs;
+from .generate_specs import base_training_spec, generate_train_specs, generate_unet_specs;
 from u2fold.model.spec import U2FoldSpec
 
 
@@ -10,19 +10,35 @@ def search_best_combination() -> None:
 
     all_model_combinations = generate_unet_specs()
 
-    results = [
+    architectural_results = [  # pyright: ignore[reportUnknownVariableType]
         {
             "spec": (
-                spec := U2FoldSpec.model_validate(base_spec | {"neural_network_spec": model_spec})  # pyright: ignore[reportOperatorIssue]
-            ).model_dump_json(),
-            "score": measure_spec(spec),
+                (spec := (base_spec | {"neural_network_spec": model_spec}))  # pyright: ignore[reportOperatorIssue, reportUnknownVariableType]
+            ),
+            "score": measure_spec(U2FoldSpec.model_validate(spec)),
         }
         for model_spec in tqdm(all_model_combinations, desc="Architectural combinations tried", total = len(all_model_combinations))
     ]
 
-    results = sorted(results, key=lambda d: d["score"])
+    architectural_results = sorted(architectural_results, key=lambda d: d["score"], reverse=True)  # pyright: ignore[reportUnknownVariableType, reportUnknownArgumentType, reportUnknownLambdaType]
 
-    print(f"Best combination was:\n\n{results[1]}")
+    best_neural_network_spec = architectural_results[0]["spec"]["neural_network_spec"]  # pyright: ignore[reportIndexIssue, reportUnknownVariableType]
+
+    all_training_related_combinations = generate_train_specs()
+
+    training_related_results = [  # pyright: ignore[reportUnknownVariableType]
+        {
+            "spec": (spec := (training_related_spec | {"neural_network_spec": best_neural_network_spec})),  # pyright: ignore[reportOperatorIssue, reportUnknownVariableType]
+            "score": measure_spec(U2FoldSpec.model_validate(spec))
+        }
+
+        for training_related_spec in tqdm(
+            all_training_related_combinations, desc="Training-related combinatinos tried", total=len(all_training_related_combinations)
+        )
+    ]
+
+    all_results = sorted(architectural_results + training_related_results, key=lambda d: d["score"], reverse=True)  # pyright: ignore[reportUnknownArgumentType, reportUnknownVariableType, reportUnknownLambdaType]
+
 
     with open("aunet_results.json", "wb") as f:
-        _ = f.write(orjson.dumps(results, option=orjson.OPT_INDENT_2))
+        _ = f.write(orjson.dumps(all_results, option=orjson.OPT_INDENT_2))

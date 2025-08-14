@@ -61,7 +61,6 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             total=self.train_spec.dataset_spec.n_epochs,
             desc="Training epochs",
         ):
-            print(f"Epoch {epoch}")
             train_loss = self.run_train_epoch()
             validation_loss = self.run_validation_epoch()
             self._model_scheduler.step(validation_loss)
