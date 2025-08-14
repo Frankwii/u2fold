@@ -17,9 +17,9 @@ from torch import Tensor
 from u2fold.data.uieb_handling.dataset import UIEBDataset
 from u2fold.neural_networks.metrics_and_losses import (
     color_minimizable,
+    dssim,
     mse,
     psnr_minimizable,
-    dssim,
     total_variation,
     uciqe_minimizable,
 )
@@ -33,13 +33,18 @@ class Stats(NamedTuple):
 
 type UnsupervisedMetric = Callable[[Tensor], Tensor]
 
+_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 def compute_unsupervised_metric_stats(
     metric: UnsupervisedMetric,
     dataset: UIEBDataset,
 ) -> Stats:
     metric_values = torch.tensor(
-        [metric(ground_truth.unsqueeze(0)) for (_, ground_truth) in iter(dataset)]
+        [
+            metric(ground_truth.unsqueeze(0).to(_DEVICE))
+            for (_, ground_truth) in iter(dataset)
+        ]
     )
 
     return Stats(*torch.std_mean(metric_values.abs()))
@@ -54,7 +59,9 @@ def compute_supervised_metric_stats(
 ) -> Stats:
     metric_values = torch.tensor(
         [
-            metric(input.unsqueeze(0), ground_truth.unsqueeze(0))
+            metric(
+                input.unsqueeze(0).to(_DEVICE), ground_truth.unsqueeze(0).to(_DEVICE)
+            )
             for (input, ground_truth) in iter(dataset)
         ]
     )
@@ -95,7 +102,9 @@ supervised_metrics_and_losses = {
 
 def _calibrate(
     dataset: UIEBDataset,
-    unsupervised_metrics: Mapping[str, UnsupervisedMetric] = unsupervised_metrics_and_losses,
+    unsupervised_metrics: Mapping[
+        str, UnsupervisedMetric
+    ] = unsupervised_metrics_and_losses,
     supervised_metrics: Mapping[str, SupervisedMetric] = supervised_metrics_and_losses,
 ) -> dict[str, Stats]:
     unsupervised_results = {
