@@ -14,8 +14,8 @@ CIEXYZ_TO_LINEAR_RGB_MATRIX = LINEAR_RGB_TO_CIEXYZ_MATRIX.inverse()
 
 # X_n, Y_n, Z_n
 CIEXYZ_AND_CIELAB_COEFFICIENTS = torch.Tensor(
-    [95.0489, 100, 108.8840], device=_DEVICE
-).reshape(1, 3, 1, 1)
+    [95.0489, 100, 108.8840]
+).reshape(1, 3, 1, 1).to(_DEVICE)
 
 CIEXYZ_AND_CIELAB_DELTA = 6 / 29
 
