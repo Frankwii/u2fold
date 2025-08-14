@@ -99,7 +99,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             output = self.forward_pass(first_input)
 
             loss = self.__loss_function(output, first_ground_truth)
-            cumulative_loss += loss.detach()
+            cumulative_loss += loss.detach().item()
 
             restored_image = rescale_color(
                 output.primal_variable_history[-1]
@@ -138,7 +138,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
-                cumulative_loss += loss.detach()
+                cumulative_loss += loss.detach().item()
 
         return cumulative_loss / len(self._dataloaders.test)
 
@@ -154,7 +154,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
-                cumulative_loss += loss.detach()
+                cumulative_loss += loss.detach().item()
 
         return cumulative_loss / len(self._dataloaders.validation)
 
