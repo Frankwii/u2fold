@@ -2,7 +2,7 @@ from functools import partial
 from typing import NamedTuple
 
 import torch
-from torch import Tensor
+from torch import Tensor, device
 
 from u2fold.math.convolution import convolve
 
@@ -16,11 +16,10 @@ def _compute_centered_gaussian_kernel(
     x = (
         torch.arange(
             kernel_size,
-            device=standard_deviations.device,
             dtype=standard_deviations.dtype,
         )
         - center
-    ).reshape(kernel_size, 1)
+    ).reshape(kernel_size, 1).to(standard_deviations.device)
     y = x.transpose(0, 1)
 
     distances_squared = (x**2 + y**2).unsqueeze(0).unsqueeze(0)
@@ -47,9 +46,9 @@ def _compute_data_range(input: Tensor, enhanced: Tensor) -> Tensor:
     ).reshape(batch_size, channels, 1, 1)
 
 
-def _get_gaussian_kernel() -> Tensor:
+def _get_gaussian_kernel(device: device) -> Tensor:
     return _compute_centered_gaussian_kernel(
-        standard_deviations=torch.full((1, 1, 1, 1), 1.5), kernel_size=11
+        standard_deviations=torch.full((1, 1, 1, 1), 1.5).to(device), kernel_size=11
     )
 
 
@@ -60,7 +59,7 @@ class LocalMetrics(NamedTuple):
 
 
 def _compute_local_metrics(input: Tensor, enhanced: Tensor) -> LocalMetrics:
-    mean_filter = partial(convolve, kernel=_get_gaussian_kernel())
+    mean_filter = partial(convolve, kernel=_get_gaussian_kernel(input.device))
 
     input_patch_mean = mean_filter(input=input)
     enhanced_patch_mean = mean_filter(input=enhanced)

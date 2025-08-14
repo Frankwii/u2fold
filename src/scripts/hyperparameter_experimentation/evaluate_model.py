@@ -14,14 +14,18 @@ class MetricResults(NamedTuple):
     supervised: list[float]
     unsupervised: list[float]
 
-def compute_metrics_for_orchestrator_model(orchestrator: TrainOrchestrator, supervised_metrics: Sequence[Callable[[Tensor, Tensor], Tensor]], unsupervised_metrics: Sequence[Callable[[Tensor], Tensor]]) -> MetricResults:
+def compute_metrics_for_orchestrator_model(
+    orchestrator: TrainOrchestrator,
+    supervised_metrics: Sequence[Callable[[Tensor, Tensor], Tensor]],
+    unsupervised_metrics: Sequence[Callable[[Tensor], Tensor]],
+) -> MetricResults:
     supervised_metric_values = [0.0] * len(supervised_metrics)
     unsupervised_metric_values = [0.0] * len(unsupervised_metrics)
-    training_dataloader = orchestrator._dataloaders.training
+    test_dataloader = orchestrator._dataloaders.test
     for input, ground_truth in tqdm(
-        training_dataloader,
+        test_dataloader,
         desc="Training",
-        total=len(training_dataloader),
+        total=len(test_dataloader),
     ):
         output = orchestrator.forward_pass(input).primal_variable_history[-1]
         for idx, metric in enumerate(supervised_metrics):
@@ -31,8 +35,8 @@ def compute_metrics_for_orchestrator_model(orchestrator: TrainOrchestrator, supe
             unsupervised_metric_values[idx] += metric(output).item()
 
     return MetricResults(
-        supervised = [x/len(training_dataloader) for x in supervised_metric_values],
-        unsupervised = [x/len(training_dataloader) for x in unsupervised_metric_values]
+        supervised = [x/len(test_dataloader) for x in supervised_metric_values],
+        unsupervised = [x/len(test_dataloader) for x in unsupervised_metric_values]
     )
 
 def measure_spec(spec: U2FoldSpec) -> float:
