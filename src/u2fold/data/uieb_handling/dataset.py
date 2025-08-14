@@ -3,6 +3,7 @@ from typing import override
 
 import PIL.Image
 from PIL.Image import Image
+from torch import Tensor
 
 from u2fold.data.dataset_generics import GroundTruthDataset, RAMLoadedDataset
 from u2fold.exceptions.dataset_pairing import DatasetPairingError
@@ -10,7 +11,7 @@ from u2fold.utils.track import tag
 
 
 @tag("data/dataset/uieb")
-class UIEBDataset(RAMLoadedDataset[Image], GroundTruthDataset[Image]):  # pyright: ignore[reportUnsafeMultipleInheritance]
+class UIEBDataset(RAMLoadedDataset[Image, tuple[Tensor, Tensor]], GroundTruthDataset[Image]):  # pyright: ignore[reportUnsafeMultipleInheritance]
     """Subclass of PyTorch's Dataset for the UIEB dataset.
 
     Importantly, this loads the full (preprocessed) dataset into memory as

@@ -8,7 +8,7 @@ import numpy
 import PIL.Image
 from torch import Tensor
 from torch.utils.data import Dataset
-from torchvision.transforms.functional import to_tensor
+from torchvision.transforms.functional import to_tensor  # pyright: ignore[reportMissingTypeStubs]
 
 from u2fold.exceptions.empty_directory import EmptyDirectoryError
 from u2fold.utils.singleton_metaclasses import AbstractSingleton
@@ -31,7 +31,7 @@ class U2FoldDataset[T, U](Dataset[U], ABC, metaclass=AbstractSingleton):
     @abstractmethod
     def __init__(self, dataset_path: Path) -> None: ...
 
-    _dataset_parts: ClassVar[tuple[str, ...]]
+    _dataset_parts: ClassVar[tuple[str, ...]] = ("input",)
 
     # Important to have this be a static method for parallelization.
     @staticmethod

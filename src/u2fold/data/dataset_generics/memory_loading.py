@@ -10,7 +10,7 @@ from u2fold.exceptions.dataset_pairing import DatasetPairingError
 from .base import U2FoldDataset
 
 
-class RAMLoadedDataset[T](U2FoldDataset[T], ABC):
+class RAMLoadedDataset[T, U](U2FoldDataset[T, U], ABC):
     """A Dataset with information that is fully loaded in CPU memory.
 
     Each part (as defined in GenericDataset) is loaded into a list.
@@ -157,7 +157,7 @@ class RAMLoadedDataset[T](U2FoldDataset[T], ABC):
         return len(next(iter(self.__indexed_dataset_parts.values())))
 
 
-class LazilyLoadedDataset[T](U2FoldDataset[T], ABC):
+class LazilyLoadedDataset[T, U](U2FoldDataset[T, U], ABC):
     """A Dataset with elements that are loaded each time they are requested."""
 
     @final

@@ -8,7 +8,8 @@ from .generic import (
     WeightTreeStructure,
 )
 
-from u2fold.neural_networks.generic import NeuralNetwork, NeuralNetworkSpec
+from u2fold.neural_networks.generic import NeuralNetwork
+from u2fold.model.neural_network_spec import NeuralNetworkSpec
 
 
 class TrainWeightHandler(WeightHandler):
@@ -64,7 +65,7 @@ class TrainWeightHandler(WeightHandler):
 
         return model_bundle.class_(model_bundle.config, model_bundle.device)
 
-    def __save_weights(self, weight_file: Path, model: NeuralNetwork) -> None:
+    def __save_weights[C: NeuralNetworkSpec](self, weight_file: Path, model: NeuralNetwork[C]) -> None:
         self._logger.debug(
             f"Saving state dict for model {type(model).__name__}"
             f" at {weight_file}."
@@ -72,7 +73,7 @@ class TrainWeightHandler(WeightHandler):
         state_dict = model.state_dict()
         torch.save(state_dict, weight_file)
 
-    def save_models(self, models: WeightTreeStructure[NeuralNetwork]) -> None:
+    def save_models[C: NeuralNetworkSpec](self, models: WeightTreeStructure[NeuralNetwork[C]]) -> None:
         assert len(models) == len(self._filetree), (
             "Models and filetree not paired"
         )

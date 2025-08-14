@@ -1,6 +1,5 @@
 from typing import Callable, Self, cast
 
-import torch
 from torch import Tensor
 
 type StandardProximityOperator[A] = Callable[[Tensor, float, A], Tensor]
@@ -139,21 +138,21 @@ class PrimalDualSchema[X, Y, Z]:
         return self
 
     def with_primal_argument(self, primal_argument: X) -> Self:
-        self.__primal_argument = primal_argument
+        self.__primal_argument = primal_argument  # pyright: ignore[reportUninitializedInstanceVariable]
 
         self.__fixed_components["primal argument"] = True
 
         return self
 
     def with_dual_argument(self, dual_argument: Y) -> Self:
-        self.__dual_argument = dual_argument
+        self.__dual_argument = dual_argument  # pyright: ignore[reportUninitializedInstanceVariable]
 
         self.__fixed_components["dual argument"] = True
 
         return self
 
     def with_linear_argument(self, linear_argument: Z) -> Self:
-        self.__linear_argument = linear_argument
+        self.__linear_argument = linear_argument  # pyright: ignore[reportUninitializedInstanceVariable]
 
         self.__fixed_components["linear argument"] = True
 

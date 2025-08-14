@@ -20,7 +20,7 @@ SUPPORTED_POOLING_LAYERS: dict[
 
 def get_pooling_layer(name: str) -> PoolingLayer:
     if name not in SUPPORTED_POOLING_LAYERS.keys():
-        raise UnsupportedParameter(name, SUPPORTED_POOLING_LAYERS)
+        raise UnsupportedParameter(name, list(SUPPORTED_POOLING_LAYERS.keys()))
 
     return SUPPORTED_POOLING_LAYERS[name]
 

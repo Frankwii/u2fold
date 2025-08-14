@@ -8,7 +8,7 @@ import torch
 
 from tests.utils.file import TmpFiles
 from u2fold.model.common_namespaces import DeterministicComponents
-from u2fold.model.neural_network_spec.unet import UNetSpec
+from u2fold.model.neural_network_spec.aunet import AUNetSpec
 from u2fold.model.spec import U2FoldSpec
 from u2fold.model.train_spec.spec import TrainSpec
 
@@ -40,7 +40,7 @@ def valid_exec_spec(tmp_img_files: list[Path]) -> JSON:
             "step_size": 0.01,
         },
         "neural_network_spec": {
-            "name": "unet",
+            "name": "aunet",
             "activation": {"name": "gelu"},
             "pooling": {"method": "max", "stride": 2, "kernel_size": 2},
             "sublayers_per_step": 3,
@@ -87,7 +87,7 @@ def valid_train_spec() -> JSON:
             "step_size": 0.01,
         },
         "neural_network_spec": {
-            "name": "unet",
+            "name": "aunet",
             "activation": {"name": "gelu"},
             "pooling": {"method": "max", "stride": 2, "kernel_size": 2},
             "sublayers_per_step": 3,
@@ -109,7 +109,7 @@ import torch.nn as nn
 
 
 class MockUnet(nn.Module):
-    def __init__(self, conf: UNetSpec) -> None:
+    def __init__(self, conf: AUNetSpec) -> None:
         super().__init__()
         self.fc = nn.Linear(1, 1)
 

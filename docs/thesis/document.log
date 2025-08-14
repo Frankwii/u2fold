@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.4.1)  12 JUL 2025 20:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.4.1)  11 AUG 2025 18:38
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -495,7 +495,7 @@ Package hyperref Info: Link coloring OFF on input line 50.
 \openout2 = `titlepage.aux'.
 
  (./titlepage.tex
-<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=72, 1401.235pt x 517.935pt>
+<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=76, 1401.235pt x 517.935pt>
 File: figures/logos/UIB_UniversitasBalearica_horizontal.png Graphic file (type png)
 <use figures/logos/UIB_UniversitasBalearica_horizontal.png>
 Package pdftex.def Info: figures/logos/UIB_UniversitasBalearica_horizontal.png  used on input line 13.
@@ -542,17 +542,6 @@ of your error message was never \def'ed. If you have
 misspelled it (e.g., `\hobx'), type `I' and the correct
 spelling (e.g., `I\hbox'). Otherwise just continue,
 and I'll forget about whatever was undefined.
-
-Runaway argument?
-{{definition} 
-./document.tex:182: Paragraph ended before \end  was complete.
-<to be read again> 
-                   \par 
-l.182 
-      
-I suspect you've forgotten a `}', causing me to apply this
-control sequence to too much text. How can we recover?
-My plan is to forget the whole thing and hope for the best.
 
 
 
@@ -612,72 +601,40 @@ you left one out. Proceed, with fingers crossed.
 
 
 
-[4] (./document.bbl
+[4]
 
-./document.bbl:3: LaTeX Error: Something's wrong--perhaps a missing \item.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.3 \end{thebibliography}
-                         
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+LaTeX Warning: `h' float specifier changed to `ht'.
 
-)
+(./document.bbl)
 
-./document.tex:408: LaTeX Error: \begin{definition} on input line 175 ended by \end{document}.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.408 \end{document}
-                    
-Your command was ignored.
-Type  I <command> <return>  to replace it with another command,
-or  <return>  to continue without it.
+[5]
 
 
 
+[6
 
-
-[5] (./document.aux (./titlepage.aux))
+] (./document.aux (./titlepage.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-
-Package rerunfilecheck Warning: File `document.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `document.out':
-(rerunfilecheck)             Before: D05AD9524EB0B7DE0CDC56E04568E5CC;2888
-(rerunfilecheck)             After:  CA52F06C272F6F836EE8B4EAB236FCA2;2981.
- )
-(\end occurred inside a group at level 1)
-
-### semi simple group (level 1) entered at line 175 (\begingroup)
-### bottom level 
+Package rerunfilecheck Info: File `document.out' has not changed.
+(rerunfilecheck)             Checksum: 577F16B90466E2C6474C8B52D3EA270D;3153.
+ ) 
 Here is how much of TeX's memory you used:
- 15715 strings out of 474463
- 260936 string characters out of 5747971
+ 15727 strings out of 474463
+ 261065 string characters out of 5747971
  784168 words of memory out of 5000000
- 38485 multiletter control sequences out of 15000+600000
- 691301 words of font info for 176 fonts, out of 8000000 for 9000
+ 38489 multiletter control sequences out of 15000+600000
+ 697624 words of font info for 179 fonts, out of 8000000 for 9000
  398 hyphenation exceptions out of 8191
- 79i,17n,93p,747b,620s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,17n,93p,747b,500s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/share/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on document.pdf (6 pages, 336261 bytes).
+Output written on document.pdf (7 pages, 338713 bytes).
 PDF statistics:
- 253 PDF objects out of 1000 (max. 8388607)
- 204 compressed objects within 3 object streams
- 53 named destinations out of 1000 (max. 500000)
- 142 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 268 PDF objects out of 1000 (max. 8388607)
+ 218 compressed objects within 3 object streams
+ 59 named destinations out of 1000 (max. 500000)
+ 150 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -178,7 +178,7 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
     x\mapsto(x^*\mapsto x^*(x))
   \]
   which can be shown to always be isometric and therefore injective. \(X\) is said to be \textbf{reflexive} whenever the canonical mapping above is also surjective.
-\end{{definition}
+\end{definition}
 
 \begin{theorem}[The direct method]
   Let \(X\) be a reflexive Banach space and let \(F\) be a proper, coercive and weakly lower semicontinuous functional on \(X\). Then, the minimization problem
@@ -395,6 +395,35 @@ Initialize dual variables \(\tilde{g}\), \(\tilde{J}\)\;
 \subsection{Implementation}
 \Frank{Xerrar de U2Fold, la implementació en pytorch dels algoritmes d'abans i de la UNET (he de mirar bé si lo que faig és realment una UNET pq això de sumar en comptes de concatenar és raro), etc.}
 \section{Experimentation}
+\subsection{Algorithmic selection of hyperparameters}
+Given the high computational costs of training neural networks, it is unfeasible to perform a grid search on a substantial set of hyperparameter choices and train a network from scratch for each choice.
+
+As an attempt to overcome this limitation, the following approach is proposed. For a given neural network architecture:
+\begin{enumerate}
+  \item Determine, through a manual process, a sensible hyperparameter combination as a starting point. This includes the choice of \textbf{training-related} hyperparameters, such as the optimizer, learning rate scheduler, etc., and \textbf{architectural} hyperparameters, such as the number of layers, their sizes, activation functions...
+  \item Fix the training-related hyperparameters of the starting point, and for a given set of choices for the architectural hyperparemters (which should include the starting point), train a model on each choice for a small number of epochs. Select the ``best'' one by minimizing a target metric.
+  \item Fix the architectural parameters of the best neural network so far, and, similarly, select the best choice of training-related hyperparameters by training a model on each choice. This time, however, the number of epochs should be larger, since some learning rate schedulers show performances greatly dependent on the number of epochs.
+  \item Finally, train the best model so far during many epochs as an attempt to get the best performance.
+\end{enumerate}
+
+Of course, the target metric plays a central role in determining the output choice. Several metrics will be used to evaluate the quality of the model (cf. [TODO: AÑADIR SECCIÓN DE MÉTRICAS]), but it would be desirable to obtain a single number that will allow the automatic comparison of models. An obvious choice is a simple addition of the metrics, but this presents the problem [TODO: ACABAR]
+
+\begin{table}[h]
+\centering
+\caption{Calibration results for different metrics and loss terms with the UIEB dataset.}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Metric or loss} & \textbf{Average} & \textbf{Standard deviation} \\ \hline
+UCIQEm                  & 10.59041         & 2.16975                     \\ \hline
+TV                      & 0.05879          & 0.03238                     \\ \hline
+PSNRm                   & 0.05977          & 0.02899                     \\ \hline
+DSSIM                   & 0.11068          & 0.06204                     \\ \hline
+MSE                     & 0.02561          & 0.02265                     \\ \hline
+CCSm                    & 0.03598          & 0.03860                     \\ \hline
+Fidelity loss           & 0.03710          & 0.02991                     \\ \hline
+\end{tabular}
+\end{table}
+
 
 \section{Conclusions}
 

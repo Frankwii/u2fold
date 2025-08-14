@@ -13,7 +13,7 @@ from .generic import Orchestrator
 
 class ExecOrchestrator(Orchestrator[ExecWeightHandler]):
     def run(self) -> None:
-        exec_spec = cast(ExecSpec, self._spec)
+        exec_spec = cast(ExecSpec, self._spec.mode_spec)
 
         self._logger.info(f"Executing model on {exec_spec.input}")
 

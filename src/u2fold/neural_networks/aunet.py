@@ -1,16 +1,17 @@
 from itertools import chain, pairwise
-from typing import Optional
+from typing import cast, final, override
 
 import torch
 from torch import nn
 from torch.nn import Upsample
 
 from u2fold.model.neural_network_spec.components.activation import Activation
-from u2fold.model.neural_network_spec.unet import UNetSpec
+from u2fold.model.neural_network_spec.aunet import AUNetSpec
 from u2fold.utils.track import tag
 
 from .generic import NeuralNetwork
 
+@final
 class UNetConvolutionalLayer(torch.nn.Module):
     def __init__(
         self,
@@ -18,9 +19,9 @@ class UNetConvolutionalLayer(torch.nn.Module):
         out_channels: int,
         sublayers: int,
         activation: Activation,
-        device: Optional[str],
+        device: str | None,
     ) -> None:
-        super().__init__()
+        torch.nn.Module.__init__(self)  # pyright: ignore[reportUnknownMemberType]
 
         channel_sizes = chain(
             (in_channels,), (out_channels for _ in range(sublayers - 1))
@@ -43,21 +44,28 @@ class UNetConvolutionalLayer(torch.nn.Module):
 
         self.__activation = activation.instantiate()
 
+    @override
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        y = x
         for conv_layer in self.__convlayers:
-            x = self.__activation(conv_layer(x))
+            y: torch.Tensor = self.__activation(conv_layer(y))  # pyright: ignore[reportAny]
 
-        return x
+        return y
 
 
-@tag("model/unet")
-class UNet(NeuralNetwork[UNetSpec]):
-    """Mimick the UNet architecture."""
+@final
+@tag("model/aunet")
+class AUNet(NeuralNetwork[AUNetSpec]):
+    """Additive UNet.
+
+    Similar to the classical UNet, but instead of concatenating the tensors on skip connections,
+    it adds them. This draws it closer to a residual network.
+    """
 
     def __init__(
-        self, spec: UNetSpec, device: Optional[str] = None
+        self, spec: AUNetSpec, device: str | None = None
     ) -> None:
-        torch.nn.Module.__init__(self)
+        torch.nn.Module.__init__(self)  # pyright: ignore[reportUnknownMemberType]
 
         self.__depth = len(
             spec.channels_per_layer
@@ -100,6 +108,7 @@ class UNet(NeuralNetwork[UNetSpec]):
         self.__up_normalizations = all_normalization_layers[self.__depth + 1 :]
         self.__upsample = Upsample(scale_factor=2)
 
+    @override
     def forward(self, input: torch.Tensor, *_) -> torch.Tensor:
         down_layer_outputs = [torch.Tensor() for _ in range(self.__depth)]
 
@@ -107,16 +116,16 @@ class UNet(NeuralNetwork[UNetSpec]):
         for idx, (sublayer, sublayer_norm) in enumerate(
             zip(self.__down_sublayers, self.__down_normalizations)
         ):
-            x = sublayer(sublayer_norm(x))
+            x = sublayer(sublayer_norm(x))  # pyright: ignore[reportAny]
             down_layer_outputs[idx] = x
-            x = self.__downsample(x)
+            x = self.__downsample(x)  # pyright: ignore[reportAny]
 
-        x = self.__bottleneck(self.__bottleneck_normalization(x))
+        x = self.__bottleneck(self.__bottleneck_normalization(x))  # pyright: ignore[reportAny]
 
         for idx, (sublayer, sublayer_norm) in enumerate(
             zip(self.__up_sublayers, self.__up_normalizations)
         ):
-            x = self.__upsample(x)
-            x = sublayer(sublayer_norm(x) + down_layer_outputs[~idx])
+            x = self.__upsample(x)  # pyright: ignore[reportAny]
+            x = sublayer(sublayer_norm(x) + down_layer_outputs[~idx])  # pyright: ignore[reportAny]
 
-        return input + x
+        return cast(torch.Tensor, input + x)

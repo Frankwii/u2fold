@@ -2,7 +2,8 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import Callable, Iterator, Optional, cast, final
+from typing import Callable, cast, final
+from collections.abc import Iterator
 
 from torch.utils.data import DataLoader
 
@@ -17,24 +18,24 @@ type CollationFunction[*Tensors] = Callable[
 
 
 @dataclass
-class DataLoaderConfig[*Tensors]:
-    dataset: U2FoldDataset
+class DataLoaderConfig[T, U, *Tensors]:
+    dataset: U2FoldDataset[T, U]
     batch_size: int
     shuffle: bool
-    collate_fn: Optional[CollationFunction[*Tensors]]
+    collate_fn: CollationFunction[*Tensors] | None
     pin_memory: bool
     num_workers: int
 
     @final
-    def instantiate_dataloader(self) -> DataLoader:
+    def instantiate_dataloader(self) -> DataLoader[U]:
         field_names = (field.name for field in fields(self))
         args = {name: getattr(self, name) for name in field_names}
         return DataLoader(**args)
 
 
-class U2FoldDataLoader[*Tensors](ABC):
+class U2FoldDataLoader[T, U, *Tensors](ABC):
     @final
-    def __init__(self, device: str, config: DataLoaderConfig[*Tensors]) -> None:
+    def __init__(self, device: str, config: DataLoaderConfig[T, U, *Tensors]) -> None:
         self._device = device
         self._logger = logging.getLogger(
             f"{__name__}|{self.__class__.__name__}"
@@ -43,9 +44,10 @@ class U2FoldDataLoader[*Tensors](ABC):
         self._dataloader = config.instantiate_dataloader()
 
     @classmethod
-    def get_dataloaders[T](
-        cls: type[T], dataset_path: Path, batch_size: int, device: str
-    ) -> SplitData[T]: ...
+    @abstractmethod
+    def get_dataloaders[X](
+        cls: type[X], dataset_path: Path, batch_size: int, device: str
+    ) -> SplitData[X]: ...
 
     @abstractmethod
     def __iter__(self) -> Iterator[tuple[*Tensors]]: ...
@@ -55,7 +57,7 @@ class U2FoldDataLoader[*Tensors](ABC):
         return len(self._dataloader)
 
 
-class ToDeviceDataLoader[*Tensors](U2FoldDataLoader[*Tensors], ABC):
+class ToDeviceDataLoader[T, U, *Tensors](U2FoldDataLoader[T, U, *Tensors], ABC):
     @final
     def __iter__(self) -> Iterator[tuple[*Tensors]]:
         for paired_batch in self._dataloader:

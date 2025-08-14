@@ -13,3 +13,7 @@ def psnr(input: Tensor, enhanced: Tensor) -> Tensor:
 
 def psnr_minimizable(input: Tensor, enhanced: Tensor) -> Tensor:
     return 1 / psnr(input, enhanced)
+
+def psnr_minimazible_calibrated(input: Tensor, enhanced: Tensor) -> Tensor:
+    uieb_average = 0.05976884812116623
+    return psnr_minimizable(input, enhanced) / uieb_average

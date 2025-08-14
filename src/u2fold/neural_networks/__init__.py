@@ -1,3 +1,3 @@
-from .unet import UNet
+from .aunet import AUNet
 
-__all__ = ["UNet"]
+__all__ = ["AUNet"]

@@ -1,8 +1,9 @@
+from collections.abc import Sequence
 import shlex
 import shutil
 import subprocess
 from itertools import chain
-from typing import cast
+from typing import Callable, NamedTuple, cast, final, override
 
 import torch
 from torch import Tensor
@@ -19,14 +20,14 @@ from u2fold.utils.get_directories import get_tensorboard_log_directory
 
 from .generic import Orchestrator
 
-
+@final
 class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
     def __init__(self, spec: U2FoldSpec, weigth_handler: TrainWeightHandler) -> None:
         super().__init__(spec, weigth_handler)
         self.train_spec = cast(TrainSpec, spec.mode_spec)
 
         dataset_spec = self.train_spec.dataset_spec
-        self.__dataloaders = get_dataloaders(
+        self._dataloaders = get_dataloaders(
             dataset=dataset_spec.name,
             dataset_path=dataset_spec.path,
             batch_size=dataset_spec.batch_size,
@@ -39,10 +40,10 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
 
         self.__loss_function = self.train_spec.instantiate_loss()
 
-        self.__tensorboard_log_dir = get_tensorboard_log_directory(
+        self._tensorboard_log_dir = get_tensorboard_log_directory(
             spec.neural_network_spec
         )
-        self._tensorboard_logger = SummaryWriter(self.__tensorboard_log_dir)
+        self._tensorboard_logger = SummaryWriter(self._tensorboard_log_dir)
         self._model_scheduler = (
             self.train_spec.learning_rate_scheduler_spec.instantiate(
                 self._model_optimizer
@@ -50,24 +51,11 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
         )
         self._logger.info(f"Finished initializing orchestrator.")
 
-    def run(self):
-        print(f"Running!")
-        if self.__tensorboard_log_dir.exists():
-            self._logger.warning(
-                "Found an existing tensorboard log directory. Emptying it."
-            )
-            shutil.rmtree(self.__tensorboard_log_dir)
-            self.__tensorboard_log_dir.mkdir()
-
-        self._logger.debug("Starting tensorboard process")
-        tensorboard_process = subprocess.Popen(
-            shlex.split(
-                f"tensorboard --port 6066 --logdir {self.__tensorboard_log_dir}"
-            )
-        )
-
+    @override
+    def run(self) -> float | None:
         self._logger.info("Starting training.")
         min_valiation_loss = torch.inf
+        test_loss = None
         for epoch in tqdm(
             range(1, self.train_spec.dataset_spec.n_epochs + 1),
             total=self.train_spec.dataset_spec.n_epochs,
@@ -86,16 +74,13 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 )
                 self._weight_handler.save_models(self._models)
 
-            test_loss = self.run_test_epoch(epoch)
+            test_loss = self.run_test_epoch(epoch).item()
 
             self.tensorboard_log_loss(train_loss, "Train loss", epoch)
             self.tensorboard_log_loss(validation_loss, "Validation loss", epoch)
             self.tensorboard_log_loss(test_loss, "Test loss", epoch)
-        msg = "Traning has finished, but the tensorboard process will be kept running."
-        self._logger.warning(msg)
-        print(msg + " Please kill the process to stop it.")
 
-        tensorboard_process.wait()
+        return test_loss
 
     def run_test_epoch(self, epoch: int) -> Tensor:
         cumulative_loss = torch.tensor(0.0)
@@ -103,9 +88,9 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
         with torch.no_grad():
             test_iter = iter(
                 tqdm(
-                    self.__dataloaders.test,
+                    self._dataloaders.test,
                     desc="Test",
-                    total=len(self.__dataloaders.test),
+                    total=len(self._dataloaders.test),
                 )
             )
 
@@ -155,31 +140,31 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 loss = self.__loss_function(output, ground_truth)
                 cumulative_loss += loss.detach()
 
-        return cumulative_loss / len(self.__dataloaders.test)
+        return cumulative_loss / len(self._dataloaders.test)
 
     def run_validation_epoch(self) -> Tensor:
         cumulative_loss = torch.tensor(0.0)
 
         with torch.no_grad():
             for input, ground_truth in tqdm(
-                self.__dataloaders.validation,
+                self._dataloaders.validation,
                 desc="Validation",
-                total=len(self.__dataloaders.validation),
+                total=len(self._dataloaders.validation),
             ):
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
                 cumulative_loss += loss.detach()
 
-        return cumulative_loss / len(self.__dataloaders.validation)
+        return cumulative_loss / len(self._dataloaders.validation)
 
     def run_train_epoch(self) -> Tensor:
         cumulative_loss = torch.tensor(0.0)
 
         for input, ground_truth in tqdm(
-            self.__dataloaders.training,
+            self._dataloaders.training,
             desc="Training",
-            total=len(self.__dataloaders.training),
+            total=len(self._dataloaders.training),
         ):
             self._model_optimizer.zero_grad()
             output = self.forward_pass(input)
@@ -191,7 +176,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             loss.backward()
             self._model_optimizer.step()
 
-        return cumulative_loss / len(self.__dataloaders.training)
+        return cumulative_loss / len(self._dataloaders.training)
 
     def tensorboard_log_image(self, image: Tensor, tag: str, epoch: int) -> None:
         self._tensorboard_logger.add_images(tag, image.detach(), global_step=epoch)

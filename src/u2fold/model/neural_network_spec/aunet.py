@@ -8,10 +8,10 @@ from .components.activation import Activation
 from .components.pooling import PoolSpec
 
 
-class UNetSpec(BaseNeuralNetworkSpec):
-    """Config for a UNet-like architecture"""
+class AUNetSpec(BaseNeuralNetworkSpec):
+    """Config for an AUNet architecture"""
 
-    name: Literal["unet"]
+    name: Literal["aunet"]
     activation: Activation = Field(title="Activation function", discriminator="name")
     pooling: PoolSpec = Field(
         title="Pooling function specification", discriminator="method"
@@ -33,7 +33,7 @@ class UNetSpec(BaseNeuralNetworkSpec):
         examples=[4, 8, 16],
     )
     sublayers_per_step: int = Field(
-        ge=3,
+        ge=2,
         title="Sublayers per step",
         description=(
             "Number of Conv2d sublayers in each encoder/decoder layer, and in "

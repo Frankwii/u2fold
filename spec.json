@@ -11,7 +11,7 @@
     "dataset_spec":{
       "name":"uieb",
       "path":"uieb/processed",
-      "n_epochs": 100,
+      "n_epochs": 50,
       "batch_size":8
     },
     "optimizer_spec":{
@@ -21,8 +21,9 @@
     "learning_rate_scheduler_spec":{
       "scheduler":"step_lr",
       "step_size":20,
-      "factor":0.2
-    }},
+      "factor":0.5
+    }
+  },
   "algorithmic_spec":{
     "transmission_map_patch_radius":8,
     "guided_filter_patch_radius":15,
@@ -31,7 +32,7 @@
     "step_size":0.01
   },
   "neural_network_spec":{
-    "name":"unet",
+    "name":"aunet",
     "activation": {
       "name":"gelu"
     },
