@@ -63,7 +63,7 @@ class TrainWeightHandler(WeightHandler):
             " model weights randomly."
         )
 
-        return model_bundle.class_(model_bundle.config, model_bundle.device)
+        return model_bundle.class_(model_bundle.spec, model_bundle.device)
 
     def __save_weights[C: NeuralNetworkSpec](self, weight_file: Path, model: NeuralNetwork[C]) -> None:
         self._logger.debug(

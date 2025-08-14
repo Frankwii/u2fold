@@ -2,7 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 import torch
 
@@ -15,9 +15,9 @@ type WeightFileTree = WeightTreeStructure[Path]
 
 @dataclass
 class ModelInitBundle[C: NeuralNetworkSpec]:
-    config: C
+    spec: C
     class_: type[NeuralNetwork[C]]
-    device: Optional[str]
+    device: str | None
 
 
 class WeightHandler(ABC):
@@ -71,7 +71,7 @@ class WeightHandler(ABC):
         self, weight_file: Path, model_init_bundle: ModelInitBundle[C]
     ) -> NeuralNetwork[C]:
         model = torch.nn.utils.skip_init(
-            model_init_bundle.class_, config=model_init_bundle.config
+            model_init_bundle.class_, spec=model_init_bundle.spec
         ).to(model_init_bundle.device)
         try:
             state_dict = torch.load(weight_file, weights_only=True)

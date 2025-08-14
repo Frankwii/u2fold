@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional
+from collections.abc import Iterable
 
 import torch
 
@@ -16,14 +16,14 @@ class NeuralNetwork[Spec: NeuralNetworkSpec](torch.nn.Module, ABC):
 
     Generics::
 
-        Config: A ModelConfig subclass. It should contain all of the necessary
+        Spec: A NeuralNetworkSpec subclass. It should contain all of the necessary
             hyperparameters for instantiating the neural network (e.g. number
             of layers and number of neurons on each layer, for a standard
             feed-forward neural network; see example below) as attributes.
 
     Args::
 
-        config (Config): An instance of the specified Config.
+        spec (Spec): An instance of the specified Spec.
 
         device: The device in which the model should be loaded. This is
             necessary so that it is possible to skip weight initialization
@@ -31,22 +31,22 @@ class NeuralNetwork[Spec: NeuralNetworkSpec](torch.nn.Module, ABC):
             be passed to all submodules. For more details, see
             https://docs.pytorch.org/docs/stable/generated/torch.nn.utils.skip_init.html
 
-    Subclassing example (taken from the test suite)::
+    Subclassing example::
 
         @dataclass
-        class FeedForwardConfig(ModelConfig):
+        class FeedForwardSpec(ModelSpec):
             layer_dimensions: list[int]
 
             def __post_init__(self):
                 assert len(self.layer_dimensions) >= 2
 
 
-        class FeedForwardBlock(Model[FeedForwardConfig]):
+        class FeedForwardBlock(Model[FeedForwardSpec]):
             def __init__(
-                self, config: FeedForwardConfig, device: Optional[str] = None
+                self, spec: FeedForwardSpec, device: Optional[str] = None
             ) -> None:
                 torch.nn.Module.__init__(self)
-                layer_dimensions = config.layer_dimensions
+                layer_dimensions = spec.layer_dimensions
 
                 dimension_pairs = (
                     (layer_dimensions[i], layer_dimensions[i + 1])
@@ -66,13 +66,13 @@ class NeuralNetwork[Spec: NeuralNetworkSpec](torch.nn.Module, ABC):
                 return x
 
 
-        config = FeedForwardConfig([10, 100, 5])
+        spec = FeedForwardSpec([10, 100, 5])
 
-        model = FeedForwardBlock(config)
+        model = FeedForwardBlock(spec)
     """
 
     @abstractmethod
-    def __init__(self, config: Spec, device: Optional[str]) -> None: ...
+    def __init__(self, spec: Spec, device: str | None) -> None: ...
 
     @abstractmethod
     def forward(self, input: torch.Tensor) -> torch.Tensor: ...
