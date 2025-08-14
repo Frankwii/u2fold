@@ -14,7 +14,7 @@ def uciqe(input: Tensor) -> Tensor:
             dim=-1,
         )
         .diff(dim=0)
-        .reshape(batch_size)
+        .reshape(batch_size, 1, 1, 1)
     )
 
     chroma_std = (
@@ -27,7 +27,6 @@ def uciqe(input: Tensor) -> Tensor:
 
     saturation_mean = (
         (chroma_std / lab_input[:, :1, :, :])
-        .squeeze(1)
         .mean(dim=(-2, -1))
         .reshape_as(luminance_contrast)
     )
@@ -36,7 +35,7 @@ def uciqe(input: Tensor) -> Tensor:
         (saturation_mean, luminance_contrast, chroma_std), dim=1
     )
 
-    coefficients = torch.Tensor([0.468, 0.2745, 0.2576]).unsqueeze(0).to(input.device)
+    coefficients = torch.Tensor([0.468, 0.2745, 0.2576]).reshape(1, 3, 1, 1, 1).to(input.device)
 
     return torch.sum(coefficients * submetrics, dim = 1).mean()
 
