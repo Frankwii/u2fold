@@ -10,7 +10,7 @@ def uciqe(input: Tensor) -> Tensor:
     luminance_contrast = (
         torch.quantile(
             input=lab_input[:, 0, :, :].reshape(batch_size, -1),
-            q=torch.Tensor([0.01, 0.99]),
+            q=torch.Tensor([0.01, 0.99]).to(input.device),
             dim=-1,
         )
         .diff(dim=0)
@@ -36,7 +36,7 @@ def uciqe(input: Tensor) -> Tensor:
         (saturation_mean, luminance_contrast, chroma_std), dim=1
     )
 
-    coefficients = torch.Tensor([0.468, 0.2745, 0.2576]).unsqueeze(0)
+    coefficients = torch.Tensor([0.468, 0.2745, 0.2576]).unsqueeze(0).to(input.device)
 
     return torch.sum(coefficients * submetrics, dim = 1).mean()
 
