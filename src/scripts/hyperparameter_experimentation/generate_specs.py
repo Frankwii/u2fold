@@ -2,15 +2,9 @@
 
 import itertools
 from collections.abc import Iterable, Mapping, Sequence
-from typing import cast
-
-import orjson
-
-from u2fold.model import U2FoldSpec
 
 type JSON = Mapping[str, "JSON"] | Sequence["JSON"] | str | int | float | bool | None
 type SequenceJSON = Mapping[str, "SequenceJSON" | Iterable[JSON]]
-from .evaluate_model import measure_spec
 
 
 def unroll_all_dict_combinations(d: SequenceJSON) -> Iterable[JSON]:
@@ -60,23 +54,11 @@ def generate_losses_specs() -> Iterable[JSON]:
     ]
 
 
-def generate_algorithmic_specs() -> Iterable[JSON]:
-    combinations = {
-        "transmission_map_patch_radius": [8, 13],
-        "guided_filter_patch_radius": [8, 13],
-        "transmission_map_saturation_coefficient": [0.5, 0.75],
-        "guided_filter_regularization_coefficient": [0.01, 0.001],
-        "step_size": [0.01, 0.001],
-    }
-
-    return unroll_all_dict_combinations(combinations)
-
-
 def generate_learning_rate_scheduler_specs() -> Iterable[JSON]:
     step_spec = unroll_all_dict_combinations(
         {
             "scheduler": ["step_lr"],
-            "step_size": [10, 20, 50],
+            "step_size": [5, 10, 25],
             "factor": [0.1, 0.2, 0.5],
         }
     )
@@ -133,7 +115,7 @@ def generate_train_mode_specs() -> Iterable[JSON]:
 
 def generate_train_specs() -> list[JSON]:
     fixed_top_level_spec = {
-        "log_level" : "warning",
+        "log_level": "warning",
         "algorithmic_spec": {
             "transmission_map_patch_radius": 8,
             "guided_filter_patch_radius": 15,
@@ -143,7 +125,10 @@ def generate_train_specs() -> list[JSON]:
         },
     }
 
-    return [fixed_top_level_spec | train_mode_spec for train_mode_spec in generate_train_mode_specs()]  # pyright: ignore[reportUnknownVariableType, reportOperatorIssue]
+    return [  # pyright: ignore[reportUnknownVariableType]
+        fixed_top_level_spec | train_mode_spec  # pyright: ignore[reportOperatorIssue]
+        for train_mode_spec in generate_train_mode_specs()
+    ]
 
 
 def base_training_spec() -> JSON:
