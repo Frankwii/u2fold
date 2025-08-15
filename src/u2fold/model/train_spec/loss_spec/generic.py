@@ -21,7 +21,7 @@ class BaseLossModule(nn.Module, ABC):
 
     @override
     def forward(self, result: ForwardPassResult, ground_truth: Tensor) -> Tensor:
-        return self.weight * self._forward(result, ground_truth) / self.calibration_average
+        return (self.weight / self.calibration_average) * self._forward(result, ground_truth)
 
 
 class BaseLossSpec(BaseModel, ABC):  # pyright: ignore[reportUnsafeMultipleInheritance]

@@ -71,7 +71,7 @@ def search_best_combination() -> None:
     ]
 
     architectural_results = sorted(  # pyright: ignore[reportUnknownVariableType]
-        architectural_results, key=lambda d: d["score"], reverse=True  # pyright: ignore[reportUnknownArgumentType, reportUnknownLambdaType]
+        architectural_results, key=lambda d: d["score"]  # pyright: ignore[reportUnknownArgumentType, reportUnknownLambdaType]
     )
 
     best_neural_network_spec = architectural_results[0]["spec"]["neural_network_spec"]  # pyright: ignore[reportUnknownVariableType]
@@ -92,7 +92,6 @@ def search_best_combination() -> None:
     all_results = sorted(  # pyright: ignore[reportUnknownVariableType]
         architectural_results + training_related_results,  # pyright: ignore[reportUnknownArgumentType]
         key=lambda d: d["score"],  # pyright: ignore[reportUnknownArgumentType, reportUnknownLambdaType]
-        reverse=True,
     )
 
     with open("aunet_results.json", "wb") as f:
