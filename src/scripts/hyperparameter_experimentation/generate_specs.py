@@ -14,7 +14,7 @@ def unroll_all_dict_combinations(d: SequenceJSON) -> Iterable[JSON]:
 
 
 def generate_unet_specs() -> list[JSON]:
-    channels_per_layer_combinations = [[4, 8, 16], [8, 16, 32], [32, 64]]
+    channels_per_layer_combinations = [[4, 8, 16], [8, 16, 32], [32, 48]]
 
     pooling_methods = ["max", "avg", "l2"]
 
@@ -32,7 +32,7 @@ def generate_unet_specs() -> list[JSON]:
     combinations = {
         "name": ["aunet"],
         "channels_per_layer": channels_per_layer_combinations,
-        "sublayers_per_step": [2, 3, 4],
+        "sublayers_per_step": [2, 3],
         "unfolded_step_size": [0.01, 0.001],
         "pooling": pooling_method_combinations,
         "activation": activation_function_combinations,
