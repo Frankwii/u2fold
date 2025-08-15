@@ -22,7 +22,7 @@ def format_spec_training_related_name(spec) -> str:
     optimizer_values = (v for k, v in optimizer_spec.items() if k != "optimizer")
     scheduler_values = (v for k, v in optimizer_spec.items() if k != "scheduler")
 
-    return f"{optimizer_spec['optimizer']}_{'_'.join(optimizer_values)}__{scheduler_spec['scheduler']}_{'_'.join(scheduler_values)}"
+    return f"{optimizer_spec['optimizer']}_{'_'.join(map(str, optimizer_values))}__{scheduler_spec['scheduler']}_{'_'.join(map(str, scheduler_values))}"
 
 
 def move_directory(current_path: Path, new_path: Path):
@@ -35,6 +35,9 @@ def move_directory(current_path: Path, new_path: Path):
 
 
 def process_spec(spec) -> dict:  # pyright: ignore[reportUnknownParameterType, reportMissingTypeArgument, reportMissingParameterType]
+    with open("debug_spec", "w") as f:
+        import json
+        json.dump(spec, f)
     spec_model = U2FoldSpec.model_validate(spec)
 
     model_weight_directory = get_weight_directory(spec_model.neural_network_spec)
@@ -59,7 +62,7 @@ def search_best_combination() -> None:
     all_model_combinations = generate_unet_specs()
 
     architectural_results = [  # pyright: ignore[reportUnknownVariableType]
-        process_spec(base_spec | model_spec)  # pyright: ignore[reportOperatorIssue]
+        process_spec(base_spec | {"neural_network_spec": model_spec})  # pyright: ignore[reportOperatorIssue, reportUnknownArgumentType]
         for model_spec in tqdm(
             all_model_combinations,
             desc="Architectural combinations tried",
