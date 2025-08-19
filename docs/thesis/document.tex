@@ -22,6 +22,7 @@
 \newtheorem{definition}{Definition}
 \newtheorem{proposition}{Proposition}
 \newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
 
 
 % % % % % % % % % % % % % % % % % %
@@ -89,9 +90,9 @@ Two representations of digital images will be used in this work, the equivalence
 
 The most common representation among computing frameworks is that of multidimensional arrays, sometimes also called \textit{tensors}. We shall refer to this one as the \textbf{discrete} representation. Since \textit{pytorch} will be used to implement the algorithms described in this text, the standard 4D representation will be used; that is, images will always have the \textit{Shape} \((B, C, H, W)\), where \(B\) is the batch size (\(1\) for a single image), \(C\) is the number of channels (\(3\) for an RGB image, \(1\) for a grayscale one), and \(H\) and \(W\) are the height and width of the image, respectively.
 
-The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will not be continuous in general.}. It will be the preferred one in the mathematical formulas of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
+The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will not be continuous, in general.}. It will be the preferred one in the mathematical formulas of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
 
-In order to be able to comfortably extend continuous operations for images, it is useful to center the domain \(\Omega\) with respect to the origin. Concretely, for a batched image \(I\) with shape \((B, C, H, W)\), \(B\)  scalar fields are defined on the same domain \(\Omega\). Namely, \(I^1, \dots, I^B\colon\Omega\to \mathbb{R}^C\), where the domain \(\Omega\) is given by
+In order to be able to comfortably extend continuous operations for images, it is useful to center the domain \(\Omega\) with respect to the origin. Concretely, for a batched image \(I\) with shape \((B, C, H, W)\), \(B\)  fields are defined on the same domain \(\Omega\). Namely, \(I^1, \dots, I^B\colon\Omega\to \mathbb{R}^C\), where the domain \(\Omega\) is given by
 \[
   \Omega = (-\lceil \tilde{w}\rceil - 1, \lfloor \tilde{w}\rfloor]\times(-\lceil \tilde{h}\rceil -1, \lfloor \tilde{h}\rfloor]
 ,\]
@@ -106,10 +107,10 @@ where the left term follows a standard \(0\)-indexed array notation, and the rig
 
 It is also possible to extend the domain of the continuous representations to all of \(\mathbb{R}^2\) by simply setting them to \(0\) outside of \(\Omega\). Reciprocally, for a given set of functions \(I^1, \dots, I^B\colon \mathbb{R}^2\to \mathbb{R}^C\), it is possible to obtain a discrete representation of a digital image by fixing the desired dimensions \(H\) and \(W\) and sampling as in \cref{eq:discrete-continuous}.
 
-It is immediate to see that this relationship between the two representations respects pointwise operations (and, therefore, function sums and products). It is also possible to see that, for an appropriate translation, the convolution defined in \textit{pytorch} with a kernel \(g\) coincides with the continuous convolution with (the continuous version of) the inverted kernel \(\overline{g}(x) = g(-x)\).
+It is immediate to see that this identification between the two representations respects pointwise operations (in particular, function sums and products). It is also possible to see that, for an appropriate translation, the convolution defined in \textit{pytorch} with a kernel \(g\) coincides with the continuous convolution with (the continuous version of) the inverted kernel \(\overline{g}(x) = g(-x)\).
 
 \subsubsection{\(L^p\) spaces}
-It will be useful to employ mathematical terminology and machinery that is best exposed in function spaces. The most important and suitable function spaces that will be employed are the \(L^p\) spaces.
+It will be useful to utilize mathematical terminology and machinery that is best exposed in function spaces. The most important and suitable function spaces that will be employed are the \(L^p\) spaces \Frank{negrita lp}.
 
 \begin{definition}
   Let \(\Omega\) be a Borel measurable subset of \(\mathbb{R}^n\) for some \(n\in \mathbb{Z}^+\), and \(\mu\) the Lebesgue measure on the Borel sets of \(\mathbb{R}^n\).\footnote{Properly defining the Borel sets and the Lebesgue measure is out of the scope of this work. All rectangles, either open, closed or semiclosed are Borel measurable subsets of \(\mathbb{R}^2\). All integrals with respect to the Lebesgue measure coincide with their classical Riemmann integral counterpart, whenever the latter is defined.} For a given measurable function \(f\colon \Omega\to \overline{\mathbb{R}}\), where \(\overline{\mathbb{R}}\) is the extended real line equipped with its usual topology, define the quantity
@@ -123,7 +124,7 @@ It will be useful to employ mathematical terminology and machinery that is best 
     \mathcal{L}^p(\Omega) = \left\{f\colon\Omega\to \mathbb{\overline{R}}~\left|~\|f\|_{p}<+\infty\right.\right\}
   .\]
 
-  It is possible to show that \(\mathcal{L}^p(\Omega)\) is a normed vector space when equipped with \(\|\cdot\|_{p}\) as a norm.
+  It can be shown that \(\mathcal{L}^p(\Omega)\) is a normed vector space when equipped with \(\|\cdot\|_{p}\) as a norm.
 
   Finally, define \(L^p(\Omega)\) by identifying functions in \(\mathcal{L}^p(\Omega)\) that coincide almost everywhere with respect to \(\mu\) and equipping the resulting equivalence classes with the norm of any of their elements. It is possible to show that \(L^p(\Omega)\) is a separable Banach space for any \(p\), and that it is a Hilbert space for \(p=2\).
 \end{definition}
@@ -137,7 +138,7 @@ It is trivial to see that the continuous representation of a digital image \(I\)
 \end{definition}
 
 \begin{definition}
-  The \textbf{dual space} of \(X\) is defined as the set of all continuous linear functionals on \(X\) with codomain on \(\mathbb{R}\), where continuity is to be interpeted with respect to the topology induced on \(X\) by its norm and the usual topology in \(\mathbb{R}\). We denote it as \(X^*\). It can be shown that \(X^*\) is a Banach space when equipped with the operator norm
+  The \textbf{dual space} of \(X\) is defined as the set of all continuous linear functionals on \(X\) with codomain on \(\mathbb{R}\), where continuity is to be interpreted with respect to the topology induced on \(X\) by its norm and the usual topology in \(\mathbb{R}\). We denote it as \(X^*\). It can be shown that \(X^*\) is a Banach space when equipped with the operator norm
   \[
     \|x^*\|_{X^*} = \sup_{x\in X, \|x\|=1}\|x^*(x)\|
   .\]
@@ -151,7 +152,7 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
   A given functional \(F\) on a Banach space \(X\) is said to be \textbf{weakly lower semicontinuous} if, for each weakly converging sequence \(\{x_n\}\subseteq X\) with weak limit \(\lim_nx_n\in X\),
 
   \[
-    J(\lim_nx_n)\leq \liminf_n J(x_n)
+    F(\lim_nx_n)\leq \liminf_n F(x_n)
   .\]
 
   Importantly, the norm of \(X\) is a weakly lower semicontinuous functional.
@@ -167,7 +168,7 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
 \end{definition}
 
 \begin{definition}
-  A functional \(F\) is said to be \textbf{coercive} if for every sequence \(\{x_n\}\subseteq X\) such that \(\lim_n \|x_n\|=+\infty\), then \(\lim_nJ(x_n)=+\infty\).
+  A functional \(F\) is said to be \textbf{coercive} if, for every sequence \(\{x_n\}\subseteq X\) such that \(\lim_n \|x_n\|=+\infty\), then \(\lim_nF(x_n)=+\infty\).
 
   It is said to be \textbf{proper} if there exists some \(x\in X\) such that \(F(x) < +\infty\).
 \end{definition}
@@ -180,7 +181,7 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
   which can be shown to always be isometric and therefore injective. \(X\) is said to be \textbf{reflexive} whenever the canonical mapping above is also surjective.
 \end{definition}
 
-\begin{theorem}[The direct method]
+\begin{theorem}[The direct method]\label{thm:direct-method}
   Let \(X\) be a reflexive Banach space and let \(F\) be a proper, coercive and weakly lower semicontinuous functional on \(X\). Then, the minimization problem
   \[
     \min_{x\in X} F(x)
@@ -188,19 +189,32 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
   admits a solution.
 \end{theorem}
 
+Finally, a series of ``bespoke'' lemmas with simple proofs will be useful further ahead.
+
+\begin{lemma}\label{lemma:sum-of-lsc}
+  The sum of two weakly lower semicontinuous functionals is weakly lower semicontinuous.
+\end{lemma}
+
+\textit{Proof.} Immediate using the definition and the fact that \(\liminf_n{a_n} + \liminf_n{b_n}\leq \liminf_n{a_n + b_n}\).
+
+\begin{lemma}\label{lemma:precomposition-with-linear}
+  Let \(X\) and \(Y\) be Banach spaces. Let \(F\colon Y\to \mathbb{R}\cup\{+\infty\}\) be a weakly lower semicontinuous functional, and \(K\colon X\to Y\) a continuous function. Then, \(F\circ K\) is weakly lower semicontinous.
+\end{lemma}
+
+\textit{Proof.} Since \(K\) is continuous, \(K(\lim_n x_n) = \lim_n K(x_n)\) for any converging sequence \(\{x_n\}_n\subseteq X\). The result is immediate by applying the definition of weak lower semicontinuity.
+
 \subsubsection{Prima}
 Explicar:
 \begin{enumerate}
-  \item Molt breument espais \(L^p\), modelització d'imatges com a funcions a \(L^p\).
   \item Resum molt resumit d'anàlisi convexa: conjugada convexa; diferenciabilitat de Gateaux i principi de Pascal.
   \item Resum molt resumit d'operador proximal i algorisme de Chambolle-Pock.
 \end{enumerate}
 
 \subsection{Physical model and formalization of the problem} \label{subsec:physical-model}
 \subsubsection{Underwater Image Formation Model}
-PENDENT: Explicar un mínim d'on surt aquella equació (UIFM) i posar cites.
+\Frank{PENDENT: Explicar un mínim d'on surt aquella equació (UIFM) i posar cites.}
 
-Let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e., the desired image), \(t\) the transmission map, \(g\) the point-spread funcion and \(B\) the background light. According to the UIFM, for each color channel \(c\in\{r, g, b\}\) and pixel \(x\),
+Let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e., the desired image), \(t\) the transmission map, \(g\) the point-spread function and \(B\) the background light. According to the UIFM, for each color channel \(c\in\{r, g, b\}\) and pixel \(x\),
 
 \begin{equation}\label{eq:physical-model}
   I^c(x) = B^c\left(1 - t(x)\right) + \left(g^c\ast\left(J^c t\right)\right) (x) + \xi^c(x),
@@ -208,53 +222,43 @@ Let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e
 
 where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as white noise (i.i.d. centered gaussians).
 
-Ideally, the desired image \(J\) is obtained by inverting the previous formula from the captured image \(I\). However, due to the ill-posedness and general analytical untractability of the problem, it is convenient to simplify the problem by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
+Ideally, the desired image \(J\) is obtained by inverting the previous formula from the captured image \(I\). However, due to the ill-posedness and general analytical untractability of the problem, it is convenient to simplify the formula by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
 
 \begin{equation}\label{eq:simplified-physical-model}
   I^c(x) = B^c\left(1 - t(x)\right) + \left(J^c t\right) (x) + \xi^c(x),
 \end{equation}
 
-This is a common practice in the literature (\Frank{citar articles}) and can still yield good results.
-to split it into two subproblems: define, for each color channel \(c\in\{r, g, b\}\), the auxiliary maps given by
-
-\begin{equation}\label{eq:I1}
-  I_1^c(x)=J^c(x)t(x) + B^c(1-t(x))
-\end{equation}
-and 
-\begin{equation}\label{eq:I2}
-  I_2^c(x) = \left(\left(J^ct\right)\ast g^c\right)(x) + \xi^c(x),
-\end{equation}
-
-so that \(I = I_1 + I_2\). In fact, in order to avoid inverting the convolution present in \cref{eq:I2}, traditional techniques simply assume \(g\equiv 0\) and get rid of \(I_2\) altogether (CITA) by incorporating the noise into \(I_1\). This, of course, simplifies the problem but results in a biased model which does not capture the full array of physical phenomena involved in the image formation process.
-
-\Frank{Aquí pentura citar s'article de referència.}
+This is a common practice in the literature (\Frank{citar articles}) and can still produce good results, but is nevertheless a biased model which does not capture the full array of physical phenomena involved in the image formation process.
 
 \subsection{Formalization of the problem}
-Our approach consists of firstly estimating \(B\), \(t\) and a preliminary version of \(J\) with traditional methods. This allows the use of \cref{eq:I1} to obtain an estimation of \(I_1\) and take \(I_2 = I - I_1\). Finally, we utilize an unfolded variational approach to invert \cref{eq:I2}. Concretely, since \(t\) is fixed, we perform a substitution \(Jt\to J\) (which is to be inverted later) and pose the following minimization problem, separately for each channel \(c\in\{r, g, b\}\):
+Our approach consists of firstly estimating \(B\), \(t\) and a preliminary version of \(J\) with traditional methods by assuming the simplified equation \cref{eq:simplified-physical-model} holds. Then, we utilize this preliminary version as initialization of an unfolded variational approach to invert the full \cref{eq:physical-model}.
+
+More concretely, since \(t\) is fixed, we perform a substitution \(Jt\to J\) (which is to be inverted later) and pose the following minimization problem, separately for each channel \(c\in\{r, g, b\}\):
 
 \begin{equation}\label{eq:full-I2-functional}
   \argmin_{(J, g)\in D} E(J, g) = \frac12\|J\ast g - I_2^c\|_2^2 + \mathcal{R}_1(J) + \mathcal{R}_2(g),
 \end{equation}
 
-where \(D = L^2(\Omega)\times L^2(\Omega)\), and \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are some regularization functions in \(\mathcal{L}(L^2(\Omega), \mathbb{R})\). The reason behind the use of a generic regularization will become clear when discussing the algorithmic approach to the solution via unfolding.
+where \(D = L^2(\Omega)\times L^2(\Omega)\), and \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are some continuous regularization functions from \(L^2(\Omega)\) to \(\mathbb{R}\). 
 
 This problem is still mathematically intractable, since the resulting functional is not convex due to the convolution being bilinear w.r.t. the variable functions. A further simplification is made, whereby the functional is alternatively minimized by each of the two variables separately instead of jointly. To compensate for this simplification, the process is repeated a few times:
 \begin{equation}\label{eq:greedy-iterations}
   \left\{\begin{split}
-    g_{n+1}^c &= \argmin_{g\in L^2(\Omega)} E(J_n^c, g) \\
-    J_{n+1}^c &= \argmin_{J\in L^2(\Omega)} E(J, g_{n+1}^c)
+    g_{m+1}^c &= \argmin_{g\in L^2(\Omega)} E(J_m^c, g) \\
+    J_{m+1}^c &= \argmin_{J\in L^2(\Omega)} E(J, g_{m+1}^c)
   \end{split}\right.
 \end{equation}
+Henceforth, the iterations resulting from this simplification will be indexed with the letter \(m\) and referred to as \textbf{greedy iterations}.
 
-Due to the symmetry of the target functional \(E\), both subproblems can be studied and solved via the same schema. To see this, consider the following minimization problem: let \(s, y\in L^2(\Omega)\) and \(R\colon L^2(\Omega)\to\mathbb{R}\). Fixed those symbols, the idea is to solve for
+Due to the symmetry of the target functional \(E\), both subproblems can be studied under the same schema. To see this, consider the following minimization problem: let \(s, y\in L^2(\Omega)\) and \(R\colon L^2(\Omega)\to\overline{\mathbb{R}}\). Fixed those symbols, the idea is to solve for
 
 \[
   \argmin_{x\in L^2(\Omega)}F(x) = \frac12\|x\ast y - s\|_2^2 + R(x)
 .\]
 
-Both problems in \cref{eq:greedy-iterations} can be trivially reduced to one of this form by appropriately setting \(s\) to \(I_2\), and \(y\) and \(R\) to either \(J_n\) and \(\mathcal{R}_2\) or \(g_{n+1}\) and \(\mathcal{R}_1\). Thus, studying this problem will yield solutions for both subproblems above.
+Both problems in \cref{eq:greedy-iterations} can be trivially reduced to one of this form by appropriately setting \(s\) to \(I_2\), and \(y\) and \(R\) to either \(J_m\) and \(\mathcal{R}_2\) or \(g_{m+1}\) and \(\mathcal{R}_1\). Thus, studying this problem will yield solutions for both subproblems above.
 
-First, it is necessary to show that it is well-posed, meaning that the operations taking place are well-defined and a unique solution exists. Define the auxiliary linear operator \(K\colon L^2(\Omega)\to L^2(\Omega)\) given by
+First, it is necessary to show that it is well-posed, meaning that the operations taking place are well-defined and a solution exists. Define the auxiliary linear operator \(K\colon L^2(\Omega)\to L^2(\Omega)\) given by
 
 \[
   Kx=x\ast y.
@@ -274,7 +278,10 @@ Also define \(N\colon L^2(\Omega)\to \mathbb{R}\) by \(N(a) = \|a - s\|_{2}^2\),
   F(x) = N(Kx) + R(x),
 \]
 
-which is a problem of the same shape of (REFERENCIAR PART DE BACKGROUND MATEMATIC) and satisfies the hypotheses of the Chambolle-Pock algorithm. It yields the following iterates:
+which is a problem of the same shape of \Frank{REFERENCIAR PART DE BACKGROUND MATEMATIC}. Note that \(N\) is coercive, convex, lower semicontiuous and, in this case, always finite-valued. Convexity and lower semicontinuity imply weakly lower semicontinuity.
+
+Therefore, for a proper and weakly lower semicontinuous regularization \(R\) that is either coercive or bounded below, 
+\(F=N\circ K + R\) is coercive, proper and weakly lower semicontinuous by \cref{lemma:sum-of-lsc,lemma:precomposition-with-linear}, and the problem admits a solution by \cref{thm:direct-method}. Such solution is unique since \(F\) is strictly convex \Frank{añadir nota de unicidad a teorema 1}. Moreover, the hypotheses of the Chambolle-Pock algorithm are satisfied. It yields the following iterates:
 
 \begin{equation}\label{eq:iterates}
   \left\{
@@ -285,14 +292,56 @@ which is a problem of the same shape of (REFERENCIAR PART DE BACKGROUND MATEMATI
   \end{split}
   \right.
 \end{equation}
+Henceforth, the iterations in a primal-dual schema will be indexed with the letter \(n\) and referred to as \textbf{stages}.
 
-Closed-form expressions for \(K^*\) and \(\text{prox}_{\sigma N^*}\) can be derived analytically (cf. (REF APENDIX)). They are given by
+Closed-form expressions for \(K^*\) and \(\text{prox}_{\sigma N^*}\) can be derived analytically (cf. \Frank{REF APENDIX}). They are given by
 
 \begin{equation}\label{eq:primal-dual-analytical}
   \text{prox}_{\sigma N^*}(x) = \frac{x-\sigma s}{\sigma + 1} ~~ \text{and} ~~ K^*z = z\ast \overline{y},
 \end{equation}
 where \(\overline{y}(x) = y(-x)\).
 
+The only ``missing'' symbol is \(\text{prox}_{\tau R}\), but this depends entirely on the regularization function used and has no general closed form.
+
+We now discuss precisely which regularization is to be used for each subproblem. Going forward, the variable \(g\) will be called \textit{kernel} and the variable \(J\) will be called \textit{image} \footnote{Here, \(J\) does not correspond to the radiance (i.e. ``recovered \textit{image}''), but \(J/t\) does. This is just convenient notation.}.
+
+\subsubsection{Kernel regularization}
+For the kernel \(g\), it is desirable to impose three constraints:
+\begin{enumerate}
+  \item \label{kernel-regularization-1}That it is a convolution kernel, i.e., nonnegative and \(\int_{\Omega}g~d\mu = 1\)
+  \item That it vanishes outside a square much smaller than \(\Omega\). This condition is ubiquitous for convolution kernels in computer vision, as it corresponds to their discrete representations having much smaller sizes than the images'.
+  \item That it is a decreasing function of its radius. That is, that there exist a decreasing function \(\varphi\colon [0, +\infty)\to \mathbb{R}\) such that \(g(x)=\varphi(\|x\|)\) for all \(x\in\Omega\).
+\end{enumerate}
+
+These constraints can all be expressed via a regularization function as follows: let \[\mathcal{K}=\{f\in L^2(\Omega) | f\geq 0, \|f\|_{1}=1\}.\] Then, condition 1 is equivalent to \(g\in \mathcal{K}\). Additionally, for a fixed \(r\in\mathbb{Z}^+\) such that \([-r, r]^2\subseteq\Omega\), define \[\mathcal{S}_r = \{f\in L^2(\Omega) | f\equiv 0 \text{~in~} \Omega\setminus [-r, r]^2\}.\] Condition 2 is equivalent to \(g\in \mathcal{S}_r\) for some sufficiently small \(r\). Finally, define \[\mathcal{D}=\{\left.\varphi\circ\|\cdot\|_{2} ~\right|~ \varphi\colon[0,+\infty)\to \mathbb{R} \text{ is decreasing}\},\] so that condition 3 is equivalent to \(g\in \mathcal{D}\).
+
+It is trivial to check that the sets \(\mathcal{K}\), \(\mathcal{S}_r\) and \(\mathcal{D}\) are convex. It is also possible to see that they are closed in \(L^2(\Omega)\) (cf. \cref{prop:closed-sets}), and hence their intersection is closed and convex. Thus, the indicator function given by
+
+\[\delta_{\mathcal{K}\cap \mathcal{S}_r\cap \mathcal{D}}(g) = \left\{\begin{array}{rl}
+  +\infty ,& \text{ if }g\in\mathcal{K}\cap \mathcal{S}_r\cap \mathcal{D},\\
+  0       ,& \text{ otherwise,}
+\end{array}\right.\]
+
+is convex and weakly lower semicontinuous \Frank{citar clason}. It is bounded below, and thus, taking \(R=\delta_{\mathcal{K}\cap \mathcal{S}_r\cap \mathcal{D}}\) would guarantee existence of solution to the problem.
+
+However, computing the proximity operator resulting would be challenging, so a final simplification is made. Simply, \(g\) is taken as a centered gaussian density truncated to \([-r,r]^2\) (that is, set to 0 outside of \([-r, r]^2\)) and normalized so that its integral is \(1\). This is a sufficient condition for those outlined above, and allows for an important simplification of the optimization scheme: instead of performing primal-dual iterations, a simple gradient descent will be used to optimize the variance of the gaussian density.
+
+Such simplification may not reach the optimum guaranteed to exist with the conditions above, but will be empirically sufficient, likely faster to converge and much simpler from an implementation standpoint.
+\subsubsection{Image regularization} Instead of opting for fixing a regularization for the image, the iterative schema \cref{eq:iterates} will be unfolded.
+
+Concretely, the proximity operator \(\text{prox}_{\tau R}\) will be replaced by neural networks that will be then trained end-to-end. \Frank{pensar cómo justificar el cambiar de operador a cada iteración}. Mathematically, the resulting schema is
+\begin{equation}\label{eq:unfolded-iterates}
+  \left\{
+  \begin{split}
+    x_{n+1}^m & = \mathcal{N}_n^m(x_n^m - \tau K^*z_n^m) \\
+    \tilde{x}_{n+1}^m & = 2x_{n+1}^m - x_n^m \\
+    z_{n+1}^m & = \text{prox}_{\sigma N^*}(z_n^m + \sigma K\tilde{x}_{n+1}^m)
+  \end{split}
+  \right,
+\end{equation}
+where \(\mathcal{N}_n^m\) is a neural network specific for stage \(n\) in the greedy iteration \(m\). Although this deviates more from the original primal-dual schema than using a fixed neural network would, it has been shown to yield better results empirically \Frank{citar}.
+
+Instead of iterating until convergence, the number of stages and greedy iterations will be fixed beforehand.
 
 \section{Algorithmic approach}
 \subsection{First half of the problem (\(I_1\)).}
@@ -436,7 +485,32 @@ Fidelity loss           & 0.03710          & 0.02991                     \\ \hli
 
 \section{Appendix}
 
-Only if deemed necessary.
+\begin{proposition}\label{prop:closed-sets}
+  The sets \(\mathcal{K}\), \(\mathcal{S}_r\) and \(\mathcal{D}\) are all closed.
+\end{proposition}
+\textit{Proof.} 
+Let \(S\) be one of the sets above, and let \(\{f_n\}_n\subseteq S\) denote a sequence converging in \(L^2(\Omega)\) to a given limit \(f\in L^2(\Omega)\). Showing that the set \(S\) is closed is equivalent to showing that \(f\in S\).
+
+A well-known result about \(L^p\) spaces states that \(L^p\) convergence implies pointwise convergence up to a subsequence. This result will be used in all three cases. For notational simplicity, simply take \(f_n\) as the converging subsequence. \Frank{citar}
+
+First, consider \(S=\mathcal{K}\). The result above immediately implies that \(f\) is nonnegative by taking limits on the inequality \(f_n(x) \geq 0\). Another well-known result about \(L^p(\Omega)\) spaces states that, whenever \(\mu(\Omega)<+\infty\), the following inequality holds for \(1\leq p < q < +\infty\) and any measurable function \(g\):
+\[
+  \|g\|_p \leq \mu(\Omega)^{1/p - 1/q} \|g\|_q
+.\]
+\Frank{citar}
+Thus, for \(p=1\), \(q=2\),
+\[
+  \|f_n-f\|_1 \leq \mu(\Omega)^{1/2}\|f_n - f\|_2
+.\]
+Taking limits, this implies that \(f_n\) converges to \(f\) in \(L^1\). As a consequence, \(\|f\|_{1}=\lim_n \|f_n\|_{1}=\lim_n 1 = 1\).
+
+Second, for \(S=\mathcal{S}_r\), the result is immediate by taking limits on the converging subsequence outside of \([-r, r]^2\).
+
+Finally, for \(S=\mathcal{D}\), consider, for each \(f_n\), the function \(\phi_n\) such that \(f_n=\phi_n \circ \|\cdot\|_{2}\). Take some \(x\in L^2(\Omega)\) such that \(\|x\|_{2}=1\). Then, for each \(t\in[0, +\infty)\),
+\[
+  \phi_n(t) = f_n(tx)
+.\]
+This defines a function \(\phi\) by \(\phi(t)=\lim_n\phi_n(t)=\lim_nf_n(tx)=f(tx)\). Since \(x\) was arbitrary, it also shows that \(f=\phi\circ\|\cdot\|_{2}\) as desired.
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography} % EDIT THE FILE `bibliography.bib` WITH YOUR REFERENCES
