@@ -1,5 +1,6 @@
 \documentclass[twocolumn,twoside,a4paper,10pt]{IEEEtran}
 
+\usepackage{bm}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[noadjust]{cite}
@@ -110,7 +111,7 @@ It is also possible to extend the domain of the continuous representations to al
 It is immediate to see that this identification between the two representations respects pointwise operations (in particular, function sums and products). It is also possible to see that, for an appropriate translation, the convolution defined in \textit{pytorch} with a kernel \(g\) coincides with the continuous convolution with (the continuous version of) the inverted kernel \(\overline{g}(x) = g(-x)\).
 
 \subsubsection{\(L^p\) spaces}
-It will be useful to utilize mathematical terminology and machinery that is best exposed in function spaces. The most important and suitable function spaces that will be employed are the \(L^p\) spaces \Frank{negrita lp}.
+It will be useful to utilize mathematical terminology and machinery that is best exposed in function spaces. The most important and suitable function spaces that will be employed are the \(L^p\) spaces.
 
 \begin{definition}
   Let \(\Omega\) be a Borel measurable subset of \(\mathbb{R}^n\) for some \(n\in \mathbb{Z}^+\), and \(\mu\) the Lebesgue measure on the Borel sets of \(\mathbb{R}^n\).\footnote{Properly defining the Borel sets and the Lebesgue measure is out of the scope of this work. All rectangles, either open, closed or semiclosed are Borel measurable subsets of \(\mathbb{R}^2\). All integrals with respect to the Lebesgue measure coincide with their classical Riemmann integral counterpart, whenever the latter is defined.} For a given measurable function \(f\colon \Omega\to \overline{\mathbb{R}}\), where \(\overline{\mathbb{R}}\) is the extended real line equipped with its usual topology, define the quantity
@@ -126,12 +127,12 @@ It will be useful to utilize mathematical terminology and machinery that is best
 
   It can be shown that \(\mathcal{L}^p(\Omega)\) is a normed vector space when equipped with \(\|\cdot\|_{p}\) as a norm.
 
-  Finally, define \(L^p(\Omega)\) by identifying functions in \(\mathcal{L}^p(\Omega)\) that coincide almost everywhere with respect to \(\mu\) and equipping the resulting equivalence classes with the norm of any of their elements. It is possible to show that \(L^p(\Omega)\) is a separable Banach space for any \(p\), and that it is a Hilbert space for \(p=2\).
+  Finally, define \(\bm{L^p(\Omega)}\) by identifying functions in \(\mathcal{L}^p(\Omega)\) that coincide almost everywhere with respect to \(\mu\) and equipping the resulting equivalence classes with the norm of any of their elements. It is possible to show that \(L^p(\Omega)\) is a separable Banach space for any \(p\), and that it is a Hilbert space for \(p=2\).
 \end{definition}
 
 It is trivial to see that the continuous representation of a digital image \(I\) with domain \(\Omega\) is always an element of \(L^p(\Omega)\) for any \(p\in[1, +\infty)\).
 
-\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow us to work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulas we obtain often have much cleaner closed forms.
+\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow us to work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulas we obtain often have much cleaner closed forms. In this section, a few 
 
 \begin{definition}
   A normed vector space \(X\) is said to be a \textbf{Banach space} if it is complete under the metric induced by its norm. A \textbf{functional} on \(X\) is a function \(F\colon X\to\mathbb{R}\cup\{+\infty\}\).
@@ -186,8 +187,15 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
   \[
     \min_{x\in X} F(x)
   \]
-  admits a solution.
+  admits a solution. Moreover, if \(F\) is strictly convex, the solution is unique.
 \end{theorem}
+\textit{Proof.} For the existence, note that since \(F\) is proper, \(\inf_{x\in X} F(x)<+\infty\). It is therefore possible to construct a sequence \(\{x_n\}_n\subseteq X\) such that \(F(x_n)<+\infty\) for all \(n\) and \(F(x_n)\to \inf_{x\in X}F(x)\). Since \(\{F(x_n)\}_n\) is a convergent sequence of real numbers, it is bounded. This, together with the coerciveness of \(F\), implies that \(\{x_n\}_n\) is bounded in norm. Since \(X\) is reflexive, by the Banach-Alaoglu theorem it is possible to extract a weakly converging subsequence. Denote the subsequence by \(\{\overline{x}_n\}_n\) and its limit by \(\overline{x}\in X\). Then, utilizing the weak lower semicontinuity of \(F\):
+\[
+  \inf_{x\in X}F(x) \leq F(\overline{x})=F(\lim_n \overline{x}_n)\leq\liminf_nF(\overline{x}_n)=\inf_{x\in X}F(x)
+.\]
+This shows that \(\overline{x}\) is a minimizer of \(F\).
+
+The uniqueness for the strict convexity is immediate by contradiction. \(\qed\)
 
 Finally, a series of ``bespoke'' lemmas with simple proofs will be useful further ahead.
 
@@ -195,13 +203,15 @@ Finally, a series of ``bespoke'' lemmas with simple proofs will be useful furthe
   The sum of two weakly lower semicontinuous functionals is weakly lower semicontinuous.
 \end{lemma}
 
-\textit{Proof.} Immediate using the definition and the fact that \(\liminf_n{a_n} + \liminf_n{b_n}\leq \liminf_n{a_n + b_n}\).
+\textit{Proof.} Immediate using the definition and the fact that \(\liminf_n{a_n} + \liminf_n{b_n}\leq \liminf_n{a_n + b_n}\). \(\qed\)
 
 \begin{lemma}\label{lemma:precomposition-with-linear}
   Let \(X\) and \(Y\) be Banach spaces. Let \(F\colon Y\to \mathbb{R}\cup\{+\infty\}\) be a weakly lower semicontinuous functional, and \(K\colon X\to Y\) a continuous function. Then, \(F\circ K\) is weakly lower semicontinous.
 \end{lemma}
 
-\textit{Proof.} Since \(K\) is continuous, \(K(\lim_n x_n) = \lim_n K(x_n)\) for any converging sequence \(\{x_n\}_n\subseteq X\). The result is immediate by applying the definition of weak lower semicontinuity.
+\textit{Proof.} Since \(K\) is continuous, \(K(\lim_n x_n) = \lim_n K(x_n)\) for any converging sequence \(\{x_n\}_n\subseteq X\). The result is immediate by applying the definition of weak lower semicontinuity. \(\qed\)
+
+\subsection{Convex optimization}
 
 \subsubsection{Prima}
 Explicar:
@@ -278,10 +288,10 @@ Also define \(N\colon L^2(\Omega)\to \mathbb{R}\) by \(N(a) = \|a - s\|_{2}^2\),
   F(x) = N(Kx) + R(x),
 \]
 
-which is a problem of the same shape of \Frank{REFERENCIAR PART DE BACKGROUND MATEMATIC}. Note that \(N\) is coercive, convex, lower semicontiuous and, in this case, always finite-valued. Convexity and lower semicontinuity imply weakly lower semicontinuity.
+which is a problem of the same shape of \Frank{REFERENCIAR PART DE BACKGROUND MATEMATIC}. Note that \(N\) is coercive, convex, lower semicontiuous and, in this case, always finite-valued. Convexity and lower semicontinuity imply weak lower semicontinuity.
 
 Therefore, for a proper and weakly lower semicontinuous regularization \(R\) that is either coercive or bounded below, 
-\(F=N\circ K + R\) is coercive, proper and weakly lower semicontinuous by \cref{lemma:sum-of-lsc,lemma:precomposition-with-linear}, and the problem admits a solution by \cref{thm:direct-method}. Such solution is unique since \(F\) is strictly convex \Frank{añadir nota de unicidad a teorema 1}. Moreover, the hypotheses of the Chambolle-Pock algorithm are satisfied. It yields the following iterates:
+\(F=N\circ K + R\) is coercive, proper and weakly lower semicontinuous by \cref{lemma:sum-of-lsc,lemma:precomposition-with-linear}, and the problem admits a solution by \cref{thm:direct-method}. For a non-null value of \(y\), the function \(K\) is injective (cf. \cref{prop:injectivity-of-convolution}), and therefore the strict convexity of \(N\) implies that of \(N\circ K\), and if \(R\) is convex, then \(F\) is strictly convex. Therefore, the solution is unique. Moreover, the hypotheses of the Chambolle-Pock algorithm are satisfied. It yields the following iterates:
 
 \begin{equation}\label{eq:iterates}
   \left\{
@@ -511,6 +521,23 @@ Finally, for \(S=\mathcal{D}\), consider, for each \(f_n\), the function \(\phi_
   \phi_n(t) = f_n(tx)
 .\]
 This defines a function \(\phi\) by \(\phi(t)=\lim_n\phi_n(t)=\lim_nf_n(tx)=f(tx)\). Since \(x\) was arbitrary, it also shows that \(f=\phi\circ\|\cdot\|_{2}\) as desired.
+
+\begin{proposition}[Injectivity of convolution]\label{prop:injectivity-of-convolution}
+  Suppose that \(g\) is the continuous representation of a non-null digital image. Then, the function \(K\colon L^2(\Omega)\to L^2(\Omega)\) given by \(Kx = x\ast g\) is injective.
+\end{proposition}
+\textit{Proof. } Since the mapping has been shown to be well-defined and linear, it suffices to show that \(ker(K)=\{0\}\); that is, that \(Kx=0\) a.e. implies \(x=0\) a.e.
+
+This proof will make use of the Titchmarsh-Lions convolution theorem, which states that for any two compactly supported distributions \(T_1, T_2\), the convex hull of \(supp(T_1\ast T_2)\) is the sum of the convex hulls of \(supp(T_1)\) and \(supp(T_2)\). \Frank{citar libro Distributions and Fourier Transforms}. Properly defining distributions, convolutions between them or their supports is out of the scope of this work, but it suffices to know that any \(L^p(\Omega)\) function for \(p\geq 1\) and a bounded measurable set \(\Omega\) defines a distribution, and that the definitions given for distributions correspond exacty to those given for \(L^p(\Omega)\) functions, the latter being much simpler.
+
+The support of a function \(f\in L^p(\Omega)\) in this context is defined as the smallest closed subset of \(\mathbb{R}^2\) such that \(f\) is \(0\) almost everywhere outside of it. Formulaically:
+\[
+  supp(f) = \bigcap_{A \text{ closed}, f=0 \text{ a.e. in } A^c}A
+,\]
+where \(f\) is extended to be \(0\) outside of \(\Omega\).
+
+It is immediate to see that, for a bounded and measurable set \(\Omega\subseteq \mathbb{R}^2\), an \(L^p(\Omega)\) function has a compact support, and that said is empty if, and only if, the function is null almost everywhere. It is also immediate to see that a subset of \(\mathbb{R}^n\) is empty if, and only if, its convex hull is empty.
+
+Thus, if \(x\) is such that \(x\ast g=0\) a.e., its support is empty, and so is its convex hull. This implies that either the convex hull of \(supp(g)\) or the convex hull of \(supp(x)\) are empty. By hypothesis, \(g\) is not null, and hence it must be that \(x\) is zero almost everywhere.
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography} % EDIT THE FILE `bibliography.bib` WITH YOUR REFERENCES

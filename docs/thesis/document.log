@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.4.1)  18 AUG 2025 23:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.4.1)  19 AUG 2025 16:08
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -91,6 +91,13 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <24> not available
 \@IEEEtmpitemindent=\dimen155
 \c@IEEEbiography=\count274
 \@IEEEtranrubishbin=\box52
+) (/usr/share/texmf-dist/tex/latex/tools/bm.sty
+Package: bm 2023/12/19 v1.2f Bold Symbol Support (DPC/FMi)
+\symboldoperators=\mathgroup4
+\symboldletters=\mathgroup5
+\symboldsymbols=\mathgroup6
+Package bm Info: No bold for \OMX/cmex/m/n, using \pmb.
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 149.
 ) (/usr/share/texmf-dist/tex/latex/base/inputenc.sty
 Package: inputenc 2024/02/08 v1.3d Input encoding file
 \inpenc@prehook=\toks18
@@ -151,6 +158,7 @@ File: amsgen.sty 1999/11/30 v2.0 generic functions
 \ex@=\dimen158
 )) (/usr/share/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+LaTeX Info: Redefining \boldsymbol on input line 28.
 \pmbraise@=\dimen159
 ) (/usr/share/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 2022/04/08 v2.04 operator names
@@ -206,8 +214,8 @@ LaTeX Info: Redefining \] on input line 2954.
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
  (/usr/share/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
-\symAMSa=\mathgroup4
-\symAMSb=\mathgroup5
+\symAMSa=\mathgroup7
+\symAMSb=\mathgroup8
 LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
@@ -445,24 +453,24 @@ Package babel Info: Importing font and identification data for english
 ) (./document.aux (./titlepage.aux))
 \openout1 = `document.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 51.
-LaTeX Font Info:    ... okay on input line 51.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 52.
+LaTeX Font Info:    ... okay on input line 52.
  (/usr/share/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count314
@@ -488,7 +496,7 @@ Package grfext Info: Graphics extension search list:
  (/usr/share/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
-Package hyperref Info: Link coloring OFF on input line 51.
+Package hyperref Info: Link coloring OFF on input line 52.
  (./document.out) (./document.out)
 \@outlinefile=\write3
 \openout3 = `document.out'.
@@ -496,7 +504,7 @@ Package hyperref Info: Link coloring OFF on input line 51.
 \openout2 = `titlepage.aux'.
 
  (./titlepage.tex
-<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=84, 1401.235pt x 517.935pt>
+<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=88, 1401.235pt x 517.935pt>
 File: figures/logos/UIB_UniversitasBalearica_horizontal.png Graphic file (type png)
 <use figures/logos/UIB_UniversitasBalearica_horizontal.png>
 Package pdftex.def Info: figures/logos/UIB_UniversitasBalearica_horizontal.png  used on input line 13.
@@ -521,11 +529,11 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 113.
+(hyperref)                removing `math shift' on input line 114.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `superscript' on input line 113.
+(hyperref)                removing `superscript' on input line 114.
 
 
 
@@ -535,8 +543,8 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 
 ]
-./document.tex:165: Undefined control sequence.
-l.165     F(\lamdba
+./document.tex:166: Undefined control sequence.
+l.166     F(\lamdba
                     x + (1-\lambda)y) \leq \lambda F(x) + (1-\lambda) F(y)
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -547,29 +555,39 @@ and I'll forget about whatever was undefined.
 
 
 
+Underfull \hbox (badness 1715) in paragraph at lines 192--193
+[]\T1/ptm/m/it/10 Proof. \T1/ptm/m/n/10 For the ex-is-tence, note that since $\OML/cmm/m/it/10 F$ \T1/ptm/m/n/10 is proper,
+ []
+
+
+Overfull \hbox (3.88918pt too wide) detected at line 195
+[] \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 ) \OMS/cmsy/m/n/10 ^^T \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 ([]) = \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 ([] [][]) \OMS/cmsy/m/n/10 ^^T [] \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 ([][]) = [] \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 :
+ []
+
+
 
 [3]
 
 Package amsmath Warning: Cannot use `split' here;
-(amsmath)                trying to recover with `aligned' on input line 249.
+(amsmath)                trying to recover with `aligned' on input line 259.
 
 
 
 
 Package amsmath Warning: Cannot use `split' here;
-(amsmath)                trying to recover with `aligned' on input line 292.
+(amsmath)                trying to recover with `aligned' on input line 302.
 
 
 
 [4]
 
 Package amsmath Warning: Cannot use `split' here;
-(amsmath)                trying to recover with `aligned' on input line 339.
+(amsmath)                trying to recover with `aligned' on input line 349.
 
-./document.tex:340: Missing delimiter (. inserted).
+./document.tex:350: Missing delimiter (. inserted).
 <to be read again> 
                    ,
-l.340   \right,
+l.350   \right,
                
 I was expecting to see something like `(' or `\{' or
 `\}' here. If you typed, e.g., `{' instead of `\{', you
@@ -579,47 +597,47 @@ Acceptable delimiters are characters whose \delcode is
 nonnegative, or you can use `\delimiter <delimiter code>'.
 
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 347.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `subscript' on input line 347.
+(hyperref)                removing `math shift' on input line 357.
 
 
-LaTeX Warning: Reference `eq:I1' on page 1 undefined on input line 350.
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `subscript' on input line 357.
 
 
+LaTeX Warning: Reference `eq:I1' on page 1 undefined on input line 360.
 
 
-Overfull \hbox (0.54631pt too wide) detected at line 359
+Overfull \hbox (0.54631pt too wide) detected at line 369
 \OML/cmm/m/it/10 t[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 ) = 1 \OMS/cmsy/m/n/10 ^^@ [] [] \OML/cmm/m/it/10 ;
  []
 
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 396.
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 406.
 (/usr/share/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 418.
+(hyperref)                removing `math shift' on input line 428.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `subscript' on input line 418.
+(hyperref)                removing `subscript' on input line 428.
 
-./document.tex:426: Missing $ inserted.
+./document.tex:436: Missing $ inserted.
 <inserted text> 
                 $
-l.426 \KwData{\sigma, \tau}
+l.436 \KwData{\sigma, \tau}
                            
 I've inserted a begin-math/end-math symbol since I think
 you left one out. Proceed, with fingers crossed.
 
-./document.tex:426: Missing $ inserted.
+./document.tex:436: Missing $ inserted.
 <inserted text> 
                 $
-l.426 \KwData{\sigma, \tau}
+l.436 \KwData{\sigma, \tau}
                            
 I've inserted a begin-math/end-math symbol since I think
 you left one out. Proceed, with fingers crossed.
@@ -629,19 +647,20 @@ you left one out. Proceed, with fingers crossed.
 [5]
 
 
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
 
 [6]
-Underfull \hbox (badness 1881) in paragraph at lines 512--514
+Underfull \hbox (badness 1881) in paragraph at lines 522--524
 \T1/ptm/m/n/10 This de-fines a func-tion $\OML/cmm/m/it/10 ^^^$ \T1/ptm/m/n/10 by $\OML/cmm/m/it/10 ^^^\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) = [][] \OML/cmm/m/it/10 ^^^[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) =
  []
 
+
+
 (./document.bbl)
 
-
-
-[7
-
-] (./document.aux (./titlepage.aux))
+[7] (./document.aux (./titlepage.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -650,22 +669,25 @@ L3 programming layer <2025-01-18>
 
 LaTeX Warning: There were undefined references.
 
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
 Package rerunfilecheck Info: File `document.out' has not changed.
-(rerunfilecheck)             Checksum: 06D7F3232EEBB65EE16B37BD37F11989;3500.
+(rerunfilecheck)             Checksum: CFB32FC390ABB3A48FBF0AFFAF62CD9F;3656.
  ) 
 Here is how much of TeX's memory you used:
- 15762 strings out of 474463
- 261768 string characters out of 5747971
- 780450 words of memory out of 5000000
- 38515 multiletter control sequences out of 15000+600000
- 697624 words of font info for 179 fonts, out of 8000000 for 9000
+ 15898 strings out of 474463
+ 263482 string characters out of 5747971
+ 785426 words of memory out of 5000000
+ 38630 multiletter control sequences out of 15000+600000
+ 704070 words of font info for 200 fonts, out of 8000000 for 9000
  398 hyphenation exceptions out of 8191
- 79i,17n,93p,747b,500s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/share/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on document.pdf (8 pages, 360833 bytes).
+ 79i,17n,93p,747b,561s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/share/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on document.pdf (8 pages, 389941 bytes).
 PDF statistics:
- 297 PDF objects out of 1000 (max. 8388607)
- 244 compressed objects within 3 object streams
- 68 named destinations out of 1000 (max. 500000)
- 166 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 318 PDF objects out of 1000 (max. 8388607)
+ 259 compressed objects within 3 object streams
+ 70 named destinations out of 1000 (max. 500000)
+ 174 words of extra memory for PDF output out of 10000 (max. 10000000)
 
