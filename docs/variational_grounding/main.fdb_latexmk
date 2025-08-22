@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1751356846.99236 "main.tex" "main.pdf" "main" 1751356847.53241 2
+["pdflatex"] 1755793379.08503 "main.tex" "main.pdf" "main" 1755793379.63162 2
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1742685315 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1742685315 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1742685315 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -20,8 +20,10 @@
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1742685315 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb" 1742685315 36281 c355509802a035cadc5f15869451dcee ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1742685315 35752 024fb6c41858982481f6968b5fc26508 ""
+  "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb" 1742685315 31809 8670ca339bf94e56da1fc21c80635e2a ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb" 1742685315 32762 224316ccc9ad3ca0423a14971cfa7fc1 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1742685315 32569 5e5ddc8df908dea60932f3c484a54c0d ""
+  "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb" 1742685315 32915 7bf7720c61a5b3a7ff25b0964421c9b6 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb" 1742685315 32716 08e384dc442464e7285e891af9f45947 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb" 1742685315 37944 359e864bd06cde3b1cf57bb20757fb06 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb" 1742685315 34694 ad62b13721ee8eda1dcc8993c8bd7041 ""
@@ -59,8 +61,8 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1742685315 42087 b0f9697c952c8f5a8eede4134282cb0d ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1743488672 5314599 0b5da616e8ff14614a47569acfa7a4d9 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1743488635 2723343 b960aee5c31d245bff5e5c68814b4441 ""
-  "main.aux" 1751356847.47928 535 bcc6a9e12d4af43ae60fe9662a0fd2f0 "pdflatex"
-  "main.tex" 1751356846.34026 13942 2cd13fdd3387263f9252bd5c4aade9a2 ""
+  "main.aux" 1755793379.57553 2006 5f34dc7221a19648dbac72c7ae8ec383 "pdflatex"
+  "main.tex" 1755793378.91853 13713 99d56e86b3a58d545303721e8b9a1207 ""
   (generated)
   "main.aux"
   "main.log"

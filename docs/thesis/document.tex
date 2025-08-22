@@ -49,11 +49,13 @@
 \crefname{algorithm}{algorithm}{algorithms}
 \Crefname{algorithm}{Algorithm}{Algorithms}
 
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
 \begin{document}
 
 \include{titlepage}
 \maketitle
-
 
 
 % % % % % % % % % % % % % % % %
@@ -84,6 +86,10 @@ Blabla cites SOTA etc avorrit.
 % \end{figure*}
 
 \section{Mathematical model}
+
+In this section, all of the mathematical machinery needed to understand and formalize the problem is presented, as well as the iterative mathematical methods used to solve it.
+
+Although the mathematical exposition is, for the most part, either self-contained or specifically referenced, a certain degree of familiarity with modern mathematical analysis is assumed. A minimum familiarity with digital imaging is also assumed.
 \subsection{Theoretical grounding and notation}\label{subsec:theoretical-grounding}
 \subsubsection{Image representations}
 
@@ -91,7 +97,7 @@ Two representations of digital images will be used in this work, the equivalence
 
 The most common representation among computing frameworks is that of multidimensional arrays, sometimes also called \textit{tensors}. We shall refer to this one as the \textbf{discrete} representation. Since \textit{pytorch} will be used to implement the algorithms described in this text, the standard 4D representation will be used; that is, images will always have the \textit{Shape} \((B, C, H, W)\), where \(B\) is the batch size (\(1\) for a single image), \(C\) is the number of channels (\(3\) for an RGB image, \(1\) for a grayscale one), and \(H\) and \(W\) are the height and width of the image, respectively.
 
-The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will not be continuous, in general.}. It will be the preferred one in the mathematical formulas of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
+The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will almost never be continuous.}. It will be the preferred one in the mathematical formulas of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
 
 In order to be able to comfortably extend continuous operations for images, it is useful to center the domain \(\Omega\) with respect to the origin. Concretely, for a batched image \(I\) with shape \((B, C, H, W)\), \(B\)  fields are defined on the same domain \(\Omega\). Namely, \(I^1, \dots, I^B\colon\Omega\to \mathbb{R}^C\), where the domain \(\Omega\) is given by
 \[
@@ -114,7 +120,7 @@ It is immediate to see that this identification between the two representations 
 It will be useful to utilize mathematical terminology and machinery that is best exposed in function spaces. The most important and suitable function spaces that will be employed are the \(L^p\) spaces.
 
 \begin{definition}
-  Let \(\Omega\) be a Borel measurable subset of \(\mathbb{R}^n\) for some \(n\in \mathbb{Z}^+\), and \(\mu\) the Lebesgue measure on the Borel sets of \(\mathbb{R}^n\).\footnote{Properly defining the Borel sets and the Lebesgue measure is out of the scope of this work. All rectangles, either open, closed or semiclosed are Borel measurable subsets of \(\mathbb{R}^2\). All integrals with respect to the Lebesgue measure coincide with their classical Riemmann integral counterpart, whenever the latter is defined.} For a given measurable function \(f\colon \Omega\to \overline{\mathbb{R}}\), where \(\overline{\mathbb{R}}\) is the extended real line equipped with its usual topology, define the quantity
+  Let \(\Omega\) be a Borel measurable subset of \(\mathbb{R}^n\) for some \(n\in \mathbb{Z}^+\), and \(\mu\) the Lebesgue measure on the Borel sets of \(\mathbb{R}^n\).\footnote{Properly defining the Borel sets and the Lebesgue measure is out of the scope of this work. All rectangles, either open, closed or semiclosed are Borel measurable subsets of \(\mathbb{R}^2\). All integrals with respect to the Lebesgue measure coincide with their classical Riemann integral counterpart, whenever the latter is defined.} For a given measurable function \(f\colon \Omega\to \overline{\mathbb{R}}\), where \(\overline{\mathbb{R}}\) is the extended real line equipped with its usual topology, define the quantity
 
   \[
     \|f\|_{p} = \left(\int_{\Omega}|f|^p~d\mu\right)^{\frac 1p}
@@ -132,7 +138,9 @@ It will be useful to utilize mathematical terminology and machinery that is best
 
 It is trivial to see that the continuous representation of a digital image \(I\) with domain \(\Omega\) is always an element of \(L^p(\Omega)\) for any \(p\in[1, +\infty)\).
 
-\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow us to work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulas we obtain often have much cleaner closed forms. In this section, a few 
+\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow the work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulae obtained often have much cleaner closed forms. 
+
+In this section, a few relevant definitions are presented. Most importantly, the direct method is introduced and proved. This theorem will be employed later to show the well-posedness of the presented minimization problems. Some results are given without proof; the interested reader can consult chapters 1 to 3 of \cite{clason2024introductionnonsmoothanalysisoptimization}.
 
 \begin{definition}
   A normed vector space \(X\) is said to be a \textbf{Banach space} if it is complete under the metric induced by its norm. A \textbf{functional} on \(X\) is a function \(F\colon X\to\mathbb{R}\cup\{+\infty\}\).
@@ -165,7 +173,7 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
   \[
     F(\lamdba x + (1-\lambda)y) \leq \lambda F(x) + (1-\lambda) F(y)
   \]
-  holds for any \(x, y\in X\) and any \(\lambda\in[0, 1]\). If, additionally, the inequality is strict whenever \(x\neq y\) and \(\lambda\in (0, 1)\), \(F\) is said to be \textbf{strictly convex}.
+  holds for any \(x, y\in X\) and any \(\lambda\in(0, 1)\). If, additionally, the inequality is strict whenever \(x\neq y\), \(F\) is said to be \textbf{strictly convex}.
 \end{definition}
 
 \begin{definition}
@@ -182,6 +190,8 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
   which can be shown to always be isometric and therefore injective. \(X\) is said to be \textbf{reflexive} whenever the canonical mapping above is also surjective.
 \end{definition}
 
+It is a direct consequence of the Banach-Alaoglu theorem (which is omitted here for brevity) that every bounded sequence in a reflexive Banach space has a weakly converging subsequence.
+
 \begin{theorem}[The direct method]\label{thm:direct-method}
   Let \(X\) be a reflexive Banach space and let \(F\) be a proper, coercive and weakly lower semicontinuous functional on \(X\). Then, the minimization problem
   \[
@@ -189,7 +199,7 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
   \]
   admits a solution. Moreover, if \(F\) is strictly convex, the solution is unique.
 \end{theorem}
-\textit{Proof.} For the existence, note that since \(F\) is proper, \(\inf_{x\in X} F(x)<+\infty\). It is therefore possible to construct a sequence \(\{x_n\}_n\subseteq X\) such that \(F(x_n)<+\infty\) for all \(n\) and \(F(x_n)\to \inf_{x\in X}F(x)\). Since \(\{F(x_n)\}_n\) is a convergent sequence of real numbers, it is bounded. This, together with the coerciveness of \(F\), implies that \(\{x_n\}_n\) is bounded in norm. Since \(X\) is reflexive, by the Banach-Alaoglu theorem it is possible to extract a weakly converging subsequence. Denote the subsequence by \(\{\overline{x}_n\}_n\) and its limit by \(\overline{x}\in X\). Then, utilizing the weak lower semicontinuity of \(F\):
+\textit{Proof.} For the existence, note that since \(F\) is proper, \(\inf_{x\in X} F(x)<+\infty\). It is therefore possible to construct a sequence \(\{x_n\}_n\subseteq X\) such that \(F(x_n)<+\infty\) for all \(n\) and \(F(x_n)\to \inf_{x\in X}F(x)\). Since \(\{F(x_n)\}_n\) is a converging sequence of real numbers, it is bounded. This, together with the coerciveness of \(F\), implies that \(\{x_n\}_n\) is bounded in norm. Since \(X\) is reflexive, it has a weakly converging subsequence. Denote the subsequence by \(\{\overline{x}_n\}_n\) and its limit by \(\overline{x}\in X\). Then, utilizing the weak lower semicontinuity of \(F\):
 \[
   \inf_{x\in X}F(x) \leq F(\overline{x})=F(\lim_n \overline{x}_n)\leq\liminf_nF(\overline{x}_n)=\inf_{x\in X}F(x)
 .\]
@@ -211,34 +221,96 @@ Finally, a series of ``bespoke'' lemmas with simple proofs will be useful furthe
 
 \textit{Proof.} Since \(K\) is continuous, \(K(\lim_n x_n) = \lim_n K(x_n)\) for any converging sequence \(\{x_n\}_n\subseteq X\). The result is immediate by applying the definition of weak lower semicontinuity. \(\qed\)
 
-\subsection{Convex optimization}
+\subsection{Convex optimization} Although necessary to establish the existence of solution, the direct method offers no way to actually compute the minimum of a posed problem. Other techniques, which often involve iterative algorithms, are useful for this. Notably, the Chambolle-Pock primal-dual will be used in this work. The rest of this section is devoted to briefly present the concepts necessary to enunciate it. For a more detailed explanation, the reader is referred to chapters 3 to 7 and section 8.4 of \cite{clason2024introductionnonsmoothanalysisoptimization}.
 
-\subsubsection{Prima}
-Explicar:
-\begin{enumerate}
-  \item Resum molt resumit d'anàlisi convexa: conjugada convexa; diferenciabilitat de Gateaux i principi de Pascal.
-  \item Resum molt resumit d'operador proximal i algorisme de Chambolle-Pock.
-\end{enumerate}
+\begin{definition}
+  Let \(X\) be a Banach space and \(F\) be a proper functional on \(X\). Define \(F^*\colon X^*\to\overline{\mathbb{R}}\) by
+  \[
+    F^*(x^*) = \sup_{x\in X}x^*(x) - F(x)
+  .\]
+
+  This function is called the \textbf{Fenchel conjugate} or \textbf{convex conjugate} of \(F\).
+
+  If \(Y\) is another Banach space, and \(A\colon X\to Y\) is a continuous linear operator, then a linear operator \(A^*\colon Y^*\to X^*\) is defined by
+  \[
+     (A^*y^*)(x) = y^*(Ax)
+  .\]
+
+  This is called the \textbf{conjugate} operator of \(A\)\footnote{Although the notation and name used are the same, these are different concepts. In this text there will be no ambiguity with these notations because the codomain of a linear operator whose conjugate is needed will never be \(\mathbb{R}\).}.
+\end{definition}
+
+\begin{definition}
+  Let \(X\) be a Banach space and \(F\) be a convex, weakly lower semicontinuous functional on \(X\) that is either bounded below or proper. For a given \(\tau>0\), define the \textbf{proximity operator} of \(F\) with step size \(\tau\) as
+  \[
+    \text{\emph{prox}}_{\tau F}(x) = \argmin_{y\in X}F(y) + \frac{\|x-y\|^2}{2\tau}
+  .\]
+
+  This operator is well defined by \cref{thm:direct-method}\footnote{It is possible to define this operator in greater generality, but doing so involves theory about subdifferentials and monotone operators that is out of the scope of this work.}.
+\end{definition}
+
+\begin{theorem}[Chambolle-Pock algorithm]\label{thm:chambolle-pock}
+  Let \(F\colon X\to\overline{\mathbb{R}}\), \(G\colon Y\to\overline{\mathbb{R}}\) be proper, convex and lower semicontinuous functionals, and let \(A\colon X\to Y\) be linear and continuous. If the problem
+  \[
+    \min_{x\in X}F(x) + G(Ax)
+  \]
+  has a solution, then the sequence \(\{x_n\}_n\subseteq X\) defined by the following iterates converges to it:
+  \begin{equation}\label{eq:iterates}
+    \left\{
+    \begin{split}
+      x_{n+1} & = \text{prox}_{\tau F}(x_n - \tau A^*z_n) \\
+      \tilde{x}_{n+1} & = 2x_{n+1} - x_n \\
+      z_{n+1} & = \text{prox}_{\sigma G^*}(z_n + \sigma A\tilde{x}_{n+1})
+    \end{split}
+    \right.
+  \end{equation}
+\end{theorem}
 
 \subsection{Physical model and formalization of the problem} \label{subsec:physical-model}
 \subsubsection{Underwater Image Formation Model}
-\Frank{PENDENT: Explicar un mínim d'on surt aquella equació (UIFM) i posar cites.}
+When light travels in a water medium, two relevant physical phenomena different from those found in an aerial medium appear: first, the intensity in this light
+is absorbed by the water molecules in a significant manner. Such absortion is
+also dependent on the wavelength of the light, and is perceived by the human vision system (HVS) as 
+the red color dimming much faster than others. The second phenomenon is
+\textit{scattering}, whereby light does not travel in a straight line from the
+object to the camera forming an infinitely thin beam, but it is reflected on water molecules instead, forming a cone. This is perceived by the HVS as the image
+presenting a glow-like or hazy appearance.
 
-Let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e., the desired image), \(t\) the transmission map, \(g\) the point-spread function and \(B\) the background light. According to the UIFM, for each color channel \(c\in\{r, g, b\}\) and pixel \(x\),
+Classical works in underwater imaging by McGlamery \cite{10.1117/12.958279} and Jaffe \cite{50695} effectively quantify these phenomena and model the formation of an underwater image \(I\) as a linear superposition of three components, in what is often referred to as the Underwater Image Formation Model (UIFM) \cite{xie2021variational}:
+\[
+  I = I_{d} + I_{fs} + I_{bs}
+.\]
+The \(I_d\) (\textit{direct}) term corresponds to the light that travels in a straight line from the object to the camera; the \(I_{fs}\) (\textit{forward scattering}) component corresponds to light that travels from the object to the camera but is scattered in a small angle; and the \(I_{bs}\) (\textit{backward scattering}) term corresponds to light that travels directly from the light source to the camera by being scattered in a large angle.
 
-\begin{equation}\label{eq:physical-model}
-  I^c(x) = B^c\left(1 - t(x)\right) + \left(g^c\ast\left(J^c t\right)\right) (x) + \xi^c(x),
+Notably, the forward-scattering component can be obtained from the direct component via a convolution with a \textit{point-spread function} \(g\).
+
+These classical models are based purely on physical properties and depend heavily on the
+conditions of the water and camera, presenting several constants that need to be
+estimated experimentally. This poses a disadvantage when working with
+underwater images taken in unknown conditions, as is often the case in
+general-purpose underwater image processing algorithms.
+
+For this reason, some modifications and simplifications of the original models
+have been proposed over the years. Notably, similar notation to the following is used commonly in modern literature \cite{xie2021variational,ancuti2017color}: let \(I\) be the captured image (i.e., the input), \(J\) the scene radiance (i.e., the desired image), \(t\) the transmission map, \(g\) the point-spread function and \(B\) the background light. The transmission map decays exponentially with the distance between the captured object and the camera, in a rate that is dependent on the light wavelength.
+
+For an RGB image, the UIFM can then be expressed as follows, for each color channel \(c\in\{r, g, b\}\) and pixel \(x\),
+\begin{equation}\label{eq:uifm}
+  I^c(x) = J^ct^c(x) + \left(g^c\ast\left(J^c t^c\right)\right) (x) +  B^c\left(1 - t^c(x)\right).
 \end{equation}
 
-where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as white noise (i.i.d. centered gaussians).
+Each addend in the above formula corresponds to one component of the original UIFM, order of appearance both in the equation and the text.
 
-Ideally, the desired image \(J\) is obtained by inverting the previous formula from the captured image \(I\). However, due to the ill-posedness and general analytical untractability of the problem, it is convenient to simplify the formula by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
+In this work, a further modification of the model is made. By noting that summing the term \(J^ct^c\) is equivalent to summing \(\delta\ast J^ct^c\) (where \(\delta\) denotes a Dirac delta), and using the linearity of the convolution, it is possible to combine the first two addends into one without 
+losing generality. Additionally, a noise component is added, which is common in the literature \cite{xie2021variational}. The resulting equation is as follows:
+\begin{equation}\label{eq:physical-model}
+  I^c(x) = B^c\left(1 - t^c(x)\right) + \left(g^c\ast\left(J^c t^c\right)\right) (x) + \xi^c(x),
+\end{equation}
+where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as white noise (i.i.d. centered gaussians). The function \(g\) is no longer a point-spread function but a more abstract convolution kernel instead.
 
+From an image processing standpoint, the desired image \(J\) is ideally obtained by inverting one of the formulas above from the captured image \(I\). However, due to the ill-posedness and analytical untractability of the deconvolution problem involved, it is convenient to simplify the formula by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
 \begin{equation}\label{eq:simplified-physical-model}
   I^c(x) = B^c\left(1 - t(x)\right) + \left(J^c t\right) (x) + \xi^c(x),
 \end{equation}
-
-This is a common practice in the literature (\Frank{citar articles}) and can still produce good results, but is nevertheless a biased model which does not capture the full array of physical phenomena involved in the image formation process.
+This is is equivalent to ignoring the forward-scattering component and a common practice in the literature \cite{ancuti2017color}. It is often called ``simplified UIFM'', and can still produce good results, but is nevertheless a biased model which completely neglects potentially impactful physical phenomena involved in the formation of the image.
 
 \subsection{Formalization of the problem}
 Our approach consists of firstly estimating \(B\), \(t\) and a preliminary version of \(J\) with traditional methods by assuming the simplified equation \cref{eq:simplified-physical-model} holds. Then, we utilize this preliminary version as initialization of an unfolded variational approach to invert the full \cref{eq:physical-model}.
@@ -288,10 +360,10 @@ Also define \(N\colon L^2(\Omega)\to \mathbb{R}\) by \(N(a) = \|a - s\|_{2}^2\),
   F(x) = N(Kx) + R(x),
 \]
 
-which is a problem of the same shape of \Frank{REFERENCIAR PART DE BACKGROUND MATEMATIC}. Note that \(N\) is coercive, convex, lower semicontiuous and, in this case, always finite-valued. Convexity and lower semicontinuity imply weak lower semicontinuity.
+which is a problem of the same shape of that of \cref{thm:chambolle-pock}. Note that \(N\) is coercive, convex, lower semicontiuous and, in this case, always finite-valued. Convexity and lower semicontinuity imply weak lower semicontinuity.
 
 Therefore, for a proper and weakly lower semicontinuous regularization \(R\) that is either coercive or bounded below, 
-\(F=N\circ K + R\) is coercive, proper and weakly lower semicontinuous by \cref{lemma:sum-of-lsc,lemma:precomposition-with-linear}, and the problem admits a solution by \cref{thm:direct-method}. For a non-null value of \(y\), the function \(K\) is injective (cf. \cref{prop:injectivity-of-convolution}), and therefore the strict convexity of \(N\) implies that of \(N\circ K\), and if \(R\) is convex, then \(F\) is strictly convex. Therefore, the solution is unique. Moreover, the hypotheses of the Chambolle-Pock algorithm are satisfied. It yields the following iterates:
+\(F=N\circ K + R\) is coercive, proper and weakly lower semicontinuous by \cref{lemma:sum-of-lsc,lemma:precomposition-with-linear}, and the problem admits a solution by \cref{thm:direct-method}. For a non-null value of \(y\), the function \(K\) is injective (cf. \cref{prop:injectivity-of-convolution} in the appendix), and therefore the strict convexity of \(N\) implies that of \(N\circ K\), and if \(R\) is convex, then \(F\) is strictly convex. Therefore, the solution is unique. Moreover, the hypotheses of the Chambolle-Pock algorithm are satisfied. It yields the following iterates:
 
 \begin{equation}\label{eq:iterates}
   \left\{
@@ -304,7 +376,7 @@ Therefore, for a proper and weakly lower semicontinuous regularization \(R\) tha
 \end{equation}
 Henceforth, the iterations in a primal-dual schema will be indexed with the letter \(n\) and referred to as \textbf{stages}.
 
-Closed-form expressions for \(K^*\) and \(\text{prox}_{\sigma N^*}\) can be derived analytically (cf. \Frank{REF APENDIX}). They are given by
+Closed-form expressions for \(K^*\) and \(\text{prox}_{\sigma N^*}\) can be derived analytically (cf. \cref{prop:proximity-square-norm,prop:proximity-convolution} in the appendix). They are given by
 
 \begin{equation}\label{eq:primal-dual-analytical}
   \text{prox}_{\sigma N^*}(x) = \frac{x-\sigma s}{\sigma + 1} ~~ \text{and} ~~ K^*z = z\ast \overline{y},
@@ -313,14 +385,15 @@ where \(\overline{y}(x) = y(-x)\).
 
 The only ``missing'' symbol is \(\text{prox}_{\tau R}\), but this depends entirely on the regularization function used and has no general closed form.
 
-We now discuss precisely which regularization is to be used for each subproblem. Going forward, the variable \(g\) will be called \textit{kernel} and the variable \(J\) will be called \textit{image} \footnote{Here, \(J\) does not correspond to the radiance (i.e. ``recovered \textit{image}''), but \(J/t\) does. This is just convenient notation.}.
+We now discuss precisely which regularization is to be used for each subproblem. Going forward, the variable \(g\) will be called \textit{kernel} and the variable \(J\) will be called \textit{image}\footnote{Here, \(J\) does not correspond to the radiance (i.e. ``recovered \textit{image}''), but \(J/t\) does. This is just convenient notation.}.
 
 \subsubsection{Kernel regularization}
 For the kernel \(g\), it is desirable to impose three constraints:
 \begin{enumerate}
-  \item \label{kernel-regularization-1}That it is a convolution kernel, i.e., nonnegative and \(\int_{\Omega}g~d\mu = 1\)
+  \item \label{kernel-regularization-1}That it is a convolution kernel, i.e., nonnegative and \(\int_{\Omega}g~d\mu = 1\). The assumption that the intensity of \(g\) be \(1\) is motivated by the empirical fact that the simplified UIFM, which is equivalent to setting \(g=\delta\), often yields acceptable results. Convolving by a kernel with a different total intensity (in a practical sense, \(\int_{\Omega}\delta~d\mu=1\)) would alter the intensity of the output image \(J\). This was the case in early experiments where this condition was not imposed.
   \item That it vanishes outside a square much smaller than \(\Omega\). This condition is ubiquitous for convolution kernels in computer vision, as it corresponds to their discrete representations having much smaller sizes than the images'.
-  \item That it is a decreasing function of its radius. That is, that there exist a decreasing function \(\varphi\colon [0, +\infty)\to \mathbb{R}\) such that \(g(x)=\varphi(\|x\|)\) for all \(x\in\Omega\).
+  \item That it is a decreasing function of its radius. That is, that there exist a decreasing function \(\varphi\colon [0, +\infty)\to \mathbb{R}\) such that \(g(x)=\varphi(\|x\|)\) for all \(x\in\Omega\). This assumption is motivated by two intuitions: first, that there are no privileged directions in an underwater setting, i.e. \(g\) is rotationally invariant, or, equivalently, a function of its radius; second, that the larger the angle of the scattering, the larger the distance that light must travel from the object to the camera, and therefore the more intensity
+  is absorbed from it.
 \end{enumerate}
 
 These constraints can all be expressed via a regularization function as follows: let \[\mathcal{K}=\{f\in L^2(\Omega) | f\geq 0, \|f\|_{1}=1\}.\] Then, condition 1 is equivalent to \(g\in \mathcal{K}\). Additionally, for a fixed \(r\in\mathbb{Z}^+\) such that \([-r, r]^2\subseteq\Omega\), define \[\mathcal{S}_r = \{f\in L^2(\Omega) | f\equiv 0 \text{~in~} \Omega\setminus [-r, r]^2\}.\] Condition 2 is equivalent to \(g\in \mathcal{S}_r\) for some sufficiently small \(r\). Finally, define \[\mathcal{D}=\{\left.\varphi\circ\|\cdot\|_{2} ~\right|~ \varphi\colon[0,+\infty)\to \mathbb{R} \text{ is decreasing}\},\] so that condition 3 is equivalent to \(g\in \mathcal{D}\).
@@ -332,14 +405,14 @@ It is trivial to check that the sets \(\mathcal{K}\), \(\mathcal{S}_r\) and \(\m
   0       ,& \text{ otherwise,}
 \end{array}\right.\]
 
-is convex and weakly lower semicontinuous \Frank{citar clason}. It is bounded below, and thus, taking \(R=\delta_{\mathcal{K}\cap \mathcal{S}_r\cap \mathcal{D}}\) would guarantee existence of solution to the problem.
+is convex and weakly lower semicontinuous by Lemma 2.5.ii) of \cite{clason2024introductionnonsmoothanalysisoptimization}. It is bounded below, and thus, taking \(R=\delta_{\mathcal{K}\cap \mathcal{S}_r\cap \mathcal{D}}\) would guarantee existence of solution to the problem.
 
-However, computing the proximity operator resulting would be challenging, so a final simplification is made. Simply, \(g\) is taken as a centered gaussian density truncated to \([-r,r]^2\) (that is, set to 0 outside of \([-r, r]^2\)) and normalized so that its integral is \(1\). This is a sufficient condition for those outlined above, and allows for an important simplification of the optimization scheme: instead of performing primal-dual iterations, a simple gradient descent will be used to optimize the variance of the gaussian density.
+However, computing the proximity operator resulting would be challenging, so a final simplification is made. Simply, \(g\) is taken as a centered gaussian density truncated to \([-r,r]^2\) (that is, set to 0 outside of \([-r, r]^2\)) and normalized so that its integral is \(1\). This is a sufficient condition for those outlined above, and allows for an important simplification of the optimization scheme: instead of performing primal-dual iterations, a simple gradient descent will be used to optimize the standard deviation of the gaussian density.
 
 Such simplification may not reach the optimum guaranteed to exist with the conditions above, but will be empirically sufficient, likely faster to converge and much simpler from an implementation standpoint.
-\subsubsection{Image regularization} Instead of opting for fixing a regularization for the image, the iterative schema \cref{eq:iterates} will be unfolded.
+\subsubsection{Image regularization} Instead of fixing a regularization for the image, the iterative schema \cref{eq:iterates} will be unfolded.
 
-Concretely, the proximity operator \(\text{prox}_{\tau R}\) will be replaced by neural networks that will be then trained end-to-end. \Frank{pensar cómo justificar el cambiar de operador a cada iteración}. Mathematically, the resulting schema is
+Concretely, the proximity operator \(\text{prox}_{\tau R}\) will be replaced by neural networks that will be then trained end-to-end. Mathematically, the resulting schema is
 \begin{equation}\label{eq:unfolded-iterates}
   \left\{
   \begin{split}
@@ -349,7 +422,7 @@ Concretely, the proximity operator \(\text{prox}_{\tau R}\) will be replaced by 
   \end{split}
   \right,
 \end{equation}
-where \(\mathcal{N}_n^m\) is a neural network specific for stage \(n\) in the greedy iteration \(m\). Although this deviates more from the original primal-dual schema than using a fixed neural network would, it has been shown to yield better results empirically \Frank{citar}.
+where \(\mathcal{N}_n^m\) is a neural network specific for stage \(n\) in the greedy iteration \(m\). Although this deviates more from the original primal-dual schema than using a fixed neural network would, it has been shown to yield significantly better results \cite{8271999}.
 
 Instead of iterating until convergence, the number of stages and greedy iterations will be fixed beforehand.
 
@@ -520,7 +593,7 @@ Finally, for \(S=\mathcal{D}\), consider, for each \(f_n\), the function \(\phi_
 \[
   \phi_n(t) = f_n(tx)
 .\]
-This defines a function \(\phi\) by \(\phi(t)=\lim_n\phi_n(t)=\lim_nf_n(tx)=f(tx)\). Since \(x\) was arbitrary, it also shows that \(f=\phi\circ\|\cdot\|_{2}\) as desired.
+This defines a function \(\phi\) by \(\phi(t)=\lim_n\phi_n(t)=\lim_nf_n(tx)=f(tx)\). Since \(x\) was arbitrary, it also shows that \(f=\phi\circ\|\cdot\|_{2}\) as desired. \qed
 
 \begin{proposition}[Injectivity of convolution]\label{prop:injectivity-of-convolution}
   Suppose that \(g\) is the continuous representation of a non-null digital image. Then, the function \(K\colon L^2(\Omega)\to L^2(\Omega)\) given by \(Kx = x\ast g\) is injective.
@@ -537,7 +610,77 @@ where \(f\) is extended to be \(0\) outside of \(\Omega\).
 
 It is immediate to see that, for a bounded and measurable set \(\Omega\subseteq \mathbb{R}^2\), an \(L^p(\Omega)\) function has a compact support, and that said is empty if, and only if, the function is null almost everywhere. It is also immediate to see that a subset of \(\mathbb{R}^n\) is empty if, and only if, its convex hull is empty.
 
-Thus, if \(x\) is such that \(x\ast g=0\) a.e., its support is empty, and so is its convex hull. This implies that either the convex hull of \(supp(g)\) or the convex hull of \(supp(x)\) are empty. By hypothesis, \(g\) is not null, and hence it must be that \(x\) is zero almost everywhere.
+Thus, if \(x\) is such that \(x\ast g=0\) a.e., its support is empty, and so is its convex hull. This implies that either the convex hull of \(supp(g)\) or the convex hull of \(supp(x)\) are empty. By hypothesis, \(g\) is not null, and hence it must be that \(x\) is zero almost everywhere. \qed
+
+In the following two propositions, the usual identification between a Hilbert space and its dual via \(x\mapsto(y\mapsto\langle x,y\rangle)\) is implicitly assumed.
+
+\begin{proposition}\label{prop:proximity-square-norm}
+  Let \(N\colon L^2(\Omega)\to \mathbb{R}\) be defined by
+  \[
+    N(x) = \|x-a\|_{_2^2}
+  \]
+  for some \(a\in L^2(\Omega)\). Then,
+  \[
+  \text{prox}_{\sigma N^*}(x) = \frac{x - \sigma s}{\sigma + 1}
+  .\]
+
+\end{proposition}
+\textit{Proof.}
+By the Moreau decomposition theorem,
+\begin{equation}\label{eq:proximity-moreau}
+  \text{prox}_{\sigma N^*}(x) = x - \sigma\text{prox}_{N/\sigma}\left(\frac x\sigma\right).
+\end{equation}
+
+Thus, it is sufficient to compute \(\text{prox}_{\lambda N}\) for an arbitrary \(\lambda > 0\) and then replace \(\lambda = \frac 1\sigma\).
+
+For a fixed \(z\in L^2(\Omega)\), consider the functional \(J_{z, \lambda}(y) = \frac{\|y - z\|_{2}^2}{2\lambda} + \frac12 \|y - s\|_{2}^2\), so that
+\[
+  \text{prox}_{\lambda N}(z) = \text{argmin}_{y}J_{z, \lambda}(y)
+.\]
+
+Clearly, \(J_{z, \lambda}\) is Gâteaux differentiable and
+\[
+  J_{z, \lambda}(y; h) = \langle h, \frac 1\lambda(y-z)\rangle + \langle h, y-s\rangle
+.\]
+
+Whence \(\forall h\colon J_{z, \lambda}(y; h) = 0\) if, and only if, \(y=\frac{z + \lambda s}{\lambda + 1}\). Thus, by the Fermat principle, and taking \(\lambda = \frac 1\sigma\),
+\[
+  \text{prox}_{N / \sigma}(z) = \text{argmin}_{y}J_{z, 1/\sigma}(y) = \frac{\sigma z+ s}{\sigma + 1}
+.\]
+
+Combining this last equation with \cref{eq:proximity-moreau}, we have that
+\[
+  \text{prox}_{\sigma N^*}(x) = x -\frac{\sigma}{\sigma + 1}(x+s) = \frac{x - \sigma s}{\sigma + 1}
+.\qed\]
+
+\begin{proposition}\label{prop:proximity-convolution}
+  Let \(K\colon L^2(\Omega)\to L^2(\Omega)\) be defined by
+  \[
+    Kx = x\ast y
+  \]
+  for some \(y\in L^2(\Omega)\). Then, the dual operator \(K^*\) is given by \[K^*x=x\ast\overline{y}.\]
+\end{proposition}
+\textit{Proof. } By definition, \(K^*\) is the only operator satisfying the equality
+\[
+  \langle Ka, b \rangle = \langle a, K^* b\rangle
+\]
+for all \(a, b\in L^2(\Omega)\), where \(\langle\cdot,\cdot\rangle\) is the usual scalar product in \(L^2(\Omega)\): \(\langle f, g\rangle = \int_{\Omega}fg~dm\), where \(m\) is the Lebesgue measure restricted to \(\Omega\).
+
+Note that, in order to properly define convolution between functions with domain \(\Omega\subseteq\mathbb{R}^n\), it is first necessary to extend to \(\mathbb{R}^n\) by setting them to \(0\) in \(\Omega^c\).
+
+It is well-known that for any given \(\varphi, \phi, \psi\colon\mathbb{R}^n\to\mathbb{R}\) such that their pairwise convolutions are defined and integrable, the following equality holds:
+
+\begin{equation}\label{eq:convolution/inversion}
+  \langle\varphi\ast\phi, \psi\rangle = \langle\phi, \psi\ast\overline{\varphi}\rangle
+\end{equation}
+
+where \(\overline{\varphi}(x) = \varphi(-x)\). Therefore,
+\[
+  \langle a\ast y, b\rangle = \langle a, b\ast\overline{y} \rangle
+.\]
+
+Thus, \(K^*\) is simply given by \(K^*b = b\ast \overline{y}\). \qed
+
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography} % EDIT THE FILE `bibliography.bib` WITH YOUR REFERENCES
