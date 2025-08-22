@@ -32,7 +32,7 @@
 
 
 \usepackage[english]{babel}     % Use either `english`, `catalan` or `spanish` to change titles and other template text
-\title{Untitled thesis}
+\title{Primal-dual Unfolding of\\ Underwater Digital Images}
 \author{Frank William Hammond Espinosa}
 \email{frank.william.hammond@gmail.com}
 \tutors{Julia Navarro Oliver and Ana Belén Petro Balaguer}
@@ -63,7 +63,7 @@
 % % % % % % % % % % % % % % % %
 
 \begin{abstract}
-\noindent This is a very abstract abstractionary abstract.
+\noindent Lorem ipsum etc.
 \end{abstract}
 
 \section{Introduction}
@@ -430,7 +430,7 @@ Instead of iterating until convergence, the number of stages and greedy iteratio
 \subsection{First half of the problem (\(I_1\)).}
 \Frank{Falta: explicar RCP; potser DCP}
 
-The way of inverting the formula in \cref{eq:I1} is the same as in (CITAR ARTICLE REFERÈNCIA), although the implementation is fully self-made (the original implementation is written in MATLAB and, to the best of the author's knowledge, only publicly available in binary form).
+The way of inverting the formula in \cref{eq:I1} is the same as in (CITAR ARTICLE REFERÈNCIA), although the implementation is fully self-made (the original implementation is written in MATLAB and, to the author's knowledge, only publicly available in binary form).
 
 First, the background light is chosen by iteratively splitting the image into four regions. Out of those regions, the one with the highest score, given by the average minus the standard deviation of the pixel values in the region, is selected and split again. The process stops once the selected region is smaller than a given threshold (\(16\) colored pixels in our implementation). Then, the background light of the image is chosen as the pixel closest to white (in euclidean norm) in that small patch. This process is summarized in Algorithm \ref{al:background-light}.
 
@@ -574,13 +574,12 @@ Fidelity loss           & 0.03710          & 0.02991                     \\ \hli
 \textit{Proof.} 
 Let \(S\) be one of the sets above, and let \(\{f_n\}_n\subseteq S\) denote a sequence converging in \(L^2(\Omega)\) to a given limit \(f\in L^2(\Omega)\). Showing that the set \(S\) is closed is equivalent to showing that \(f\in S\).
 
-A well-known result about \(L^p\) spaces states that \(L^p\) convergence implies pointwise convergence up to a subsequence. This result will be used in all three cases. For notational simplicity, simply take \(f_n\) as the converging subsequence. \Frank{citar}
+A well-known result about \(L^p\) spaces states that \(L^p\) convergence implies pointwise convergence up to a subsequence \cite{ash1972real}. This result will be used in all three cases. For notational simplicity, simply take \(f_n\) as the converging subsequence.
 
 First, consider \(S=\mathcal{K}\). The result above immediately implies that \(f\) is nonnegative by taking limits on the inequality \(f_n(x) \geq 0\). Another well-known result about \(L^p(\Omega)\) spaces states that, whenever \(\mu(\Omega)<+\infty\), the following inequality holds for \(1\leq p < q < +\infty\) and any measurable function \(g\):
 \[
   \|g\|_p \leq \mu(\Omega)^{1/p - 1/q} \|g\|_q
 .\]
-\Frank{citar}
 Thus, for \(p=1\), \(q=2\),
 \[
   \|f_n-f\|_1 \leq \mu(\Omega)^{1/2}\|f_n - f\|_2
@@ -600,7 +599,7 @@ This defines a function \(\phi\) by \(\phi(t)=\lim_n\phi_n(t)=\lim_nf_n(tx)=f(tx
 \end{proposition}
 \textit{Proof. } Since the mapping has been shown to be well-defined and linear, it suffices to show that \(ker(K)=\{0\}\); that is, that \(Kx=0\) a.e. implies \(x=0\) a.e.
 
-This proof will make use of the Titchmarsh-Lions convolution theorem, which states that for any two compactly supported distributions \(T_1, T_2\), the convex hull of \(supp(T_1\ast T_2)\) is the sum of the convex hulls of \(supp(T_1)\) and \(supp(T_2)\). \Frank{citar libro Distributions and Fourier Transforms}. Properly defining distributions, convolutions between them or their supports is out of the scope of this work, but it suffices to know that any \(L^p(\Omega)\) function for \(p\geq 1\) and a bounded measurable set \(\Omega\) defines a distribution, and that the definitions given for distributions correspond exacty to those given for \(L^p(\Omega)\) functions, the latter being much simpler.
+This proof will make use of the Titchmarsh-Lions convolution theorem, which states that for any two compactly supported distributions \(T_1, T_2\), the convex hull of \(supp(T_1\ast T_2)\) is the sum of the convex hulls of \(supp(T_1)\) and \(supp(T_2)\) (chapter 45 of \cite{donoghue1969distributions}). Properly defining distributions, convolutions between them or their supports is out of the scope of this work\footnote{See \cite{donoghue1969distributions} for a detailed exposition.}, but it suffices to know that any \(L^p(\Omega)\) function for \(p\geq 1\) and a bounded measurable set \(\Omega\) defines a distribution, and that the definitions given for distributions correspond exacty to those given for \(L^p(\Omega)\) functions, the latter being much simpler.
 
 The support of a function \(f\in L^p(\Omega)\) in this context is defined as the smallest closed subset of \(\mathbb{R}^2\) such that \(f\) is \(0\) almost everywhere outside of it. Formulaically:
 \[

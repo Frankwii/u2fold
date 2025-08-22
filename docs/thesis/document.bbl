@@ -5,9 +5,19 @@ J.~Adler and O.~Öktem.
 \newblock Learned primal-dual reconstruction.
 \newblock {\em IEEE Transactions on Medical Imaging}, 37(6):1322--1332, 2018.
 
+\bibitem{ancuti2017color}
+C.~O. Ancuti, C.~Ancuti, C.~De~Vleeschouwer, and P.~Bekaert.
+\newblock Color balance and fusion for underwater image enhancement.
+\newblock {\em IEEE Transactions on image processing}, 27(1):379--393, 2017.
+
 \bibitem{clason2024introductionnonsmoothanalysisoptimization}
 C.~Clason and T.~Valkonen.
 \newblock Introduction to nonsmooth analysis and optimization, 2024.
+
+\bibitem{donoghue1969distributions}
+W.~F. Donoghue.
+\newblock {\em Distributions and Fourier transforms}, volume~32.
+\newblock Academic Press, 1969.
 
 \bibitem{50695}
 J.~Jaffe.
@@ -18,5 +28,10 @@ J.~Jaffe.
 B.~L. McGlamery.
 \newblock {A Computer Model For Underwater Camera Systems}.
 \newblock In S.~Q. Duntley, editor, {\em Ocean Optics VI}, volume 0208, pages 221 -- 231. International Society for Optics and Photonics, SPIE, 1980.
+
+\bibitem{xie2021variational}
+J.~Xie, G.~Hou, G.~Wang, and Z.~Pan.
+\newblock A variational framework for underwater image dehazing and deblurring.
+\newblock {\em IEEE Transactions on Circuits and Systems for Video Technology}, 32(6):3514--3526, 2021.
 
 \end{thebibliography}
