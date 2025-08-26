@@ -65,55 +65,112 @@
 \begin{abstract}
 \noindent Lorem ipsum etc.
 \end{abstract}
-\section{Introduction}
+\section{Introduction and related works}
 
-Underwater image processing is of great interest for its applications on marine robotics and similar fields \Frank{citar y a lo mejor poner ejemplos. qué difícil es vender mates.}. It poses a unique set of challenges due to two
-physical phenomena that govern the image formation process in aquatic media. As light travels through the water, it loses its intensity in a process called \textit{absorption}, at a significant rate that is dependent both on the condition of the water and the light
-wavelength. Concretely, longer wavelengths tend to be absorbed faster, resulting in underwater images often appearing bluish or greenish to the human eye. In addition to losing intensity, light can change directions when colliding with
+Underwater image processing is of great interest for its applications on marine robotics \cite{956031} or marine biology \cite{4099139}. It presents a unique set of challenges due to two
+physical phenomena that govern the image formation process in aquatic media. As light propagates through the water, it loses its intensity in a process called \textit{absorption}, at a significant rate that is dependent both on the condition of the water and the light
+wavelength. Specifically, longer wavelengths tend to be absorbed more rapidly, resulting in underwater images often appearing bluish or greenish to the human eye. In addition to losing intensity, light can change directions when colliding with
 suspended particles in the medium. This process, known as \textit{scattering}, results in a loss of contrast and hazy appearance. Inverting these two processes
-allows the recovery of a much richer image that is better suited for other imaging tasks such as segmentation or classification. Such inversion is particularly challenging and therefore traditional, general approaches such as
-histogram equalization or Retinex models do not work without modifications
+allows the recovery of a much richer image that is better suited for subsequent imaging tasks such as annotation \cite{lisani2022analysis} or classification \cite{1707999}. Such inversion is particularly challenging and therefore traditional, general approaches like
+histogram equalization or Retinex models are insufficient without modifications
 specific to the underwater environment \cite{xie2021variational}.
 
-McGlamery \cite{10.1117/12.958279} and Jaffe \cite{50695} introduced the most widely adopted mathematical framework for this problem, now known as the
-Undewater Image Formation Model (UIFM). Modern approaches often rephrase the original models as \textit{dehazing} problems \cite{GALDRAN2015132}, usually with a simplified version of the UIFM that does not account for its \textit{forward scattering} component.
+McGlamery \cite{10.1117/12.958279} and Jaffe \cite{50695} introduced what is now the most widely adopted mathematical framework for this problem, now known as the
+Undewater Image Formation Model (UIFM). Modern approaches often rephrase a simplified version of the original models as \textit{dehazing} problems \cite{GALDRAN2015132}. This simplified version of the UIFM does not take into account its \textit{forward scattering} component, but still produces acceptable results. Most importantly, it yields equations very similar to those of the Atmospheric Scattering Model (ASM), which is mostly associated to dehazing problems, and therefore many techniques
+used for atmospheric dehazing can be adapted for the aquatic environment.
 
-\Frank{A incluir:
-\begin{itemize}
-  \item State of the art: \cite{LI2022104759, 7574330, ancuti2017color, xie2021variational}, algunos de \cite{6319316}; ver \href{https://github.com/CXH-Research/Underwater-Image-Enhancement?tab=readme-ov-file}{https://github.com/CXH-Research/Underwater-Image-Enhancement?tab=readme-ov-file} para más.
-  \item Explicar Unfolding. Citar \cite{8271999}.
-\end{itemize}
-}
+In order to solve these dehazing problems, many approaches first try to estimate the \textit{background light} (a.k.a. \textit{atmospheric light} in dehazing settings) of the scene via some
+heuristic, which often uses some sort of statistical measure of the intensities
+in one or several color channels of the image. A simple approach consists of using the brightest pixel in the image, but due to its brittleness it has been superseded by more sophisticated techniques. Popular approaches are based
+on the dark channel intensity histogram \cite{5567108}, a quad-tree algorithm that searches the brightest areas in
+the image \cite{xie2021variational,kim2013optimized,li2016underwater}, on the brightest local intensity minimum \cite{6104148}, or modifications of the above and combinations thereof.
 
-% \begin{figure}[!ht]
-%     \begin{center}
-%     	\includegraphics[width = \linewidth]{figures/example1.png}
-%     \end{center}
-%     \caption{Figure within the column.}
-%     \label{fig:fig1}
-% \end{figure}
-% *PARA FIGURA A DOBLE COLUMNA
-% \begin{figure*}[!ht]
-%     \begin{center}
-%     	\includegraphics[width = \linewidth]{figures/example2.png}
-%     \end{center}
-%     \caption{Figure within the body. Source: phdcomics.} 
-%     \label{fig:fig2}
-% \end{figure*}
+Once the background light has been approximated, an array of techniques are often used to estimate the \textit{transmission map}. Many traditional approaches (\cite{xie2021variational,GALDRAN2015132,Drews_2013_ICCV_Workshops}) are based on the classical Dark Channel Prior \cite{5567108} or versions of it, such as the Red Channel Prior \cite{GALDRAN2015132} or the Underwater Dark Channel Prior \cite{Drews_2013_ICCV_Workshops}. Other
+techniques are possible too, such as the one presented in \cite{7574330}, which
+minimizes information loss due to RGB encoding. Having estimated the background light and transmission map, it is then possible to analytically invert the simplified UIFM
+and obtain an estimate for the scene radiance, which effectively corresponds to
+the undegraded image.
 
+Machine Learning (ML) approaches have been successfully used for these tasks too. A classification of different techniques used for dehazing is presented in \cite{10.1145/3576918}. Among the wide variety of classes collected, two follow the paradigm described above: those that learn the transmission map only, and those that jointly learn the transmission map and the background light.
+
+In \cite{7539399}, authors estimate the background light by selecting the brightest pixel below a certain threshold, and then feed the unaltered input into a small neural network they coined \textit{DehazeNet}, which then outputs a coarse transmission map. After refining this map with a guided filter, they invert the ASM to obtain the scene radiance. A similar technique
+is used in \cite{8450630}.
+The algorithm in \cite{9190777} is also alike, but instead of yielding the tranmission map directly, they use the output
+of the penultimate layer of their nework as the transmission map, and then pass
+the resulting radiance estimation through a final, linear layer. A ``neural-network-first'' approach that is still based on the ASM can be found in 
+\cite{guo2019dense}. Authors propose two similar encoder-decoder architectures in which a single encoder feeds either two or three decoders with different purposes: one estimates the atmospheric light, another the transmission map and,
+when present, the third approximates the scene radiance directly. In both configurations,
+the final output is computed via the ASM solely based on the atmospheric light
+and transmission map estimates. However, in the three-decoder architecture, the
+output of the third decoder is used as assistance during training, since, according to the authors, this
+improves performance for severely degraded images.
+
+Not all methods are based directly on inverting a physical model. These are sometimes called \textit{model-free} algorithms. Examples of this are fusion-based algorithms \cite{6247661,ancuti2017color}, which compute several auxiliary
+images from the input - each intended to enhance a certain aspect of it - and then combine those to form a definitive output. The way of computing these auxiliary images often does incorporate aspects of the UIFM. Most ML-based
+models presented in \cite{10.1145/3576918} that do not fall under the two previously mentioned categories can also be considered \textit{model-free}. Some draw inspiration from either the ASM \cite{Li_2017_ICCV} or 
+from Retinex theory \cite{9274531} to justify their models' architectures, but 
+ultimately do not leverage a physical model that explains image formation. 
+However, their lack
+of interpretability is often somewhat compensated by exhibiting excellent performance.
+
+Algorithm \textit{unfolding}, also called algorithm \textit{unrolling}, presents a way of leveraging physical models while
+using neural networks in a way that allows them to be trained end-to-end,
+yielding fully explainable models that can still achieve competitive results.
+An excellent exposition of the core ideas about unfolding and a collection of
+illustrative approaches is presented in \cite{9363511}. Briefly, it consists in
+first solving an optimization problem via an iterative approach,
+and then replacing some part of the iterative scheme by a neural network. The seminal work that introduced the technique \cite{10.5555/3104322.3104374} illustrates it quite well. It was performed in the context of sparse coding, which can be translated into minimizing the functional
+\[
+  \frac12\|X-W_dZ\|_2^2 + \alpha \|Z\|_{1}
+\]
+with respect to \(Z\in \mathbb{R}^m\) for a given \(X\in \mathbb{R}^n\) and a maximally ranked matrix of choice \(W_d\in \mathcal{M}_{n\times m}(\mathbb{R})\), usually with \(m\gg n\). A popular
+iterative scheme for solving this problem, the Iterative Shrinking and Tresholding Algorithm (ISTA), consists of the following iterates:
+\[
+ z_0 = 0, ~~~~ z_{n+1} = S_\lambda\left(W_tz_n+W_eX\right)
+,\]
+where \(W_t\) and \(W_e\) are fixed matrices that can be analytically computed
+from \(W_d\), and \(S_\lambda\) is a function also with an analytically closed
+form that depends only on the parameter \(\lambda>0\) (said closed forms are not included here for brevity). One of the main contributions of \cite{10.5555/3104322.3104374} was the Learned ISTA. In that algorithm, the parameters \(\lambda\), \(W_t\) and \(W_e\) are the output of a neural network that takes as inputs different values of \(X\), and the
+iterative scheme above is repeated for a fixed number of iterations. During training,
+the output is evaluated with the target functional for a pre-fixed matrix \(W_d\), enabling end-to-end training
+of the network for optimizing the parameters. This resulted in a fully
+explainable model that achieved impressive performance at the time, which in
+this case meant faster convergence to an optimum value of \(Z\).
+
+Since then, many similar approaches have been developed in a variety of fields.
+Iterative schemes containing some sort of proximity operator are a natural
+fit for unfolding, since the proximity operator itself can be replaced by a neural
+network in-place. This is particularly useful when the proximity operator
+derives from a regularization function, since those are often chosen somewhat
+arbitrarily in inverse imaging problems, and learning the regularization prior
+from actual data is both practical and mathematically elegant. The Chambolle-Pock algorithm, also known as primal-dual hybrid gradient algorithm, offers a uniquely
+direct way of achieving this structure, so much so that it is possible to
+perform this substitution in a fully general manner, as authors in \cite{8271999} suggest.
+
+In this work, heuristics from the traditional approaches outlined above are used to estimate the background light and transmission map - concretely, the quad-tree and RCP methodologies. Then, a variational problem is posed for the
+full UIFM, as opposed to most traditional approaches which use only the simplified version. The problem is theoretically studied, ensuring partial well-posedness for a wide family of regularizations, and an iterative scheme is
+drawn with the Chambolle-Pock algorithm. Finally, said scheme is unfolded by
+substituting part of the regularization by a neural network, which is trained
+end-to-end with the UIEB dataset. Two neural network architectures are used
+to this end: a classical UNet, and a novel one baptized as AUNet (Additive UNet),
+which is a simple modification to the UNet that changes concatenation on the
+skip connections by additions.
 \section{Mathematical model}
 
-In this section, all of the mathematical machinery needed to understand and formalize the problem is presented, as well as the iterative mathematical methods used to solve it.
+In this section, all of the mathematical machinery and notation needed to understand and formalize the problem is presented (\cref{subsec:theoretical-grounding}), the physical equations are introduced and manipulated for convenience (\cref{subsec:physical-model}), and the problem is formalized and theoretically studied (\cref{subsec:formalization}).
 
-Although the mathematical exposition is, for the most part, either self-contained or specifically referenced, a certain degree of familiarity with modern mathematical analysis is assumed. A minimum familiarity with digital imaging is also assumed.
 \subsection{Theoretical grounding and notation}\label{subsec:theoretical-grounding}
+Although the mathematical exposition in this section is, for the most part, either self-contained or specifically referenced, a certain degree of familiarity with modern mathematical analysis is assumed. A minimum familiarity with digital imaging is also assumed.
+
+Although not recommended, the reader that is either already very familiar with higher mathematical analysis and convex optimization, or too unfamiliar with it, may skip this section and read \cref{subsec:physical-model} and below.
+
 \subsubsection{Image representations}
 
 Two representations of digital images will be used in this work, the equivalences between which will be described below.
 
 The most common representation among computing frameworks is that of multidimensional arrays, sometimes also called \textit{tensors}. We shall refer to this one as the \textbf{discrete} representation. Since \textit{pytorch} will be used to implement the algorithms described in this text, the standard 4D representation will be used; that is, images will always have the \textit{Shape} \((B, C, H, W)\), where \(B\) is the batch size (\(1\) for a single image), \(C\) is the number of channels (\(3\) for an RGB image, \(1\) for a grayscale one), and \(H\) and \(W\) are the height and width of the image, respectively.
 
-The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will almost never be continuous.}. It will be the preferred one in the mathematical formulas of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
+The other representation used will be called \textbf{continuous}\footnote{The term \textit{continuous} here refers to the domain of the representation. In fact, the functions involved will almost never be continuous.}. It will be the preferred one in the mathematical formulae of this text. The idea is to think of images as either scalar or three-dimensional vector fields for grayscale or RGB images, respectively, defined on a rectangular domain \(\Omega\subseteq \mathbb{R}^2\). Said fields are always piecewise constant on right-semiclosed unit squares with sides parallel to the coordinate axes.
 
 In order to be able to comfortably extend continuous operations for images, it is useful to center the domain \(\Omega\) with respect to the origin. Concretely, for a batched image \(I\) with shape \((B, C, H, W)\), \(B\)  fields are defined on the same domain \(\Omega\). Namely, \(I^1, \dots, I^B\colon\Omega\to \mathbb{R}^C\), where the domain \(\Omega\) is given by
 \[
@@ -142,7 +199,7 @@ It will be useful to utilize mathematical terminology and machinery that is best
     \|f\|_{p} = \left(\int_{\Omega}|f|^p~d\mu\right)^{\frac 1p}
   \]
 
-  for each \(p\in[1, +\infty)\). Define the set of \(p\)-integrable functions as 
+  for each \(p\in[1, +\infty)\). Define the set of \(p\)-integrable functions as
   \[
     \mathcal{L}^p(\Omega) = \left\{f\colon\Omega\to \mathbb{\overline{R}}~\left|~\|f\|_{p}<+\infty\right.\right\}
   .\]
@@ -154,7 +211,7 @@ It will be useful to utilize mathematical terminology and machinery that is best
 
 It is trivial to see that the continuous representation of a digital image \(I\) with domain \(\Omega\) is always an element of \(L^p(\Omega)\) for any \(p\in[1, +\infty)\).
 
-\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow the work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulae obtained often have much cleaner closed forms. 
+\subsubsection{Functional and convex analysis} It is possible to develop in a surprising generality a number of optimization algorithms which can later be applied for image processing problems. The continuous representation of digital images described above will allow the work with operators defined on function spaces in a more abstract fashion than with multidimensionals arrays. By doing so, the involved operators and formulae obtained often have much cleaner closed forms.
 
 In this section, a few relevant definitions are presented. Most importantly, the direct method is introduced and proved. This theorem will be employed later to show the well-posedness of the presented minimization problems. Some results are given without proof; the interested reader can consult chapters 1 to 3 of \cite{clason2024introductionnonsmoothanalysisoptimization}.
 
@@ -194,8 +251,7 @@ It is immediate to check that the usual convergence of a sequence in \(X\) impli
 
 \begin{definition}
   A functional \(F\) is said to be \textbf{coercive} if, for every sequence \(\{x_n\}\subseteq X\) such that \(\lim_n \|x_n\|=+\infty\), then \(\lim_nF(x_n)=+\infty\).
-
-  It is said to be \textbf{proper} if there exists some \(x\in X\) such that \(F(x) < +\infty\).
+It is said to be \textbf{proper} if there exists some \(x\in X\) such that \(F(x) < +\infty\).
 \end{definition}
 
 \begin{definition}
@@ -219,9 +275,7 @@ It is a direct consequence of the Banach-Alaoglu theorem (which is omitted here 
 \[
   \inf_{x\in X}F(x) \leq F(\overline{x})=F(\lim_n \overline{x}_n)\leq\liminf_nF(\overline{x}_n)=\inf_{x\in X}F(x)
 .\]
-This shows that \(\overline{x}\) is a minimizer of \(F\).
-
-The uniqueness for the strict convexity is immediate by contradiction. \(\qed\)
+This shows that \(\overline{x}\) is a minimizer of \(F\). The uniqueness for the strict convexity is immediate by contradiction. \(\qed\)
 
 Finally, a series of ``bespoke'' lemmas with simple proofs will be useful further ahead.
 
@@ -237,22 +291,20 @@ Finally, a series of ``bespoke'' lemmas with simple proofs will be useful furthe
 
 \textit{Proof.} Since \(K\) is continuous, \(K(\lim_n x_n) = \lim_n K(x_n)\) for any converging sequence \(\{x_n\}_n\subseteq X\). The result is immediate by applying the definition of weak lower semicontinuity. \(\qed\)
 
-\subsection{Convex optimization} Although necessary to establish the existence of solution, the direct method offers no way to actually compute the minimum of a posed problem. Other techniques, which often involve iterative algorithms, are useful for this. Notably, the Chambolle-Pock primal-dual algorithm will be used in this work. The rest of this section is devoted to briefly present the concepts necessary to enunciate it. For a more detailed explanation, the reader is referred to chapters 3 to 7 and section 8.4 of \cite{clason2024introductionnonsmoothanalysisoptimization}.
+\subsubsection{Convex optimization} Although necessary to establish the existence of solution, the direct method offers no way to actually compute the minimum of a posed problem. Other techniques, which often involve iterative algorithms, are useful for this. Notably, the Chambolle-Pock primal-dual algorithm will be used in this work. The rest of this section is devoted to briefly present the concepts necessary to enunciate it. For a more detailed explanation, the reader is referred to chapters 3 to 7 and section 8.4 of \cite{clason2024introductionnonsmoothanalysisoptimization}.
 
 \begin{definition}
-  Let \(X\) be a Banach space and \(F\) be a proper functional on \(X\). Define \(F^*\colon X^*\to\overline{\mathbb{R}}\) by
+  Let \(X\) be a Banach space and \(F\) be a proper functional on \(X\). Define \(F^*\colon X^*\to\mathbb{R}\cup\{+\infty\}\) by
   \[
     F^*(x^*) = \sup_{x\in X}x^*(x) - F(x)
   .\]
-
-  This function is called the \textbf{Fenchel conjugate} or \textbf{convex conjugate} of \(F\).
+This function is called the \textbf{Fenchel conjugate} or \textbf{convex conjugate} of \(F\).
 
   If \(Y\) is another Banach space, and \(A\colon X\to Y\) is a continuous linear operator, then a linear operator \(A^*\colon Y^*\to X^*\) is defined by
   \[
      (A^*y^*)(x) = y^*(Ax)
   .\]
-
-  This is called the \textbf{conjugate} operator of \(A\)\footnote{Although the notation and name used are the same, these conjugates are essentially different concepts. In this text there will be no ambiguity with these notations because the codomain of a linear operator whose conjugate is needed will never be the real or extended real numbers. Therefore, there is no ambiguity in always considering the conjugate of a given operator as the linear conjugate when the operator is linear and the convex conjugate otherwise.}.
+This is called the \textbf{conjugate} operator of \(A\)\footnote{Although the notation and name used are the same, these conjugates are essentially different concepts. In this text there will be no ambiguity with these notations because the codomain of a linear operator whose conjugate is needed will never be the real or extended real numbers. Therefore, there is no ambiguity in always considering the conjugate of a given operator as the linear conjugate when the operator is linear and the convex conjugate otherwise.}.
 \end{definition}
 
 \begin{definition}
@@ -260,12 +312,16 @@ Finally, a series of ``bespoke'' lemmas with simple proofs will be useful furthe
   \[
     \text{\emph{prox}}_{\tau F}(x) = \argmin_{y\in X}F(y) + \frac{\|x-y\|^2}{2\tau}
   .\]
-
-  This operator is well defined by \cref{thm:direct-method}\footnote{It is possible to define this operator in greater generality, but doing so involves theory about subdifferentials and monotone operators that is out of the scope of this work.}.
+This operator is well defined by \cref{thm:direct-method}\footnote{It is possible to define this operator in greater generality, but doing so involves theory about subdifferentials and monotone operators that is out of the scope of this work.}.
 \end{definition}
 
+A remark to be made here is that, for separable Hilbert spaces (Banach spaces in which the norm is induced by an inner product), the dual space \(X^*\) is,
+in a very strong sense, completely equivalent to the space itself, \(X\). Namely,
+the mapping \( x\mapsto (y\mapsto \langle x,y\rangle)\) (where \(\langle\cdot,\cdot\rangle\) is the inner product in \(X\)) defines an isometric isomorphism between \(X\) and \(X^*\)\footnote{The surjectivity of this mapping is sometimes called the \textit{Riesz-Fréchet} representation theorem.}. For this reason, dual spaces will be tacitly assumed to the base spaces in the following
+theorem.
+
 \begin{theorem}[Chambolle-Pock algorithm]\label{thm:chambolle-pock}
-  Let \(F\colon X\to\overline{\mathbb{R}}\), \(G\colon Y\to\overline{\mathbb{R}}\) be proper, convex and lower semicontinuous functionals, and let \(A\colon X\to Y\) be linear and continuous. If the problem
+  Let \(X\) and \(Y\) be separable Hilbert spaces. Let \(F\colon X\to\overline{\mathbb{R}}\), \(G\colon Y\to\overline{\mathbb{R}}\) be proper, convex and lower semicontinuous functionals, and let \(A\colon X\to Y\) be linear and continuous. If the problem
   \[
     \min_{x\in X}F(x) + G(Ax)
   \]
@@ -314,27 +370,27 @@ For an RGB image, the UIFM can then be expressed as follows, for each color chan
 
 Each addend in the above formula corresponds to one component of the original UIFM, in order of appearance both in the equation and the text.
 
-In this work, a further modification of the model is made. By noting that summing the term \(J^ct^c\) is equivalent to summing \(\delta\ast(J^ct^c)\) (where \(\delta\) denotes a Dirac delta), and using the linearity of the convolution, it is possible to combine the first two addends into one without 
+In this work, a further modification of the model is made. By noting that summing the term \(J^ct^c\) is equivalent to summing \(\delta\ast(J^ct^c)\) (where \(\delta\) denotes a Dirac delta), and using the linearity of the convolution, it is possible to combine the first two addends into one without
 losing generality. Moreover, a noise component is summed, which is common in the literature \cite{xie2021variational}. The resulting equation is as follows:
 \begin{equation}\label{eq:physical-model}
   I^c(x) = B^c\left(1 - t^c(x)\right) + \left(g^c\ast\left(J^c t^c\right)\right) (x) + \xi^c(x),
 \end{equation}
 where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as white noise (i.i.d. centered gaussians). The function \(g\) is no longer a point-spread function but a more abstract convolution kernel instead.
 
-From an image processing standpoint, the desired image \(J\) is ideally obtained by inverting one of the formulas above from the captured image \(I\). However, due to the ill-posedness and analytical untractability of the deconvolution problem involved, it is convenient to simplify the formula by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
+From an image processing standpoint, the desired image \(J\) is ideally obtained by inverting one of the formulae above from the captured image \(I\). However, due to the ill-posedness and analytical untractability of the deconvolution problem involved, it is convenient to simplify the formula by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
 \begin{equation}\label{eq:simplified-physical-model}
   I^c(x) = B^c\left(1 - t^c(x)\right) + \left(J^c t^c\right) (x) + \xi^c(x),
 \end{equation}
-This is equivalent to ignoring the forward-scattering component and a common practice in the literature \cite{ancuti2017color}. It is often called ``simplified UIFM'', and can still produce good results, but is nevertheless a biased model which completely neglects potentially impactful physical phenomena involved in the formation of the image.
+This is equivalent to ignoring the forward-scattering component and a common practice in the literature \cite{ancuti2017color}. It is often called ``simplified UIFM'', and can still produce good results, but is nevertheless a biased model which completely neglects forward scattering.
 
-\subsection{Formalization of the problem}
+\subsection{Formalization of the problem}\label{subsec:formalization}
 Our approach consists of firstly estimating \(B\), \(t\) and a preliminary version of \(J\) with traditional methods by assuming the simplified equation \cref{eq:simplified-physical-model} holds. Then, we utilize this preliminary version as initialization of an unfolded variational approach to invert the full \cref{eq:physical-model}.
 
 More concretely, since \(t\) is fixed, we perform a substitution \(Jt\to J\) (which is to be inverted later) and pose the following minimization problem, separately for each channel \(c\in\{r, g, b\}\):
 \begin{equation}\label{eq:full-I2-functional}
-  \argmin_{(J, g)\in D} E(J, g) = \frac12\|J\ast g - I_2^c\|_2^2 + \mathcal{R}_1(J) + \mathcal{R}_2(g),
+  \argmin_{(J, g)\in D} E(J, g) = \frac12\|J\ast g - R^c\|_2^2 + \mathcal{R}_1(J) + \mathcal{R}_2(g),
 \end{equation}
-where \(D = L^2(\Omega)\times L^2(\Omega)\), \(I_2 = I - B(1-t)\) and \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are some continuous regularization functions from \(L^2(\Omega)\) to \(\mathbb{R}\). 
+where \(D = L^2(\Omega)\times L^2(\Omega)\), \(R = I - B(1-t)\) and \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are some continuous regularization functions from \(L^2(\Omega)\) to \(\mathbb{R}\).
 
 This problem is still mathematically intractable, since the resulting functional is not convex due to the convolution being bilinear w.r.t. the variable functions. A further simplification is made, whereby the functional is alternatively minimized by each of the two variables separately instead of jointly. To compensate for this simplification, the process is repeated a few times:
 \begin{equation}\label{eq:greedy-iterations}
@@ -345,7 +401,7 @@ This problem is still mathematically intractable, since the resulting functional
 \end{equation}
 Henceforth, the iterations resulting from this simplification will be indexed with the letter \(m\) and referred to as \textbf{greedy iterations}.
 
-Due to the symmetry of the target functional \(E\), both subproblems can be studied under the same schema. To see this, consider the following minimization problem: let \(s, y\in L^2(\Omega)\) and \(R\colon L^2(\Omega)\to\overline{\mathbb{R}}\). Fixed those symbols, the idea is to solve for
+Due to the symmetry of the target functional \(E\), both subproblems can be studied under the same scheme. To see this, consider the following minimization problem: let \(s, y\in L^2(\Omega)\) and \(R\colon L^2(\Omega)\to\overline{\mathbb{R}}\). Fixed those symbols, the idea is to solve for
 
 \[
   \argmin_{x\in L^2(\Omega)}F(x) = \frac12\|x\ast y - s\|_2^2 + R(x)
@@ -375,7 +431,7 @@ Also define \(N\colon L^2(\Omega)\to \mathbb{R}\) by \(N(a) = \|a - s\|_{2}^2\),
 
 which is a problem of the same shape of that of \cref{thm:chambolle-pock}. Note that \(N\) is coercive, convex, lower semicontiuous and, in this case, always finite-valued. Convexity and lower semicontinuity imply weak lower semicontinuity.
 
-Therefore, for a proper and weakly lower semicontinuous regularization \(R\) that is either coercive or bounded below, 
+Therefore, for a proper and weakly lower semicontinuous regularization \(R\) that is either coercive or bounded below,
 \(F=N\circ K + R\) is coercive, proper and weakly lower semicontinuous by \cref{lemma:sum-of-lsc,lemma:precomposition-with-linear}, and the problem admits a solution by \cref{thm:direct-method}. For a non-null value of \(y\), the function \(K\) is injective (cf. \cref{prop:injectivity-of-convolution} in the appendix), and therefore the strict convexity of \(N\) implies that of \(N\circ K\), and if \(R\) is convex, then \(F\) is strictly convex. Therefore, the solution is unique. Moreover, the hypotheses of the Chambolle-Pock algorithm are satisfied. It yields the following iterates:
 
 \begin{equation}\label{eq:iterates}
@@ -387,7 +443,7 @@ Therefore, for a proper and weakly lower semicontinuous regularization \(R\) tha
   \end{split}
   \right.
 \end{equation}
-Henceforth, the iterations in a primal-dual schema will be indexed with the letter \(n\) and referred to as \textbf{stages}.
+Henceforth, the iterations in a primal-dual scheme will be indexed with the letter \(n\) and referred to as \textbf{stages}.
 
 Closed-form expressions for \(K^*\) and \(\text{prox}_{\sigma N^*}\) can be derived analytically (cf. \cref{prop:proximity-square-norm,prop:proximity-convolution} in the appendix). They are given by
 
@@ -423,9 +479,9 @@ is convex and weakly lower semicontinuous by Lemma 2.5.ii) of \cite{clason2024in
 However, computing the proximity operator resulting would be challenging, so a final simplification is made. Specifically, \(g\) is taken as a centered gaussian density truncated to \([-r,r]^2\) (that is, set to 0 outside of \([-r, r]^2\)) and normalized so that its integral is \(1\). This is a sufficient condition for those outlined above, and allows for an important simplification of the optimization scheme: instead of performing primal-dual iterations, a simple gradient descent will be used to optimize the standard deviation of the gaussian density.
 
 Such simplification may not reach the optimum guaranteed to exist with the conditions above, but will be empirically sufficient, likely faster to converge and much simpler from an implementation standpoint.
-\subsubsection{Image regularization} Instead of fixing a regularization for the image, the iterative schema \cref{eq:iterates} will be unfolded.
+\subsubsection{Image regularization} Instead of fixing a regularization for the image, the iterative scheme \cref{eq:iterates} will be unfolded.
 
-Concretely, the proximity operator \(\text{prox}_{\tau R}\) will be replaced by neural networks that will be then trained end-to-end. Mathematically, the resulting schema is
+Concretely, the proximity operator \(\text{prox}_{\tau R}\) will be replaced by neural networks that will be then trained end-to-end. Mathematically, the resulting scheme is
 \begin{equation}\label{eq:unfolded-iterates}
   \left\{
   \begin{split}
@@ -435,7 +491,7 @@ Concretely, the proximity operator \(\text{prox}_{\tau R}\) will be replaced by 
   \end{split}
   \right,
 \end{equation}
-where \(\mathcal{N}_n^m\) is a neural network specific for stage \(n\) in the greedy iteration \(m\). Although this deviates more from the original primal-dual schema than using a fixed neural network would, it has been shown to yield significantly better results \cite{8271999}.
+where \(\mathcal{N}_n^m\) is a neural network specific for stage \(n\) in the greedy iteration \(m\). Although this deviates more from the original primal-dual scheme than using a fixed neural network would, it has been shown to yield significantly better results \cite{8271999}.
 
 Instead of iterating until convergence, the number of stages and greedy iterations will be fixed beforehand.
 
@@ -447,7 +503,7 @@ From a high-level perspective, the approach followed to obtain an estimate of th
   \item Use a score-based quad-tree algorithm to estimate the background light \(B\).
   \item Assume the simplified model, \cref{eq:simplified-physical-model}, holds and use a DPC prior to obtain a coarse estimate of the red channel of the transmission map \(t^r\). Refine this estimate by passing it through a guided filter with \(I\) as a guide.
   \item Obtain the green and blue channels of the transmission map by exponentiating the red one. Then, use the obtained estimate of \(t\) to compute an initial estimate for \(J\), \(J_0\).
-  \item Pose a minimization problem with the obtained estimates for \(B\) and \(t\) and the full model, \cref{eq:physical-model} with a formal substitution \(Jt\to J\). Solve this problem with an alternating iterative approach using \(J_0\) as initialization, and obtain a final estimate for \(J\) from the minimum \(J^*\) by inverting the substitution: \(J=J^*/\max(t, 0.1)\). The kernel is optimized with simple gradient updates, and the radiance is optimized via \cref{eq:unfolded-iterates}.
+  \item Pose a minimization problem with the obtained estimates for \(B\) and \(t\) and the full model, \cref{eq:physical-model} with a formal substitution \(Jt\to J\). Solve this problem with an alternating iterative approach using \(J_0t\) as initialization, and obtain a final estimate for \(J\) from the minimum \(J^*\) by inverting the substitution: \(J=J^*/\max(t, 0.1)\). The kernel is optimized with simple gradient updates, and the radiance is optimized via \cref{eq:unfolded-iterates}.
 \end{enumerate}
 In the following, steps 1 to 3 will be referred to as \textit{deterministic steps} and step 4 will be called \textit{variational step}.
 
@@ -455,7 +511,7 @@ In the following, steps 1 to 3 will be referred to as \textit{deterministic step
 For step 1, the background light is estimated by iteratively splitting the image into four quadrants. Out of those regions, the one with the highest score, given by the average minus the standard deviation of the pixel values in the region, is selected and split again. The process stops once the selected region is smaller than a given threshold (\(16\) colored pixels in this implementation). Then, the background light of the image is chosen as the pixel closest to white (in euclidean norm) in that small patch. This process is summarized in Algorithm \ref{al:background-light}.
 
 For step 2, a Red Channel Prior is utilized \cite{GALDRAN2015132}. This is a
-modification of the classical Dark Channel Prior \cite{5206515}. The
+modification of the classical Dark Channel Prior \cite{5567108}. The
 approach is based on the assumption that, for every pixel \(x\in\Omega\), the following equality holds for a square patch of fixed radius centered at \(x\), \(\Omega_x\):
 \[
   \min_{y\in\Omega_x}\min(1-I^r(y), I^g(y), I^b(y), S(y)) \approx 0
@@ -468,7 +524,14 @@ Additionally, \(t_0\) is imposed to be constant across channels and in \(\Omega_
 \Frank{Nota: he estat incapaç de reproduir aquest raonament amb la saturació. És a dir, de s'RCP ``estàndard'' (llevant es \(S(y)\) des mínim) sí que se dedueix la fórmula (també sense \(S(y)\)) amb les hipòtesis que explic, però no he estat capaç d'introduir-li la saturació. A l'article no donen massa pistes llevat que és una adaptació ``straight-forward'' de s'altre raonament. Si vos sembla bé, jo ho deixaria així com està escrit.}
 
 For step 3, a fine version of the transmission map, \(t^r\), is obtained by passing \(t_0^r\) through a guided filter \cite{6319316} with \(I\) as the guide. The transmission map estimates for the other two channels are obtained by
-exponentiating the red transmission map by appropriate coefficients. This is sound since, physically, \(t\) decays exponentially with the distance from the object to the camera, and the base of the exponent depends on the color channel. Thus, the transmission maps for the different color channels are related via exponentiation. In this work, the exact coefficients presented in \cite{7574330} are utilized.
+exponentiating the red transmission map by appropriate coefficients. This is sound since, physically, \(t\) decays exponentially with the distance from the object to the camera, and the base of the exponent depends on the color channel. Thus, the transmission maps for the different color channels are related via exponentiation. In this work, the exact coefficients presented in \cite{7574330} are utilized:
+\[
+  t^c = (t^r)^\frac{\alpha_c}{\alpha_r}
+,\]
+where \(c\in\{r,g,b\}\) and \(\alpha_c\) depends on the color's wavelength \(\lambda_c\) in nanometers (respectively: \(620, 540\) and \(450\) for red, green and blue) and the background light \(B^c\):
+\[
+  \alpha_c = \frac{-0.00113\lambda_c + 1.62517}{B^c}
+.\]
 
 Finally, we estimate a first version of \(J_0t\) by inverting \cref{eq:simplified-physical-model}. For each color channel \(c\in\{r, g, b\}\):
 \begin{equation}\label{eq:J0}
@@ -526,7 +589,7 @@ Obtain \(t\) by exponentiating \(t^r\)\;
 \Return{\(t, J_0t\)}
 \end{algorithm}
 \subsection{Variational step}
-For step \(4\), the minimization subproblems in \cref{eq:greedy-iterations} will be solved for a fixed, small number of greedy iterations (concretely, 3). The iterative schema in \cref{eq:iterates} with the formulae in \cref{eq:primal-dual-analytical} is used, with the aforementioned symbolic substitutions. The missing operator \(\text{prox}_{\tau R}\) is unfolded, meaning that it is substituted by a neural network instead of explicitly derived. The architecture and training of said neural network will be discussed later, in the implementation section.
+For step \(4\), the minimization subproblems in \cref{eq:greedy-iterations} will be solved for a fixed, small number of greedy iterations (concretely, 3). The iterative scheme in \cref{eq:iterates} with the formulae in \cref{eq:primal-dual-analytical} is used, with the aforementioned symbolic substitutions. The missing operator \(\text{prox}_{\tau R}\) is unfolded, meaning that it is substituted by a neural network instead of explicitly derived. The architecture and training of said neural network will be discussed later, in the implementation section.
 
 The final approach used for obtaining an approximate solution to \cref{eq:full-I2-functional} is summarized in Algorithm \ref{al:I2-estimation}. Instead of analytically computing the derivative of \(\|I-J\ast g\|_2^2\) w.r.t. the standard deviation of \(g\), \textit{pytorch}'s \textit{autograd} engine is leveraged. An ADAM optimizer is used with a step size of \(\sigma\).
 
@@ -536,7 +599,7 @@ The final approach used for obtaining an approximate solution to \cref{eq:full-I
 \KwResult{\(J\)}
 \(J\gets J_0t\)\;
 \(R\gets I - (1-t)B\)\;
-Initialize \(g\) as a centered gaussian kernel with std. of 1\; 
+Initialize \(g\) as a centered gaussian kernel with std. of 1\;
 Initialize dual variables \(\tilde{g}\), \(\tilde{J}\) to 0\;
 \For{\(n=1\) \KwTo \(G\)}{
   \Comment*[l]{Fix \(J\), estimate \(g\).}
@@ -556,6 +619,19 @@ Initialize dual variables \(\tilde{g}\), \(\tilde{J}\) to 0\;
 
 \subsection{Implementation}
 \Frank{Xerrar de U2Fold, la implementació en pytorch dels algoritmes d'abans i de la UNET additiva, etc.}
+
+The algorithms detailed above were implemented in the Python programming
+language, version 3.12. The major dependency used was \href{https://pytorch.org/}{\textit{pytorch}}, which
+provides a nice programming interface for manipulating multidimensional arrays 
+via the \textit{Tensor} abstraction, automatically performing simple
+optimization algorithms via its \textit{autograd} engine, and, what it is most
+popular for, implementing neural networks with the \textit{torch.nn.Module}
+class and a variety of related utilities. A secondary dependency is
+\href{https://pydantic.com.cn/en/}{\textit{pydantic}}, for validating input parameters specified in a JSON file
+such as network hyperparameters or the dataset path.
+
+The source code for the program is freely available at \href{https://github.com/Frankwii/u2fold}{https://github.com/Frankwii/u2fold}.
+
 \section{Experimentation}
 \subsection{Algorithmic selection of hyperparameters}
 Given the high computational costs of training neural networks, it is unfeasible to perform a grid search on a substantial set of hyperparameter choices and train a network from scratch for each choice.
@@ -568,7 +644,7 @@ As an attempt to overcome this limitation, the following approach is proposed. F
   \item Finally, train the best model so far during many epochs as an attempt to get the best performance.
 \end{enumerate}
 \Frank{Nota: això ha anat bastant malament. Crec que hauré de tornar a sa manera manual de simplement anar provant combinacions i au. Una llàstima.}
-Of course, the target metric plays a central role in determining the output choice. Several metrics will be used to evaluate the quality of the model (cf. [TODO: AÑADIR SECCIÓN DE MÉTRICAS]), but it would be desirable to obtain a single number that will allow the automatic comparison of models. An obvious choice is a simple addition of the metrics, but this presents the problem of different metrics having different ranges of values. A simple solution to this
+Of course, the target metric choice plays a central role in determining the output. Several metrics will be used to evaluate the quality of the model (cf. [TODO: AÑADIR SECCIÓN DE MÉTRICAS]), but it would be desirable to obtain a single number that will allow the automatic comparison of models. An obvious choice is a simple addition of the metrics, but this presents the problem of different metrics having different ranges of values. A simple solution to this
 is dividing each value by its average computed over the dataset.
 
 \begin{table}[h]
@@ -591,7 +667,7 @@ Fidelity loss           & 0.03710          & 0.02991                     \\ \hli
 \section{Conclusions}
 
 \section{Student's comments}
-This section is not strictly part of the work performed but is instead intended to offer some insight on its writing to reviewers of the thesis or potential future students that use it as a reference for similar works.
+This section is not strictly part of the work but instead it is intended to offer some insight on its writing to reviewers of the thesis or potential future students that use it as a reference for similar works.
 \subsection{Limitations and ideas for future work}
 \Frank{
 Ideas:
@@ -628,7 +704,7 @@ Finally, they were used for styling and spelling review.
 Comentar lo poco concreto que era el artículo de referencia y lo complicado que fue de seguir. Concretamente, la manera en la que estiman el transmission map es 0 explícita y especialmente no se entiende qué hacen para estimar la \(g\).
 }
 
-One particular limitation to be outlined is the pitiful and ascientific practice of not publishing
+One particular limitation to be difficulty I encountered was the pitiful and ascientific, yet ubiquitous practice of not publishing
 source code along with research papers, but only a compiled binary instead. This is done
 possibly in the hopes of being cited when compared to other approaches, but discouraging researches from reproducing or improving their methods. This hinders
 one of the pillars of science, reproducibility, and should not be allowed in
@@ -658,7 +734,7 @@ the conversion matrices.
 \begin{proposition}\label{prop:closed-sets}
   The sets \(\mathcal{K}\), \(\mathcal{S}_r\) and \(\mathcal{D}\) are all closed.
 \end{proposition}
-\textit{Proof.} 
+\textit{Proof.}
 Let \(S\) be one of the sets above, and let \(\{f_n\}_n\subseteq S\) denote a sequence converging in \(L^2(\Omega)\) to a given limit \(f\in L^2(\Omega)\). Showing that the set \(S\) is closed is equivalent to showing that \(f\in S\).
 
 A well-known result about \(L^p\) spaces states that \(L^p\) convergence implies pointwise convergence up to a subsequence \cite{ash1972real}. This result will be used in all three cases. For notational simplicity, simply take \(f_n\) as the converging subsequence.
@@ -766,7 +842,6 @@ where \(\overline{\varphi}(x) = \varphi(-x)\). Therefore,
 .\]
 
 Thus, \(K^*\) is simply given by \(K^*b = b\ast \overline{y}\). \qed
-
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography} % EDIT THE FILE `bibliography.bib` WITH YOUR REFERENCES

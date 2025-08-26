@@ -5,6 +5,11 @@ J.~Adler and O.~Öktem.
 \newblock Learned primal-dual reconstruction.
 \newblock {\em IEEE Transactions on Medical Imaging}, 37(6):1322--1332, 2018.
 
+\bibitem{6247661}
+C.~Ancuti, C.~O. Ancuti, T.~Haber, and P.~Bekaert.
+\newblock Enhancing underwater images and videos by fusion.
+\newblock In {\em 2012 IEEE Conference on Computer Vision and Pattern Recognition}, pages 81--88, 2012.
+
 \bibitem{ancuti2017color}
 C.~O. Ancuti, C.~Ancuti, C.~De~Vleeschouwer, and P.~Bekaert.
 \newblock Color balance and fusion for underwater image enhancement.
@@ -15,6 +20,16 @@ R.~Ash.
 \newblock {\em Real Analysis and Probability}.
 \newblock Bibliographie-P. Academic Press, 1972.
 
+\bibitem{7539399}
+B.~Cai, X.~Xu, K.~Jia, C.~Qing, and D.~Tao.
+\newblock Dehazenet: An end-to-end system for single image haze removal.
+\newblock {\em IEEE Transactions on Image Processing}, 25(11):5187--5198, 2016.
+
+\bibitem{6104148}
+J.~Y. Chiang and Y.-C. Chen.
+\newblock Underwater image enhancement by wavelength compensation and dehazing.
+\newblock {\em IEEE Transactions on Image Processing}, 21(4):1756--1769, 2012.
+
 \bibitem{clason2024introductionnonsmoothanalysisoptimization}
 C.~Clason and T.~Valkonen.
 \newblock Introduction to nonsmooth analysis and optimization, 2024.
@@ -24,15 +39,40 @@ W.~F. Donoghue.
 \newblock {\em Distributions and Fourier transforms}, volume~32.
 \newblock Academic Press, 1969.
 
+\bibitem{Drews_2013_ICCV_Workshops}
+P.~Drews, Jr., E.~do~Nascimento, F.~Moraes, S.~Botelho, and M.~Campos.
+\newblock Transmission estimation in underwater single images.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV) Workshops}, June 2013.
+
+\bibitem{956031}
+G.~Foresti.
+\newblock Visual inspection of sea bottom structures by an autonomous underwater vehicle.
+\newblock {\em IEEE Transactions on Systems, Man, and Cybernetics, Part B (Cybernetics)}, 31(5):691--705, 2001.
+
 \bibitem{GALDRAN2015132}
 A.~Galdran, D.~Pardo, A.~Picón, and A.~Alvarez-Gila.
 \newblock Automatic red-channel underwater image restoration.
 \newblock {\em Journal of Visual Communication and Image Representation}, 26:132--145, 2015.
 
-\bibitem{5206515}
+\bibitem{10.5555/3104322.3104374}
+K.~Gregor and Y.~LeCun.
+\newblock Learning fast approximations of sparse coding.
+\newblock In {\em Proceedings of the 27th International Conference on International Conference on Machine Learning}, ICML'10, page 399–406, Madison, WI, USA, 2010. Omnipress.
+
+\bibitem{10.1145/3576918}
+J.~Gui, X.~Cong, Y.~Cao, W.~Ren, J.~Zhang, J.~Zhang, J.~Cao, and D.~Tao.
+\newblock A comprehensive survey and taxonomy on single image dehazing based on deep learning.
+\newblock {\em ACM Comput. Surv.}, 55(13s), July 2023.
+
+\bibitem{guo2019dense}
+T.~Guo, X.~Li, V.~Cherukuri, and V.~Monga.
+\newblock Dense scene information estimation network for dehazing.
+\newblock In {\em Proceedings of the IEEE/CVF conference on computer vision and pattern recognition workshops}, pages 0--0, 2019.
+
+\bibitem{5567108}
 K.~He, J.~Sun, and X.~Tang.
 \newblock Single image haze removal using dark channel prior.
-\newblock In {\em 2009 IEEE Conference on Computer Vision and Pattern Recognition}, pages 1956--1963, 2009.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, 33(12):2341--2353, 2011.
 
 \bibitem{6319316}
 K.~He, J.~Sun, and X.~Tang.
@@ -44,20 +84,65 @@ J.~Jaffe.
 \newblock Computer modeling and the design of optimal underwater imaging systems.
 \newblock {\em IEEE Journal of Oceanic Engineering}, 15(2):101--111, 1990.
 
+\bibitem{kim2013optimized}
+J.-H. Kim, W.-D. Jang, J.-Y. Sim, and C.-S. Kim.
+\newblock Optimized contrast enhancement for real-time image and video dehazing.
+\newblock {\em Journal of Visual Communication and Image Representation}, 24(3):410--425, 2013.
+
+\bibitem{Li_2017_ICCV}
+B.~Li, X.~Peng, Z.~Wang, J.~Xu, and D.~Feng.
+\newblock Aod-net: All-in-one dehazing network.
+\newblock In {\em Proceedings of the IEEE International Conference on Computer Vision (ICCV)}, Oct 2017.
+
+\bibitem{li2016underwater}
+C.-Y. Li, J.-C. Guo, R.-M. Cong, Y.-W. Pang, and B.~Wang.
+\newblock Underwater image enhancement by dehazing with minimum information loss and histogram distribution prior.
+\newblock {\em IEEE Transactions on Image Processing}, 25(12):5664--5677, 2016.
+
 \bibitem{7574330}
 C.-Y. Li, J.-C. Guo, R.-M. Cong, Y.-W. Pang, and B.~Wang.
 \newblock Underwater image enhancement by dehazing with minimum information loss and histogram distribution prior.
 \newblock {\em IEEE Transactions on Image Processing}, 25(12):5664--5677, 2016.
 
-\bibitem{LI2022104759}
-X.~Li, G.~Hou, K.~Li, and Z.~Pan.
-\newblock Enhancing underwater image via adaptive color and contrast enhancement, and denoising.
-\newblock {\em Engineering Applications of Artificial Intelligence}, 111:104759, 2022.
+\bibitem{9274531}
+P.~Li, J.~Tian, Y.~Tang, G.~Wang, and C.~Wu.
+\newblock Deep retinex network for single image dehazing.
+\newblock {\em IEEE Transactions on Image Processing}, 30:1100--1115, 2021.
+
+\bibitem{lisani2022analysis}
+J.-L. Lisani, A.-B. Petro, C.~Sbert, A.~Alvarez-Ellacuria, I.~A. Catalan, and M.~Palmer.
+\newblock Analysis of underwater image processing methods for annotation in deep learning based fish detection.
+\newblock {\em IEEE Access}, 10:130359--130372, 2022.
+
+\bibitem{8450630}
+R.~Liu, X.~Fan, M.~Hou, Z.~Jiang, Z.~Luo, and L.~Zhang.
+\newblock Learning aggregated transmission propagation networks for haze removal and beyond.
+\newblock {\em IEEE Transactions on Neural Networks and Learning Systems}, 30(10):2973--2986, 2019.
+
+\bibitem{4099139}
+C.~H. Mazel.
+\newblock In situ measurement of reflectance and fluorescence spectra to support hyperspectral remote sensing and marine biology research.
+\newblock In {\em OCEANS 2006}, pages 1--4, 2006.
 
 \bibitem{10.1117/12.958279}
 B.~L. McGlamery.
 \newblock {A Computer Model For Underwater Camera Systems}.
 \newblock In S.~Q. Duntley, editor, {\em Ocean Optics VI}, volume 0208, pages 221 -- 231. International Society for Optics and Photonics, SPIE, 1980.
+
+\bibitem{9363511}
+V.~Monga, Y.~Li, and Y.~C. Eldar.
+\newblock Algorithm unrolling: Interpretable, efficient deep learning for signal and image processing.
+\newblock {\em IEEE Signal Processing Magazine}, 38(2):18--44, 2021.
+
+\bibitem{1707999}
+E.~Trucco and A.~Olmos-Antillon.
+\newblock Self-tuning underwater image restoration.
+\newblock {\em IEEE Journal of Oceanic Engineering}, 31(2):511--519, 2006.
+
+\bibitem{9190777}
+C.~Wang, Y.~Zou, and Z.~Chen.
+\newblock Abc-net: Avoiding blocking effect & color shift network for single image dehazing via restraining transmission bias.
+\newblock In {\em 2020 IEEE International Conference on Image Processing (ICIP)}, pages 1053--1057, 2020.
 
 \bibitem{xie2021variational}
 J.~Xie, G.~Hou, G.~Wang, and Z.~Pan.

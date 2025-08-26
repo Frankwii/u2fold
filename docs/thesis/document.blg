@@ -4,44 +4,44 @@ The top-level auxiliary file: document.aux
 A level-1 auxiliary file: titlepage.aux
 The style file: abbrv.bst
 Database file #1: bibliography.bib
-You've used 13 entries,
+You've used 30 entries,
             2118 wiz_defined-function locations,
-            589 strings with 5929 characters,
-and the built_in function-call counts, 4716 in all, are:
-= -- 459
-> -- 214
-< -- 4
-+ -- 85
-- -- 71
-* -- 345
-:= -- 775
-add.period$ -- 40
-call.type$ -- 13
-change.case$ -- 72
+            686 strings with 9161 characters,
+and the built_in function-call counts, 11573 in all, are:
+= -- 1108
+> -- 598
+< -- 8
++ -- 237
+- -- 205
+* -- 883
+:= -- 1897
+add.period$ -- 92
+call.type$ -- 30
+change.case$ -- 190
 chr.to.int$ -- 0
-cite$ -- 13
-duplicate$ -- 169
-empty$ -- 377
-format.name$ -- 71
-if$ -- 997
+cite$ -- 30
+duplicate$ -- 409
+empty$ -- 881
+format.name$ -- 205
+if$ -- 2433
 int.to.chr$ -- 0
-int.to.str$ -- 13
-missing$ -- 14
-newline$ -- 67
-num.names$ -- 28
-pop$ -- 72
+int.to.str$ -- 30
+missing$ -- 31
+newline$ -- 152
+num.names$ -- 62
+pop$ -- 186
 preamble$ -- 1
-purify$ -- 61
+purify$ -- 162
 quote$ -- 0
-skip$ -- 123
+skip$ -- 296
 stack$ -- 0
-substring$ -- 339
-swap$ -- 39
-text.length$ -- 4
+substring$ -- 764
+swap$ -- 97
+text.length$ -- 8
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 48
+type$ -- 116
 warning$ -- 0
-while$ -- 42
-width$ -- 15
-write$ -- 145
+while$ -- 97
+width$ -- 32
+write$ -- 333

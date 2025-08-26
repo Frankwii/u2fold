@@ -1,9 +1,5 @@
-from collections.abc import Sequence
-import shlex
-import shutil
-import subprocess
 from itertools import chain
-from typing import Callable, NamedTuple, cast, final, override
+from typing import cast, final, override
 
 import torch
 from torch import Tensor
@@ -178,7 +174,11 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
         return cumulative_loss / len(self._dataloaders.training)
 
     def tensorboard_log_image(self, image: Tensor, tag: str, epoch: int) -> None:
-        self._tensorboard_logger.add_images(tag, image.detach(), global_step=epoch)
+        self._tensorboard_logger.add_images(
+            tag,
+            image.detach(),
+            global_step=epoch
+        )
 
     def tensorboard_log_hist(self, image: Tensor, tag: str) -> None:
         img = image.detach()
