@@ -32,7 +32,7 @@
 
 
 \usepackage[english]{babel}     % Use either `english`, `catalan` or `spanish` to change titles and other template text
-\title{Primal-dual Unfolding of\\ Underwater Digital Images}
+\title{Primal-dual Unfolding for\\ Underwater Digital Images}
 \author{Frank William Hammond Espinosa}
 \email{frank.william.hammond@gmail.com}
 \tutors{Julia Navarro Oliver and Ana Belén Petro Balaguer}
@@ -44,7 +44,7 @@
 \DeclareMathOperator*{\argmin}{\operatorname*{argmin}}
 \DeclareMathOperator*{\argmax}{\operatorname*{argmax}}
 
-\setlength{\parindent}{0px}
+% \setlength{\parindent}{0px}
 
 \crefname{algorithm}{algorithm}{algorithms}
 \Crefname{algorithm}{Algorithm}{Algorithms}
@@ -65,9 +65,25 @@
 \begin{abstract}
 \noindent Lorem ipsum etc.
 \end{abstract}
-
 \section{Introduction}
-Blabla cites SOTA etc avorrit.
+
+Underwater image processing is of great interest for its applications on marine robotics and similar fields \Frank{citar y a lo mejor poner ejemplos. qué difícil es vender mates.}. It poses a unique set of challenges due to two
+physical phenomena that govern the image formation process in aquatic media. As light travels through the water, it loses its intensity in a process called \textit{absorption}, at a significant rate that is dependent both on the condition of the water and the light
+wavelength. Concretely, longer wavelengths tend to be absorbed faster, resulting in underwater images often appearing bluish or greenish to the human eye. In addition to losing intensity, light can change directions when colliding with
+suspended particles in the medium. This process, known as \textit{scattering}, results in a loss of contrast and hazy appearance. Inverting these two processes
+allows the recovery of a much richer image that is better suited for other imaging tasks such as segmentation or classification. Such inversion is particularly challenging and therefore traditional, general approaches such as
+histogram equalization or Retinex models do not work without modifications
+specific to the underwater environment \cite{xie2021variational}.
+
+McGlamery \cite{10.1117/12.958279} and Jaffe \cite{50695} introduced the most widely adopted mathematical framework for this problem, now known as the
+Undewater Image Formation Model (UIFM). Modern approaches often rephrase the original models as \textit{dehazing} problems \cite{GALDRAN2015132}, usually with a simplified version of the UIFM that does not account for its \textit{forward scattering} component.
+
+\Frank{A incluir:
+\begin{itemize}
+  \item State of the art: \cite{LI2022104759, 7574330, ancuti2017color, xie2021variational}, algunos de \cite{6319316}; ver \href{https://github.com/CXH-Research/Underwater-Image-Enhancement?tab=readme-ov-file}{https://github.com/CXH-Research/Underwater-Image-Enhancement?tab=readme-ov-file} para más.
+  \item Explicar Unfolding. Citar \cite{8271999}.
+\end{itemize}
+}
 
 % \begin{figure}[!ht]
 %     \begin{center}
@@ -221,7 +237,7 @@ Finally, a series of ``bespoke'' lemmas with simple proofs will be useful furthe
 
 \textit{Proof.} Since \(K\) is continuous, \(K(\lim_n x_n) = \lim_n K(x_n)\) for any converging sequence \(\{x_n\}_n\subseteq X\). The result is immediate by applying the definition of weak lower semicontinuity. \(\qed\)
 
-\subsection{Convex optimization} Although necessary to establish the existence of solution, the direct method offers no way to actually compute the minimum of a posed problem. Other techniques, which often involve iterative algorithms, are useful for this. Notably, the Chambolle-Pock primal-dual will be used in this work. The rest of this section is devoted to briefly present the concepts necessary to enunciate it. For a more detailed explanation, the reader is referred to chapters 3 to 7 and section 8.4 of \cite{clason2024introductionnonsmoothanalysisoptimization}.
+\subsection{Convex optimization} Although necessary to establish the existence of solution, the direct method offers no way to actually compute the minimum of a posed problem. Other techniques, which often involve iterative algorithms, are useful for this. Notably, the Chambolle-Pock primal-dual algorithm will be used in this work. The rest of this section is devoted to briefly present the concepts necessary to enunciate it. For a more detailed explanation, the reader is referred to chapters 3 to 7 and section 8.4 of \cite{clason2024introductionnonsmoothanalysisoptimization}.
 
 \begin{definition}
   Let \(X\) be a Banach space and \(F\) be a proper functional on \(X\). Define \(F^*\colon X^*\to\overline{\mathbb{R}}\) by
@@ -236,7 +252,7 @@ Finally, a series of ``bespoke'' lemmas with simple proofs will be useful furthe
      (A^*y^*)(x) = y^*(Ax)
   .\]
 
-  This is called the \textbf{conjugate} operator of \(A\)\footnote{Although the notation and name used are the same, these are different concepts. In this text there will be no ambiguity with these notations because the codomain of a linear operator whose conjugate is needed will never be \(\mathbb{R}\).}.
+  This is called the \textbf{conjugate} operator of \(A\)\footnote{Although the notation and name used are the same, these conjugates are essentially different concepts. In this text there will be no ambiguity with these notations because the codomain of a linear operator whose conjugate is needed will never be the real or extended real numbers. Therefore, there is no ambiguity in always considering the conjugate of a given operator as the linear conjugate when the operator is linear and the convex conjugate otherwise.}.
 \end{definition}
 
 \begin{definition}
@@ -268,9 +284,8 @@ Finally, a series of ``bespoke'' lemmas with simple proofs will be useful furthe
 \subsection{Physical model and formalization of the problem} \label{subsec:physical-model}
 \subsubsection{Underwater Image Formation Model}
 When light travels in a water medium, two relevant physical phenomena different from those found in an aerial medium appear: first, the intensity in this light
-is absorbed by the water molecules in a significant manner. Such absortion is
-also dependent on the wavelength of the light, and is perceived by the human vision system (HVS) as 
-the red color dimming much faster than others. The second phenomenon is
+is absorbed by the water molecules in a significant manner. Such absorption is
+also dependent on the wavelength of the light, and is perceived by the human vision system (HVS) as the red color being underrepresented. The second phenomenon is
 \textit{scattering}, whereby light does not travel in a straight line from the
 object to the camera forming an infinitely thin beam, but it is reflected on water molecules instead, forming a cone. This is perceived by the HVS as the image
 presenting a glow-like or hazy appearance.
@@ -281,7 +296,7 @@ Classical works in underwater imaging by McGlamery \cite{10.1117/12.958279} and 
 .\]
 The \(I_d\) (\textit{direct}) term corresponds to the light that travels in a straight line from the object to the camera; the \(I_{fs}\) (\textit{forward scattering}) component corresponds to light that travels from the object to the camera but is scattered in a small angle; and the \(I_{bs}\) (\textit{backward scattering}) term corresponds to light that travels directly from the light source to the camera by being scattered in a large angle.
 
-Notably, the forward-scattering component can be obtained from the direct component via a convolution with a \textit{point-spread function} \(g\).
+Importantly, the forward-scattering component can be obtained from the direct component via a convolution with a \textit{point-spread function} \(g\).
 
 These classical models are based purely on physical properties and depend heavily on the
 conditions of the water and camera, presenting several constants that need to be
@@ -297,10 +312,10 @@ For an RGB image, the UIFM can then be expressed as follows, for each color chan
   I^c(x) = J^ct^c(x) + \left(g^c\ast\left(J^c t^c\right)\right) (x) +  B^c\left(1 - t^c(x)\right).
 \end{equation}
 
-Each addend in the above formula corresponds to one component of the original UIFM, order of appearance both in the equation and the text.
+Each addend in the above formula corresponds to one component of the original UIFM, in order of appearance both in the equation and the text.
 
-In this work, a further modification of the model is made. By noting that summing the term \(J^ct^c\) is equivalent to summing \(\delta\ast J^ct^c\) (where \(\delta\) denotes a Dirac delta), and using the linearity of the convolution, it is possible to combine the first two addends into one without 
-losing generality. Additionally, a noise component is added, which is common in the literature \cite{xie2021variational}. The resulting equation is as follows:
+In this work, a further modification of the model is made. By noting that summing the term \(J^ct^c\) is equivalent to summing \(\delta\ast(J^ct^c)\) (where \(\delta\) denotes a Dirac delta), and using the linearity of the convolution, it is possible to combine the first two addends into one without 
+losing generality. Moreover, a noise component is summed, which is common in the literature \cite{xie2021variational}. The resulting equation is as follows:
 \begin{equation}\label{eq:physical-model}
   I^c(x) = B^c\left(1 - t^c(x)\right) + \left(g^c\ast\left(J^c t^c\right)\right) (x) + \xi^c(x),
 \end{equation}
@@ -308,20 +323,18 @@ where \(\xi(x)\) is random noise on the pixel \(x\), which will be modelled as w
 
 From an image processing standpoint, the desired image \(J\) is ideally obtained by inverting one of the formulas above from the captured image \(I\). However, due to the ill-posedness and analytical untractability of the deconvolution problem involved, it is convenient to simplify the formula by assuming \(g^c\) to be a Dirac delta for each channel \(c\). The resulting equation is
 \begin{equation}\label{eq:simplified-physical-model}
-  I^c(x) = B^c\left(1 - t(x)\right) + \left(J^c t\right) (x) + \xi^c(x),
+  I^c(x) = B^c\left(1 - t^c(x)\right) + \left(J^c t^c\right) (x) + \xi^c(x),
 \end{equation}
-This is is equivalent to ignoring the forward-scattering component and a common practice in the literature \cite{ancuti2017color}. It is often called ``simplified UIFM'', and can still produce good results, but is nevertheless a biased model which completely neglects potentially impactful physical phenomena involved in the formation of the image.
+This is equivalent to ignoring the forward-scattering component and a common practice in the literature \cite{ancuti2017color}. It is often called ``simplified UIFM'', and can still produce good results, but is nevertheless a biased model which completely neglects potentially impactful physical phenomena involved in the formation of the image.
 
 \subsection{Formalization of the problem}
 Our approach consists of firstly estimating \(B\), \(t\) and a preliminary version of \(J\) with traditional methods by assuming the simplified equation \cref{eq:simplified-physical-model} holds. Then, we utilize this preliminary version as initialization of an unfolded variational approach to invert the full \cref{eq:physical-model}.
 
 More concretely, since \(t\) is fixed, we perform a substitution \(Jt\to J\) (which is to be inverted later) and pose the following minimization problem, separately for each channel \(c\in\{r, g, b\}\):
-
 \begin{equation}\label{eq:full-I2-functional}
   \argmin_{(J, g)\in D} E(J, g) = \frac12\|J\ast g - I_2^c\|_2^2 + \mathcal{R}_1(J) + \mathcal{R}_2(g),
 \end{equation}
-
-where \(D = L^2(\Omega)\times L^2(\Omega)\), and \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are some continuous regularization functions from \(L^2(\Omega)\) to \(\mathbb{R}\). 
+where \(D = L^2(\Omega)\times L^2(\Omega)\), \(I_2 = I - B(1-t)\) and \(\mathcal{R}_1\) and \(\mathcal{R}_2\) are some continuous regularization functions from \(L^2(\Omega)\) to \(\mathbb{R}\). 
 
 This problem is still mathematically intractable, since the resulting functional is not convex due to the convolution being bilinear w.r.t. the variable functions. A further simplification is made, whereby the functional is alternatively minimized by each of the two variables separately instead of jointly. To compensate for this simplification, the process is repeated a few times:
 \begin{equation}\label{eq:greedy-iterations}
@@ -407,7 +420,7 @@ It is trivial to check that the sets \(\mathcal{K}\), \(\mathcal{S}_r\) and \(\m
 
 is convex and weakly lower semicontinuous by Lemma 2.5.ii) of \cite{clason2024introductionnonsmoothanalysisoptimization}. It is bounded below, and thus, taking \(R=\delta_{\mathcal{K}\cap \mathcal{S}_r\cap \mathcal{D}}\) would guarantee existence of solution to the problem.
 
-However, computing the proximity operator resulting would be challenging, so a final simplification is made. Simply, \(g\) is taken as a centered gaussian density truncated to \([-r,r]^2\) (that is, set to 0 outside of \([-r, r]^2\)) and normalized so that its integral is \(1\). This is a sufficient condition for those outlined above, and allows for an important simplification of the optimization scheme: instead of performing primal-dual iterations, a simple gradient descent will be used to optimize the standard deviation of the gaussian density.
+However, computing the proximity operator resulting would be challenging, so a final simplification is made. Specifically, \(g\) is taken as a centered gaussian density truncated to \([-r,r]^2\) (that is, set to 0 outside of \([-r, r]^2\)) and normalized so that its integral is \(1\). This is a sufficient condition for those outlined above, and allows for an important simplification of the optimization scheme: instead of performing primal-dual iterations, a simple gradient descent will be used to optimize the standard deviation of the gaussian density.
 
 Such simplification may not reach the optimum guaranteed to exist with the conditions above, but will be empirically sufficient, likely faster to converge and much simpler from an implementation standpoint.
 \subsubsection{Image regularization} Instead of fixing a regularization for the image, the iterative schema \cref{eq:iterates} will be unfolded.
@@ -427,28 +440,43 @@ where \(\mathcal{N}_n^m\) is a neural network specific for stage \(n\) in the gr
 Instead of iterating until convergence, the number of stages and greedy iterations will be fixed beforehand.
 
 \section{Algorithmic approach}
-\subsection{First half of the problem (\(I_1\)).}
-\Frank{Falta: explicar RCP; potser DCP}
 
-The way of inverting the formula in \cref{eq:I1} is the same as in (CITAR ARTICLE REFERÈNCIA), although the implementation is fully self-made (the original implementation is written in MATLAB and, to the author's knowledge, only publicly available in binary form).
+From a high-level perspective, the approach followed to obtain an estimate of the radiance \(J\) from the image \(I\) is as follows:
 
-First, the background light is chosen by iteratively splitting the image into four regions. Out of those regions, the one with the highest score, given by the average minus the standard deviation of the pixel values in the region, is selected and split again. The process stops once the selected region is smaller than a given threshold (\(16\) colored pixels in our implementation). Then, the background light of the image is chosen as the pixel closest to white (in euclidean norm) in that small patch. This process is summarized in Algorithm \ref{al:background-light}.
+\begin{enumerate}
+  \item Use a score-based quad-tree algorithm to estimate the background light \(B\).
+  \item Assume the simplified model, \cref{eq:simplified-physical-model}, holds and use a DPC prior to obtain a coarse estimate of the red channel of the transmission map \(t^r\). Refine this estimate by passing it through a guided filter with \(I\) as a guide.
+  \item Obtain the green and blue channels of the transmission map by exponentiating the red one. Then, use the obtained estimate of \(t\) to compute an initial estimate for \(J\), \(J_0\).
+  \item Pose a minimization problem with the obtained estimates for \(B\) and \(t\) and the full model, \cref{eq:physical-model} with a formal substitution \(Jt\to J\). Solve this problem with an alternating iterative approach using \(J_0\) as initialization, and obtain a final estimate for \(J\) from the minimum \(J^*\) by inverting the substitution: \(J=J^*/\max(t, 0.1)\). The kernel is optimized with simple gradient updates, and the radiance is optimized via \cref{eq:unfolded-iterates}.
+\end{enumerate}
+In the following, steps 1 to 3 will be referred to as \textit{deterministic steps} and step 4 will be called \textit{variational step}.
 
-\Frank{Falta explicar com se calcula es transmission map i es guided filter. He posat s'algoritme pes transmission map a \ref{al:I1}.}
+\subsection{Determinisitc steps}
+For step 1, the background light is estimated by iteratively splitting the image into four quadrants. Out of those regions, the one with the highest score, given by the average minus the standard deviation of the pixel values in the region, is selected and split again. The process stops once the selected region is smaller than a given threshold (\(16\) colored pixels in this implementation). Then, the background light of the image is chosen as the pixel closest to white (in euclidean norm) in that small patch. This process is summarized in Algorithm \ref{al:background-light}.
 
-Once the background light \(B\) has been computed, it is possible to estimate the trasmission map \(t\). We proceed in a similar fashion to (CITAR ART. REF): first, a coarse version of the transmission map \(t_0\) is obtained via
+For step 2, a Red Channel Prior is utilized \cite{GALDRAN2015132}. This is a
+modification of the classical Dark Channel Prior \cite{5206515}. The
+approach is based on the assumption that, for every pixel \(x\in\Omega\), the following equality holds for a square patch of fixed radius centered at \(x\), \(\Omega_x\):
 \[
-  t_0(x) = 1 - \min_{y\in\Omega_x}\left(\min\left(\frac{1-I^r(y)}{1-B^r}, \frac{I^g(y)}{B^g}, \frac{I^b(y)}{B^b}, \lambda S(y)\right)\right)
+  \min_{y\in\Omega_x}\min(1-I^r(y), I^g(y), I^b(y), S(y)) \approx 0
 ,\]
+where the \textit{saturation map} \(S\) is defined as \(0\) for black pixels and \(S=1-\frac{\min(I^r, I^g, I^b)}{\max(I^r, I^g, I^b)}\) otherwise.
+Additionally, \(t_0\) is imposed to be constant across channels and in \(\Omega_x\) neighborhoods. From this and \cref{eq:simplified-physical-model}, authors in \cite{GALDRAN2015132} derive the following equation for the transmission map of the red channel, \(t_0^r\), for a fixed multiplier \(\lambda\in[0,1]\), which in this work is set to \(0.75\):
+\[
+  t_0^r(x) = 1 - \min_{y\in\Omega_x}\left(\min\left(\frac{1-I^r(y)}{1-B^r}, \frac{I^g(y)}{B^g}, \frac{I^b(y)}{B^b}, \lambda S(y)\right)\right)
+.\]
+\Frank{Nota: he estat incapaç de reproduir aquest raonament amb la saturació. És a dir, de s'RCP ``estàndard'' (llevant es \(S(y)\) des mínim) sí que se dedueix la fórmula (també sense \(S(y)\)) amb les hipòtesis que explic, però no he estat capaç d'introduir-li la saturació. A l'article no donen massa pistes llevat que és una adaptació ``straight-forward'' de s'altre raonament. Si vos sembla bé, jo ho deixaria així com està escrit.}
 
-where the \textit{saturation map} \(S\) is defined as \(0\) for black \((0, 0, 0)\) pixels and \(S=1-\frac{\min(I^r, I^g, I^b)}{\max(I^r, I^g, I^b)}\) otherwise.
+For step 3, a fine version of the transmission map, \(t^r\), is obtained by passing \(t_0^r\) through a guided filter \cite{6319316} with \(I\) as the guide. The transmission map estimates for the other two channels are obtained by
+exponentiating the red transmission map by appropriate coefficients. This is sound since, physically, \(t\) decays exponentially with the distance from the object to the camera, and the base of the exponent depends on the color channel. Thus, the transmission maps for the different color channels are related via exponentiation. In this work, the exact coefficients presented in \cite{7574330} are utilized.
 
-Then, a fine version of the transmission map, \(t\), is obtained by passing \(t_0\) through a guided filter with \(I^r\) as the guide. \Frank{Cal explicar què fa es guided filter? O basta citar?}
-
-Finally, we estimate a first version of \(J\) as follows, for each color channel \(c\in\{r, g, b\}\):
+Finally, we estimate a first version of \(J_0t\) by inverting \cref{eq:simplified-physical-model}. For each color channel \(c\in\{r, g, b\}\):
 \begin{equation}\label{eq:J0}
-  J^c(x) = \frac{I^c(x) - B^c}{\max(t(x), 0.1)} + (1-B^c)\cdot B^c
+  (J^c_0t^c)(x) = I^c(x) - (1-t^c(x))B^c
 \end{equation}
+Of course, it would be possible to compute \(J_0\) directly from the previous equation, but since it is numerically unstable (\(t\) can be and often is close to \(0\)) and a formal substitution \(Jt\to J\) will be performed for the subsequent variational problem anyway, this is unnecessary.
+
+Steps 2 and 3 are summarized in Algorithm \ref{al:I1}.
 
 \begin{algorithm}\label{al:background-light}
 \caption{Estimate background light.}
@@ -470,69 +498,64 @@ img \(\gets I\)\;
   }
 }
 \end{algorithm}
-
 \begin{algorithm}\label{al:I1}
-\caption{Estimate scene radiance and transmission map.}
+\caption{Estimate TM and initial radiance.}
 \KwData{Input image \(I\), background light \(B\), TM patch radius \(r_t\), guided filter patch radius \(r_g\)}
-\KwResult{Radiance estimation \(J_0\), TM estimation \(t\)}
+\KwResult{TM estimation \(t\), multiplied radiance estimation \(J_0t\)}
 
 \Comment*[l]{Compute coarse TM}
 \(S\gets \) Saturation(\(I\))\;
-Initialize \(t\) with the width and height of \(I\)\;
+Initialize \(t^r\) with the width and height of \(I\)\;
 \For{pixel \(x\)}{
-  \Comment*[l]{\(\Omega_x\): patch around \(x\), radius \(r_t\)}
+  \Comment*[l]{\(\Omega_x\) patch around \(x\), radius \(r_t\)}
   r\_min \(\gets \min_{y\in \Omega_x}\)(\(1 - I^r\)[y])\(/(1-B^r)\)\;
   g\_min \(\gets \min_{y\in \Omega_x}\)(\(I^g\)[y])\(/B^g\)\;
   b\_min \(\gets \min_{y\in \Omega_x}\)(\(I^b\)[y])\(/B^b\)\;
   s\_min \(\gets \min_{y\in \Omega_x}\)(\(S\)[y])\(\cdot \lambda\)\;
 
-  \(t[x] \gets 1 -\min\)(r\_min, g\_min, b\_min, s\_min)
+  \(t^r[x] \gets 1 -\min\)(r\_min, g\_min, b\_min, s\_min)
 }
 \Comment*[l]{Refine transmission map}
-\(t \gets GuidedFilter(I^r, t; r_g)\)\;
-\Comment*[l]{Estimate \(J_0\)}
+\(t^r \gets GuidedFilter(I, t^r; r_g)\)\;
+Obtain \(t\) by exponentiating \(t^r\)\;
+
+\Comment*[l]{Estimate \(J_0t\)}
 \For{channel \(c\)}{
-  \(J_0^c\gets (I^c - B^c)/(max(t, 0.1)) + (1-B^c)\cdot B^c\)
+  \((J_0^ct^c)\gets I^c - (1-t^c)B^c\)
 }
-
-\Return{\(J_0, t\)}
+\Return{\(t, J_0t\)}
 \end{algorithm}
+\subsection{Variational step}
+For step \(4\), the minimization subproblems in \cref{eq:greedy-iterations} will be solved for a fixed, small number of greedy iterations (concretely, 3). The iterative schema in \cref{eq:iterates} with the formulae in \cref{eq:primal-dual-analytical} is used, with the aforementioned symbolic substitutions. The missing operator \(\text{prox}_{\tau R}\) is unfolded, meaning that it is substituted by a neural network instead of explicitly derived. The architecture and training of said neural network will be discussed later, in the implementation section.
 
-\subsection{Second half of the problem (\(I_2\)).}
-In order to solve the minimization subproblems in \cref{eq:greedy-iterations}, the iterative schema in \cref{eq:iterates} with the formulae in \cref{eq:primal-dual-analytical} is used, with the aforementioned symbolic substitutions. The missing operator \(\text{prox}_{\tau R}\) is unfolded, meaning that it is substituted by a neural network instead of explicitly derived. The architecture and training of said neural network will be discussed later.
+The final approach used for obtaining an approximate solution to \cref{eq:full-I2-functional} is summarized in Algorithm \ref{al:I2-estimation}. Instead of analytically computing the derivative of \(\|I-J\ast g\|_2^2\) w.r.t. the standard deviation of \(g\), \textit{pytorch}'s \textit{autograd} engine is leveraged. An ADAM optimizer is used with a step size of \(\sigma\).
 
-The final algorithm used for obtaining an approximate solution to \cref{eq:full-I2-functional} is summarized in Algorithm \ref{al:I2-estimation}.
-
-\begin{algorithm}\caption{Solve second half of the problem.}
+\begin{algorithm}\caption{Solve variational problem.}
 \label{al:I2-estimation}
-\KwData{\(I_2, t, J_0\)}
-\KwData{\sigma, \tau}
+  \KwData{\(I, B, t, J_0t, \sigma, \tau\)}
 \KwResult{\(J\)}
-\(J\gets J_0\)\;
-Initialize \(g\)\; 
-Initialize dual variables \(\tilde{g}\), \(\tilde{J}\)\;
+\(J\gets J_0t\)\;
+\(R\gets I - (1-t)B\)\;
+Initialize \(g\) as a centered gaussian kernel with std. of 1\; 
+Initialize dual variables \(\tilde{g}\), \(\tilde{J}\) to 0\;
 \For{\(n=1\) \KwTo \(G\)}{
   \Comment*[l]{Fix \(J\), estimate \(g\).}
-  \(\overline{J} \gets DoubleFlip(J)\)\;
-  \For{\(s=1\) \KwTo \(S\)}{
-    \(tmp \gets NeuralNet_{ns}^g\left(g - \tau\cdot\tilde{g} * \overline{J}\right)\)\;
-    \(g\gets 2 \cdot tmp - g\)\;
-    \(\tilde{g}\gets (\tilde{g} + \sigma\cdot(g * J) - \sigma\cdot I_2)/(\sigma + 1)\)\;
-  }
+  For a fixed, small number of iterations, minimize
+  \(\|R-J\ast g\|_2^2\) via gradient updates on the std.
 
   \Comment*[l]{Fix \(g\), estimate \(J\).}
   \(\overline{g} \gets DoubleFlip(g)\)\;
   \For{\(s=1\) \KwTo \(S\)}{
     \(tmp \gets NeuralNet_{ns}^J\left(J - \tau\cdot\left(\tilde{J} * \overline{g}\right)\right)\)\;
     \(J\gets 2 \cdot tmp - J\)\;
-    \(\tilde{J}\gets (\tilde{J} + \sigma\cdot (J* g) - \sigma \cdot I_2)/(\sigma + 1)\)\;
+    \(\tilde{J}\gets (\tilde{J} + \sigma\cdot (J* g) - \sigma \cdot R)/(\sigma + 1)\)\;
   }
 }
 \Return J / t
 \end{algorithm}
 
 \subsection{Implementation}
-\Frank{Xerrar de U2Fold, la implementació en pytorch dels algoritmes d'abans i de la UNET (he de mirar bé si lo que faig és realment una UNET pq això de sumar en comptes de concatenar és raro), etc.}
+\Frank{Xerrar de U2Fold, la implementació en pytorch dels algoritmes d'abans i de la UNET additiva, etc.}
 \section{Experimentation}
 \subsection{Algorithmic selection of hyperparameters}
 Given the high computational costs of training neural networks, it is unfeasible to perform a grid search on a substantial set of hyperparameter choices and train a network from scratch for each choice.
@@ -544,8 +567,9 @@ As an attempt to overcome this limitation, the following approach is proposed. F
   \item Fix the architectural parameters of the best neural network so far, and, similarly, select the best choice of training-related hyperparameters by training a model on each choice. This time, however, the number of epochs should be larger, since some learning rate schedulers show performances greatly dependent on the number of epochs.
   \item Finally, train the best model so far during many epochs as an attempt to get the best performance.
 \end{enumerate}
-
-Of course, the target metric plays a central role in determining the output choice. Several metrics will be used to evaluate the quality of the model (cf. [TODO: AÑADIR SECCIÓN DE MÉTRICAS]), but it would be desirable to obtain a single number that will allow the automatic comparison of models. An obvious choice is a simple addition of the metrics, but this presents the problem [TODO: ACABAR]
+\Frank{Nota: això ha anat bastant malament. Crec que hauré de tornar a sa manera manual de simplement anar provant combinacions i au. Una llàstima.}
+Of course, the target metric plays a central role in determining the output choice. Several metrics will be used to evaluate the quality of the model (cf. [TODO: AÑADIR SECCIÓN DE MÉTRICAS]), but it would be desirable to obtain a single number that will allow the automatic comparison of models. An obvious choice is a simple addition of the metrics, but this presents the problem of different metrics having different ranges of values. A simple solution to this
+is dividing each value by its average computed over the dataset.
 
 \begin{table}[h]
 \centering
@@ -565,6 +589,69 @@ Fidelity loss           & 0.03710          & 0.02991                     \\ \hli
 
 
 \section{Conclusions}
+
+\section{Student's comments}
+This section is not strictly part of the work performed but is instead intended to offer some insight on its writing to reviewers of the thesis or potential future students that use it as a reference for similar works.
+\subsection{Limitations and ideas for future work}
+\Frank{
+Ideas:
+\begin{enumerate}
+  \item El algoritmo actual está limitado por el hecho de que la manera de estimar B, t, etc. es relativamente rudimentaria y, más importante, fija. Si está mal estimada la t al principio va mal todo lo demás.
+  \item Probar de utilizar una red neuronal para seleccionar hiperparámetros adecuados a cada imagen: exponentes para transmission map, coeficientes de saturación o regularización, etc.
+  \item Probar con otros tipos de redes neuronales (ViT, ResNet...)
+  \item Probar con maneras más sofisticadas de estimar la \(g\) (p.ej. no suponer que es gaussiano, sino de una familia más general).
+  \item Probar a hacer unfolding no solo con uno de los proximales sino con los dos.
+  \item Probar de compartir los pesos de la red (aunque esto probablemente vaya peor)
+\end{enumerate}
+}
+\subsection{Use of AI in this work}
+Large Language Models (LLMs) were used mostly as a consult material helpful to build early intuition. Concretely, the Gemini 2.5 Pro model available for free at \href{https://aistudio.google.com}{https://aistudio.google.com} (at the moment of writing this) was used. Personally, I find the base model useful for scientific tasks and the lack of memory across chats by default to be an advantage instead of otherwise, since it forced me to write specific prompts for the concrete task I was interested in early on, instead of having a long, ongoing conversation. That often led me to realizing the solution to the problem myself while articulating the question.
+
+Almost every line of code under the ``src/u2fold'' directory of the provided repository was written by me and not automatically generated. I generally strongly dislike AI-generated code since it tends to contain very verbose comments, many unnecessary checks or early returns and generic names that do not reflect the intention behind the code. I subscribe to the philosophy that inline comments (not docstrings) tend to get outdated extremely quickly on relatively large codebases such as this thesis', and that the programmer should name their abstractions and structure their code in such a way that, generally speaking, it is understandable to someone external but fluent in the language just by reading it, with no need for intercalated explanations.
+
+That being said, I did use AI tools for the following coding-related scenarios:
+\begin{itemize}
+  \item Write parts of code snippets under the ``scripts'' directory since those were intended to be ran few times and not be modified afterwards, and were small enough for manual inspection and polishing. The open-source tool \href{https://github.com/google-gemini/gemini-cli}{Gemini CLI} proved especially useful for this.
+  \item ``Code reviews'' of certain modules. Although very good for catching obvious mistakes early, this proved to be of limited usefulness for larger or more important modules since current LLMs often show sycophantic behavior and will agree on retrospectively dubious architectural choices. This led to a false sense of security that was sometimes counterproductive.
+\end{itemize}
+
+For the mathematical part of the thesis, I found the utilization of LLMs
+incredibly useful not because of the reasonings they present, which are often
+irrecoverably flawed in very subtle and hard to spot ways (hence, a waste of
+time to pay attention to), but because they do
+identify useful sources of information or relatively unknown but certainly related theorems. I would often ask for a proof of some conjecture I had come up with and then completely ignore the answer except for the references it provided. I would then go through the references and find something that was indeed useful. An example of this was the Titchmarsh-Lions theorem, which I was unaware of but was crucial to prove the uniqueness of solution for the greedy subproblems.
+
+Finally, they were used for styling and spelling review.
+
+\subsection{Difficulties found while writing the thesis}
+\Frank{
+Comentar lo poco concreto que era el artículo de referencia y lo complicado que fue de seguir. Concretamente, la manera en la que estiman el transmission map es 0 explícita y especialmente no se entiende qué hacen para estimar la \(g\).
+}
+
+One particular limitation to be outlined is the pitiful and ascientific practice of not publishing
+source code along with research papers, but only a compiled binary instead. This is done
+possibly in the hopes of being cited when compared to other approaches, but discouraging researches from reproducing or improving their methods. This hinders
+one of the pillars of science, reproducibility, and should not be allowed in
+a journal that considers itself serious and scientific. This was the case for \cite{7574330} and, most importantly, the main reference \cite{xie2021variational}, which made fine-tuning algorithmic parameters or
+filling in details of the (often poor) exposition much harder than needed.
+
+\Frank{También tal vez la mala idea que fue la aplicación de CLI (funciona mucho mejor configurarlo con un JSON)}
+\subsection{Original contributions}
+Paper \cite{xie2021variational} served as an initial reference for this work. However, several modifications were made, many of which were fully original.
+
+The mathematical model used is, of course, a classical one in the field and the same as in \cite{xie2021variational}. Its formalization and treatment, however, are original. Concretely, to the best of the author's knowledge, the ``unification'' of forward-scattering and direct components into a single one has
+not been done previously in the literature. All of the mathematical treatment
+and justifications (existence and uniqueness of solutions to the problems...) of
+the derived variational approach are also novel.
+
+The additive UNet architecture is new too.
+
+The implementations of all algorithms and neural networks described in this
+paper were made from scratch on \textit{pytorch}. In
+addition to those, so were the guided filter's and all defined metrics', some of which required colorspace conversions. Free and open
+source library \href{https://github.com/kornia/kornia}{kornia's} implementation
+of colorspace conversions was consulted, specifically for the coefficients of
+the conversion matrices.
 
 \section{Appendix}
 
@@ -611,14 +698,14 @@ It is immediate to see that, for a bounded and measurable set \(\Omega\subseteq 
 
 Thus, if \(x\) is such that \(x\ast g=0\) a.e., its support is empty, and so is its convex hull. This implies that either the convex hull of \(supp(g)\) or the convex hull of \(supp(x)\) are empty. By hypothesis, \(g\) is not null, and hence it must be that \(x\) is zero almost everywhere. \qed
 
-In the following two propositions, the usual identification between a Hilbert space and its dual via \(x\mapsto(y\mapsto\langle x,y\rangle)\) is implicitly assumed.
+In the following two propositions, the usual identification between a Hilbert space and its dual via \(x\mapsto(y\mapsto\langle x,y\rangle)\) is implicitly assumed. This is done, in particular, for \(L^2(\Omega)\).
 
 \begin{proposition}\label{prop:proximity-square-norm}
   Let \(N\colon L^2(\Omega)\to \mathbb{R}\) be defined by
   \[
-    N(x) = \|x-a\|_{_2^2}
+    N(x) = \|x-s\|_{_2^2}
   \]
-  for some \(a\in L^2(\Omega)\). Then,
+  for some \(s\in L^2(\Omega)\). Then,
   \[
   \text{prox}_{\sigma N^*}(x) = \frac{x - \sigma s}{\sigma + 1}
   .\]

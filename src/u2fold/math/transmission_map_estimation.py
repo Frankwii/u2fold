@@ -101,7 +101,7 @@ def estimate_transmission_map(
     saturation_coefficient: float,
     regularization_coefficient: float,
 ) -> Tensor:
-    """Estimates the fine red transmission map as in https://doi.org/10.1109/TCSVT.2021.
+    """Estimates the fine red transmission map as in https://doi.org/10.1109/TCSVT.2021 and the other two channels as in https://doi.org/10.1109/TIP.2016.2612882.
 
     Args:
         images: Shape (B, 3, H, W)

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.4.1)  22 AUG 2025 11:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.4.1)  25 AUG 2025 22:31
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -540,7 +540,7 @@ Package hyperref Info: Link coloring OFF on input line 55.
 \openout2 = `titlepage.aux'.
 
  (./titlepage.tex
-<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=88, 1401.235pt x 517.935pt>
+<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=108, 1401.235pt x 517.935pt>
 File: figures/logos/UIB_UniversitasBalearica_horizontal.png Graphic file (type png)
 <use figures/logos/UIB_UniversitasBalearica_horizontal.png>
 Package pdftex.def Info: figures/logos/UIB_UniversitasBalearica_horizontal.png  used on input line 13.
@@ -562,14 +562,11 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texmf-dist/fonts/enc/dvips/base/8r.enc} <./figures/logos/UIB_UniversitasBalearica_horizontal.png>]
 
 [1])
+Underfull \hbox (badness 10000) in paragraph at lines 86--86
+[]\T1/ptm/m/n/10 https://github.com/CXH-Research/Underwater-Image-
+ []
 
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 120.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `superscript' on input line 120.
 
 
 
@@ -579,8 +576,18 @@ Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 
 
 ]
-./document.tex:174: Undefined control sequence.
-l.174     F(\lamdba
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `math shift' on input line 136.
+
+
+Package hyperref Warning: Token not allowed in a PDF string (Unicode):
+(hyperref)                removing `superscript' on input line 136.
+
+
+
+./document.tex:190: Undefined control sequence.
+l.190     F(\lamdba
                     x + (1-\lambda)y) \leq \lambda F(x) + (1-\lambda) F(y)
 The control sequence at the end of the top line
 of your error message was never \def'ed. If you have
@@ -590,50 +597,42 @@ and I'll forget about whatever was undefined.
 
 
 
-
-Underfull \hbox (badness 1715) in paragraph at lines 202--203
-[]\T1/ptm/m/it/10 Proof. \T1/ptm/m/n/10 For the ex-is-tence, note that since $\OML/cmm/m/it/10 F$ \T1/ptm/m/n/10 is proper,
- []
-
-
-Overfull \hbox (3.88918pt too wide) detected at line 205
+[3]
+Overfull \hbox (3.88918pt too wide) detected at line 221
 [] \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 ) \OMS/cmsy/m/n/10 ^^T \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 ([]) = \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 ([] [][]) \OMS/cmsy/m/n/10 ^^T [] \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 ([][]) = [] \OML/cmm/m/it/10 F\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 )\OML/cmm/m/it/10 :
  []
 
 
 
-[3]
 
 Package amsmath Warning: Cannot use `split' here;
-(amsmath)                trying to recover with `aligned' on input line 263.
-
-
+(amsmath)                trying to recover with `aligned' on input line 279.
 
 
 
 [4]
 
-Package amsmath Warning: Cannot use `split' here;
-(amsmath)                trying to recover with `aligned' on input line 331.
-
-
-
 
 Package amsmath Warning: Cannot use `split' here;
-(amsmath)                trying to recover with `aligned' on input line 374.
+(amsmath)                trying to recover with `aligned' on input line 344.
 
 
 
 [5]
 
+Package amsmath Warning: Cannot use `split' here;
+(amsmath)                trying to recover with `aligned' on input line 387.
+
+
+
 
 Package amsmath Warning: Cannot use `split' here;
-(amsmath)                trying to recover with `aligned' on input line 422.
+(amsmath)                trying to recover with `aligned' on input line 435.
 
-./document.tex:423: Missing delimiter (. inserted).
+./document.tex:436: Missing delimiter (. inserted).
 <to be read again> 
                    ,
-l.423   \right,
+l.436   \right,
                
 I was expecting to see something like `(' or `\{' or
 `\}' here. If you typed, e.g., `{' instead of `\{', you
@@ -643,74 +642,49 @@ Acceptable delimiters are characters whose \delcode is
 nonnegative, or you can use `\delimiter <delimiter code>'.
 
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 430.
 
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `subscript' on input line 430.
-
-
-LaTeX Warning: Reference `eq:I1' on page 1 undefined on input line 433.
-
-
-Overfull \hbox (0.54631pt too wide) detected at line 442
-\OML/cmm/m/it/10 t[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 ) = 1 \OMS/cmsy/m/n/10 ^^@ [] [] \OML/cmm/m/it/10 ;
+[6]
+Overfull \hbox (0.54631pt too wide) detected at line 467
+\OML/cmm/m/it/10 t[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 x\OT1/cmr/m/n/10 ) = 1 \OMS/cmsy/m/n/10 ^^@ [] [] \OML/cmm/m/it/10 :
  []
 
 
 
-[6]
-LaTeX Font Info:    Trying to load font information for T1+pcr on input line 479.
- (/usr/share/texmf-dist/tex/latex/psnfss/t1pcr.fd
+LaTeX Font Info:    Trying to load font information for T1+pcr on input line 506.
+(/usr/share/texmf-dist/tex/latex/psnfss/t1pcr.fd
 File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
 
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 501.
-
-
-Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `subscript' on input line 501.
-
-
-
-./document.tex:509: Missing $ inserted.
-<inserted text> 
-                $
-l.509 \KwData{\sigma, \tau}
-                           
-I've inserted a begin-math/end-math symbol since I think
-you left one out. Proceed, with fingers crossed.
-
-./document.tex:509: Missing $ inserted.
-<inserted text> 
-                $
-l.509 \KwData{\sigma, \tau}
-                           
-I've inserted a begin-math/end-math symbol since I think
-you left one out. Proceed, with fingers crossed.
-
-
-
 [7]
 
-LaTeX Warning: Citation `ash1972real' on page 8 undefined on input line 577.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
+[8]
+Underfull \hbox (badness 1924) in paragraph at lines 606--606
+[]\T1/ptm/m/n/10 Probar con otros tipos de re-des neu-ronales (ViT,
+ []
 
 
 
 
-Underfull \hbox (badness 1881) in paragraph at lines 594--596
+
+[9]
+Underfull \hbox (badness 1881) in paragraph at lines 681--683
 \T1/ptm/m/n/10 This de-fines a func-tion $\OML/cmm/m/it/10 ^^^$ \T1/ptm/m/n/10 by $\OML/cmm/m/it/10 ^^^\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) = [][] \OML/cmm/m/it/10 ^^^[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) =
  []
 
 
 
-[8] (./document.bbl)
+
+
+[10] (./document.bbl)
 
 
 
-[9
+[11
 
 ] (./document.aux (./titlepage.aux))
  ***********
@@ -719,27 +693,24 @@ L3 programming layer <2025-01-18>
  ***********
 
 
-LaTeX Warning: There were undefined references.
-
-
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `document.out' has not changed.
-(rerunfilecheck)             Checksum: 3837E2EBB1D15CCC860A726745000907;3658.
+(rerunfilecheck)             Checksum: 2D96717BAFC763B8F7730709F7464912;4519.
  ) 
 Here is how much of TeX's memory you used:
- 15939 strings out of 474463
- 264306 string characters out of 5747971
- 778210 words of memory out of 5000000
- 38652 multiletter control sequences out of 15000+600000
+ 15973 strings out of 474463
+ 264719 string characters out of 5747971
+ 778366 words of memory out of 5000000
+ 38663 multiletter control sequences out of 15000+600000
  704070 words of font info for 200 fonts, out of 8000000 for 9000
  398 hyphenation exceptions out of 8191
- 79i,17n,93p,814b,565s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,17n,93p,814b,561s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/share/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on document.pdf (10 pages, 407085 bytes).
+Output written on document.pdf (12 pages, 422003 bytes).
 PDF statistics:
- 369 PDF objects out of 1000 (max. 8388607)
- 307 compressed objects within 4 object streams
- 89 named destinations out of 1000 (max. 500000)
- 174 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 449 PDF objects out of 1000 (max. 8388607)
+ 385 compressed objects within 4 object streams
+ 112 named destinations out of 1000 (max. 500000)
+ 214 words of extra memory for PDF output out of 10000 (max. 10000000)
 

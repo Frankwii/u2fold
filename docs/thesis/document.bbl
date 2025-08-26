@@ -1,4 +1,4 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
 \bibitem{8271999}
 J.~Adler and O.~Öktem.
@@ -10,6 +10,11 @@ C.~O. Ancuti, C.~Ancuti, C.~De~Vleeschouwer, and P.~Bekaert.
 \newblock Color balance and fusion for underwater image enhancement.
 \newblock {\em IEEE Transactions on image processing}, 27(1):379--393, 2017.
 
+\bibitem{ash1972real}
+R.~Ash.
+\newblock {\em Real Analysis and Probability}.
+\newblock Bibliographie-P. Academic Press, 1972.
+
 \bibitem{clason2024introductionnonsmoothanalysisoptimization}
 C.~Clason and T.~Valkonen.
 \newblock Introduction to nonsmooth analysis and optimization, 2024.
@@ -19,10 +24,35 @@ W.~F. Donoghue.
 \newblock {\em Distributions and Fourier transforms}, volume~32.
 \newblock Academic Press, 1969.
 
+\bibitem{GALDRAN2015132}
+A.~Galdran, D.~Pardo, A.~Picón, and A.~Alvarez-Gila.
+\newblock Automatic red-channel underwater image restoration.
+\newblock {\em Journal of Visual Communication and Image Representation}, 26:132--145, 2015.
+
+\bibitem{5206515}
+K.~He, J.~Sun, and X.~Tang.
+\newblock Single image haze removal using dark channel prior.
+\newblock In {\em 2009 IEEE Conference on Computer Vision and Pattern Recognition}, pages 1956--1963, 2009.
+
+\bibitem{6319316}
+K.~He, J.~Sun, and X.~Tang.
+\newblock Guided image filtering.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence}, 35(6):1397--1409, 2013.
+
 \bibitem{50695}
 J.~Jaffe.
 \newblock Computer modeling and the design of optimal underwater imaging systems.
 \newblock {\em IEEE Journal of Oceanic Engineering}, 15(2):101--111, 1990.
+
+\bibitem{7574330}
+C.-Y. Li, J.-C. Guo, R.-M. Cong, Y.-W. Pang, and B.~Wang.
+\newblock Underwater image enhancement by dehazing with minimum information loss and histogram distribution prior.
+\newblock {\em IEEE Transactions on Image Processing}, 25(12):5664--5677, 2016.
+
+\bibitem{LI2022104759}
+X.~Li, G.~Hou, K.~Li, and Z.~Pan.
+\newblock Enhancing underwater image via adaptive color and contrast enhancement, and denoising.
+\newblock {\em Engineering Applications of Artificial Intelligence}, 111:104759, 2022.
 
 \bibitem{10.1117/12.958279}
 B.~L. McGlamery.
