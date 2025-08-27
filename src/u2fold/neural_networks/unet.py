@@ -9,7 +9,7 @@ from u2fold.utils.track import tag
 
 
 @final
-@tag("model/aunet")
+@tag("model/unet")
 class UNet(ResidualUNetLikeNetwork[UNetSpec]):
     """UNet.
 
