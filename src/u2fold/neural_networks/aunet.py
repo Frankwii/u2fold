@@ -22,7 +22,7 @@ class AUNet(ResidualUNetLikeNetwork[AUNetSpec]):
                 pairwise((3, *channels_per_layer)),
                 (
                     (num_channels, num_channels)
-                    for num_channels in reversed(channels_per_layer[1:])
+                    for num_channels in reversed(channels_per_layer[:-1])
                 ),
             )
         )

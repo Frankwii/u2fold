@@ -48,7 +48,7 @@ class ResidualUNetLikeNetwork[Spec: NeuralNetworkSpec](NeuralNetwork[Spec], ABC)
 
         all_normalization_layers = torch.nn.ModuleList(
             torch.nn.InstanceNorm2d(in_channels, device=device)
-            for (in_channels, _) in layer_channel_sizes[-self.__depth :]
+            for (in_channels, _) in layer_channel_sizes
         )
 
         self.__encoder_layers = all_block_layers[: self.__depth - 1]
@@ -62,8 +62,8 @@ class ResidualUNetLikeNetwork[Spec: NeuralNetworkSpec](NeuralNetwork[Spec], ABC)
             self.__depth - 1
         ]
 
-        self.__decoder_layers = all_block_layers[self.__depth :]
-        self.__decoder_normalization_layers = all_normalization_layers[self.__depth :]
+        self.__decoder_layers = all_block_layers[self.__depth:]
+        self.__decoder_normalization_layers = all_normalization_layers[self.__depth:]
         self.__upsampling_layers = torch.nn.ModuleList(
             [
                 UpsamplingLayer("nearest", in_channels, out_channels, device)
