@@ -32,7 +32,7 @@
     "step_size":0.01
   },
   "neural_network_spec":{
-    "name":"aunet",
+    "name":"unet",
     "activation": {
       "name":"gelu"
     },
