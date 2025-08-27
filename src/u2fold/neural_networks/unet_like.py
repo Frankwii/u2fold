@@ -12,14 +12,14 @@ from .generic import NeuralNetwork
 
 
 class ResidualUNetLikeNetwork[Spec: NeuralNetworkSpec](NeuralNetwork[Spec], ABC):
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def get_layer_channel_sizes(
         cls, channels_per_layer: list[int]
     ) -> list[tuple[int, int]]: ...
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def skip_connect(
         cls, encoder_output: torch.Tensor, upsampling_result: torch.Tensor
     ) -> torch.Tensor: ...

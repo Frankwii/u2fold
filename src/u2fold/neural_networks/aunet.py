@@ -1,9 +1,7 @@
 from itertools import chain, pairwise
-from typing import cast, final, override
+from typing import final, override
 
 import torch
-from torch import nn
-from torch.nn import Upsample
 
 from u2fold.model.neural_network_spec.aunet import AUNetSpec
 from u2fold.neural_networks.unet_like import ResidualUNetLikeNetwork
@@ -14,8 +12,8 @@ from u2fold.utils.track import tag
 class AUNet(ResidualUNetLikeNetwork[AUNetSpec]):
     """Additive UNet."""
 
-    @classmethod
     @override
+    @classmethod
     def get_layer_channel_sizes(
         cls, channels_per_layer: list[int]
     ) -> list[tuple[int, int]]:
@@ -29,8 +27,8 @@ class AUNet(ResidualUNetLikeNetwork[AUNetSpec]):
             )
         )
 
-    @classmethod
     @override
+    @classmethod
     def skip_connect(
         cls, encoder_output: torch.Tensor, upsampling_result: torch.Tensor
     ) -> torch.Tensor:
