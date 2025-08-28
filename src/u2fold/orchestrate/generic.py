@@ -5,24 +5,27 @@ from typing import Iterable, cast
 
 import torch
 from torch import Tensor
-from u2fold.math import proximities
-from u2fold.model.neural_network_spec import NeuralNetworkSpec
-from u2fold.model.spec import U2FoldSpec
-import u2fold.orchestrate.functional as F
-from u2fold.math.convolution import convolve, double_flip
-from u2fold.neural_networks.generic import NeuralNetwork
-from u2fold.neural_networks.weight_handling.generic import ModelInitBundle, WeightHandler
-from u2fold.orchestrate.functional.initialization import (
-    initialize_square_matrix_with_square_distances_to_center,
-)
-from u2fold.utils.get_device import get_device
-from u2fold.utils.track import get_from_tag
 
+import u2fold.orchestrate.functional as F
+from u2fold.math import proximities
+from u2fold.math.convolution import convolve, double_flip
 from u2fold.model.common_namespaces import (
     ForwardPassResult,
     KernelBundle,
     PrimalDualBundle,
 )
+from u2fold.model.neural_network_spec import NeuralNetworkSpec
+from u2fold.model.spec import U2FoldSpec
+from u2fold.neural_networks.generic import NeuralNetwork
+from u2fold.neural_networks.weight_handling.generic import (
+    ModelInitBundle,
+    WeightHandler,
+)
+from u2fold.orchestrate.functional.initialization import (
+    initialize_square_matrix_with_square_distances_to_center,
+)
+from u2fold.utils.get_device import get_device
+from u2fold.utils.track import get_from_tag
 
 
 @torch.enable_grad
@@ -74,7 +77,7 @@ class Orchestrator[W: WeightHandler](ABC):
         self._logger = getLogger(__name__)
         self._logger.info(f"Initializing orchestrator.")
         self._spec = spec
-        self._device = get_device() 
+        self._device = get_device()
         self._weight_handler = weigth_handler
         image_bundle = ModelInitBundle(
             spec.neural_network_spec,
@@ -95,15 +98,14 @@ class Orchestrator[W: WeightHandler](ABC):
         self,
         input: Tensor,
     ) -> ForwardPassResult:
-
         algorithmic_spec = self._spec.algorithmic_spec
         nn_spec = self._spec.neural_network_spec
         deterministic_components = F.compute_deterministic_components(
             input,
-            algorithmic_spec.guided_filter_patch_radius, 
+            algorithmic_spec.guided_filter_patch_radius,
             algorithmic_spec.transmission_map_patch_radius,
             algorithmic_spec.transmission_map_saturation_coefficient,
-            algorithmic_spec.guided_filter_regularization_coefficient
+            algorithmic_spec.guided_filter_regularization_coefficient,
         )
 
         kernel_bundle = F.initialize_gaussian_kernel(
@@ -131,19 +133,25 @@ class Orchestrator[W: WeightHandler](ABC):
                 primal_variable,
                 deterministic_components.fidelity,
                 n_kernel_iters,
-            )
+            ).detach()
             kernel_history.append(kernel)
 
             # Fix kernel, estimate image
             flipped_kernel = double_flip(kernel)
             for model in greedy_iter_models:
                 tmp = primal_variable
-                primal_variable = model(primal_variable - unfolded_step_size * convolve(kernel=flipped_kernel, input=dual_variable))
+                primal_variable = model(
+                    primal_variable
+                    - unfolded_step_size
+                    * convolve(kernel=flipped_kernel, input=dual_variable)
+                )
                 overrelaxed_primal_variable = 2 * primal_variable - tmp
                 dual_variable = proximities.conjugate_shifted_square_L2_norm(
-                    input=dual_variable + step_size * convolve(kernel=kernel, input = overrelaxed_primal_variable),
-                    step_size = step_size,
-                    shift = deterministic_components.fidelity
+                    input=dual_variable
+                    + step_size
+                    * convolve(kernel=kernel, input=overrelaxed_primal_variable),
+                    step_size=step_size,
+                    shift=deterministic_components.fidelity,
                 )
 
             primal_variable_history.append(primal_variable)
