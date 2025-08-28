@@ -63,7 +63,7 @@ def _apply_proximity[X](
         return cast(UnfoldedProximityOperator[X], operator)(input, arg)
 
 
-class PrimalDualSchema[X, Y, Z]:
+class PrimalDualScheme[X, Y, Z]:
     def __init__(self) -> None:
         self.__fixed_components: dict[str, bool] = {
             "primal proximity": False,

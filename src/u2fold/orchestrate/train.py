@@ -97,7 +97,10 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             cumulative_loss += loss.detach().item()
 
             for iter_, (primal_variable, kernel) in enumerate(zip(output.primal_variable_history, output.kernel_history), start=1):
-                restored_image = rescale_color(
+                # restored_image = rescale_color(
+                #     primal_variable / output.deterministic_components.transmission_map.clamp(min=0.01)
+                # )
+                restored_image = (
                     primal_variable / output.deterministic_components.transmission_map.clamp(min=0.01)
                 )
                 self.tensorboard_log_image(restored_image, f"Test/Output/{iter_}", epoch)

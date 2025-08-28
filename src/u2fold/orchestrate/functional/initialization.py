@@ -6,7 +6,7 @@ from torch.optim import Adam
 
 import u2fold.math.linear_operators as linear_operators
 import u2fold.math.proximities as proximities
-from u2fold.math.primal_dual import PrimalDualSchema
+from u2fold.math.primal_dual import PrimalDualScheme
 from u2fold.model.common_namespaces import KernelBundle, PrimalDualBundle
 from torch.nn import Parameter
 
@@ -28,7 +28,7 @@ def initialize_primal_dual(
     fidelity: Tensor, unfolded_step_size: float, step_size: float
 ) -> PrimalDualBundle:
     primal_dual_schema = (
-        PrimalDualSchema()
+        PrimalDualScheme()
         .with_primal_proximity(proximities.identity, True)
         .with_primal_argument(0)
         .with_dual_proximity(proximities.conjugate_shifted_square_L2_norm, True)

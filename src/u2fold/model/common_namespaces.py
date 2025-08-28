@@ -6,7 +6,7 @@ from torch import Tensor
 from torch.nn import Parameter
 from torch.optim import Optimizer
 
-from u2fold.math.primal_dual import PrimalDualSchema
+from u2fold.math.primal_dual import PrimalDualScheme
 
 @dataclass
 class KernelBundle:
@@ -20,7 +20,7 @@ class KernelBundle:
 
 @dataclass
 class PrimalDualBundle:
-    schema: PrimalDualSchema  # pyright: ignore[reportMissingTypeArgument]
+    scheme: PrimalDualScheme  # pyright: ignore[reportMissingTypeArgument]
     primal_variable: Tensor
     dual_variable: Tensor
 

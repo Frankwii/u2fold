@@ -57,7 +57,7 @@ def optimize_primal_dual[Spec: NeuralNetworkSpec](
     dual_variable_history = []
     for model in greedy_iteration_models:
         primal_variable, dual_variable = (
-            primal_dual_bundle.schema.with_primal_proximity(model, False).run(
+            primal_dual_bundle.scheme.with_primal_proximity(model, False).run(
                 current_primal_variable, current_dual_variable, 1
             )
         )
@@ -106,16 +106,16 @@ class Orchestrator[W: WeightHandler](ABC):
         )
 
         primal_dual_bundle = F.initialize_primal_dual(
-            deterministic_components.fidelity,
-            nn_spec.unfolded_step_size,
-            algorithmic_spec.step_size,
+            fidelity=deterministic_components.fidelity,
+            unfolded_step_size=nn_spec.unfolded_step_size,
+            step_size=algorithmic_spec.step_size,
         )
 
         kernel_bundle = F.initialize_gaussian_kernel(
-            input.size(0),
-            get_device(),
-            self.__kernel_square_distances_to_center,
-            algorithmic_spec.step_size,
+            batch_size=input.size(0),
+            device=get_device(),
+            square_distances_to_center=self.__kernel_square_distances_to_center,
+            learning_rate=algorithmic_spec.step_size,
         )
 
         # silence "possibly unbound" type-checker complaints
@@ -127,18 +127,18 @@ class Orchestrator[W: WeightHandler](ABC):
 
         primal_variable_history = []
         kernel_history = []
-        for greedy_iter_models, n_iters in zip(self._models, kernel_iterations):
+        for greedy_iter_models, n_kernel_iters in zip(self._models, kernel_iterations):
             # Fix image, estimate kernel
             kernel = optimize_kernel(
                 kernel_bundle,
                 primal_variable,
                 deterministic_components.fidelity,
-                n_iters,
+                n_kernel_iters,
             )
             kernel_history.append(kernel)
 
             # Fix kernel, estimate image
-            primal_dual_bundle.schema.with_linear_argument(kernel.detach())
+            primal_dual_bundle.scheme.with_linear_argument(kernel.detach())
             primal_variable_subhistory, dual_variable_subhistory = (
                 optimize_primal_dual(
                     primal_dual_bundle,
