@@ -147,14 +147,12 @@ class Orchestrator[W: WeightHandler](ABC):
                 )
                 overrelaxed_primal_variable = 2 * primal_variable - tmp
                 dual_variable = proximities.conjugate_shifted_square_L2_norm(
-                    input=dual_variable
-                    + step_size
-                    * convolve(kernel=kernel, input=overrelaxed_primal_variable),
+                    input=dual_variable + step_size * convolve(kernel=kernel, input=overrelaxed_primal_variable),
                     step_size=step_size,
                     shift=deterministic_components.fidelity,
                 )
 
-            primal_variable_history.append(primal_variable)
+                primal_variable_history.append(primal_variable)
 
         return ForwardPassResult(
             primal_variable_history, kernel_history, deterministic_components

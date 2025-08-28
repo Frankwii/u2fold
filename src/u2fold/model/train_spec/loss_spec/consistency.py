@@ -10,7 +10,7 @@ from u2fold.neural_networks.metrics_and_losses import mse
 
 @final
 class ConsistencyModule(BaseLossModule):
-    # NOTE: It's impossible to calibrate this one without training, so I'll just leave it as is.
+    # NOTE: It's impossible to calibrate this one before training, so I'll just leave it as is.
     calibration_average = 1.0 
     @override
     @classmethod
@@ -20,7 +20,7 @@ class ConsistencyModule(BaseLossModule):
             itertools.pairwise(result.primal_variable_history),
         )
 
-        return torch.mean(torch.stack(list(losses)))
+        return torch.sum(torch.stack(list(losses)))
 
 
 class ConsistencyLossSpec(BaseLossSpec):

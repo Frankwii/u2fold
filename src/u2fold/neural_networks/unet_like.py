@@ -112,4 +112,10 @@ class ResidualUNetLikeNetwork[Spec: NeuralNetworkSpec](NeuralNetwork[Spec], ABC)
             )
             x = layer(layer_norm(x))  # pyright: ignore[reportAny]
 
-        return input + torch.nn.functional.tanh(self.__final_convolution(self.__final_normalization(x)))  # pyright: ignore[reportAny]
+        return torch.nn.functional.sigmoid(input + self.__final_convolution(self.__final_normalization(x)))  # pyright: ignore[reportAny]
+
+# TODO: Provar a canviar:
+# - Activació,
+# - LR,
+# - Normalització
+

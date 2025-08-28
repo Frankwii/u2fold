@@ -14,7 +14,7 @@ def conjugate_shifted_square_L2_norm(
     More concretely, for
 
     \\[
-        F(x) = \\|x - shift\\|_2^2
+        F(x) = \\frac12\\|x - shift\\|_2^2
     ,\\]
 
     this function returns \\(prox_{\\tauF^*}(x)\\), where \\(F^*\\) is the

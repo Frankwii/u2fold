@@ -101,7 +101,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 #     primal_variable / output.deterministic_components.transmission_map.clamp(min=0.01)
                 # )
                 restored_image = (
-                    primal_variable / output.deterministic_components.transmission_map.clamp(min=0.01)
+                    primal_variable / output.deterministic_components.transmission_map.clamp(min=0.1)
                 )
                 self.tensorboard_log_image(restored_image, f"Test/Output/{iter_}", epoch)
                 self.tensorboard_log_image(kernel, f"Test/Kernel/{iter_}", epoch)
