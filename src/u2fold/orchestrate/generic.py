@@ -116,7 +116,7 @@ class Orchestrator[W: WeightHandler](ABC):
         )
 
         # silence "possibly unbound" type-checker complaints
-        kernel = cast(Tensor, None)  # pyright: ignore[reportInvalidCast]
+        kernel = kernel_bundle.compute_kernel()
         kernel_iterations = chain((20,), repeat(10))
 
         primal_variable = deterministic_components.fidelity
