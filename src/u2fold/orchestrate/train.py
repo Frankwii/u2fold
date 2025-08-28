@@ -96,12 +96,12 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             loss = self.__loss_function(output, first_ground_truth)
             cumulative_loss += loss.detach().item()
 
-            for iter, (primal_variable, kernel) in enumerate(zip(output.primal_variable_history, output.kernel_history), start=1):
+            for iter_, (primal_variable, kernel) in enumerate(zip(output.primal_variable_history, output.kernel_history), start=1):
                 restored_image = rescale_color(
                     primal_variable / output.deterministic_components.transmission_map.clamp(min=0.01)
                 )
-                self.tensorboard_log_image(restored_image, f"Test/Output/{iter}", epoch)
-                self.tensorboard_log_image(kernel, f"Test/Kernel/{iter}", epoch)
+                self.tensorboard_log_image(restored_image, f"Test/Output/{iter_}", epoch)
+                self.tensorboard_log_image(kernel, f"Test/Kernel/{iter_}", epoch)
 
             if epoch == 1:
                 radiance_estimation = rescale_color(
