@@ -37,6 +37,19 @@ class Loss(nn.Module):
     def __init__(self, losses: Sequence[BaseLossModule]):
         super().__init__()  # pyright: ignore[reportUnknownMemberType]
         self.losses = nn.ModuleList(list(losses))
+        self.last_losses: dict[str, float] = {}
+
+    @classmethod
+    def __get_module_name(cls, loss_module: BaseLossModule) -> str:
+        name = loss_module.__class__.__name__
+
+        return name.replace("Module","").lower()
+
+    def __compute_and_log_loss(self, loss_module: BaseLossModule, result: ForwardPassResult, ground_truth: Tensor) -> Tensor:
+        loss_tensor = loss_module(result, ground_truth)  # pyright: ignore[reportAny]
+        self.last_losses[self.__get_module_name(loss_module)] = loss_tensor.detach().mean().item() # pyright: ignore[reportAny]
+        return loss_tensor
+
 
     @override
     def forward(
@@ -44,6 +57,8 @@ class Loss(nn.Module):
         result: ForwardPassResult,
         ground_truth: Tensor,
     ) -> Tensor:
-        return torch.stack(
-            [l(result, ground_truth) for l in self.losses]
+
+        return torch.stack([
+            self.__compute_and_log_loss(l, result, ground_truth)  # pyright: ignore[reportArgumentType]
+            for l in self.losses]
         ).sum(dim=0)

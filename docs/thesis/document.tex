@@ -514,7 +514,7 @@ For step 2, a Red Channel Prior is utilized \cite{GALDRAN2015132}. This is a
 modification of the classical Dark Channel Prior \cite{5567108}. The
 approach is based on the assumption that, for every pixel \(x\in\Omega\), the following equality holds for a square patch of fixed radius centered at \(x\), \(\Omega_x\):
 \[
-  \min_{y\in\Omega_x}\min(1-I^r(y), I^g(y), I^b(y), S(y)) \approx 0
+  \min_{y\in\Omega_x}\min(1-I^r(y), I^g(y), I^b(y), S(y)) = 0
 ,\]
 where the \textit{saturation map} \(S\) is defined as \(0\) for black pixels and \(S=1-\frac{\min(I^r, I^g, I^b)}{\max(I^r, I^g, I^b)}\) otherwise.
 Additionally, \(t_0\) is imposed to be constant across channels and in \(\Omega_x\) neighborhoods. From this and \cref{eq:simplified-physical-model}, authors in \cite{GALDRAN2015132} derive the following equation for the transmission map of the red channel, \(t_0^r\), for a fixed multiplier \(\lambda\in[0,1]\), which in this work is set to \(0.75\):

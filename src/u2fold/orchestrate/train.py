@@ -96,12 +96,12 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             loss = self.__loss_function(output, first_ground_truth)
             cumulative_loss += loss.detach().item()
 
-            restored_image = rescale_color(
-                output.primal_variable_history[-1]
-                / output.deterministic_components.transmission_map.clamp(min=0.01)
-            )
-            self.tensorboard_log_image(restored_image, "Test/Output", epoch)
-            self.tensorboard_log_image(output.kernel_history[-1], "Test/Kernel", epoch)
+            for iter, (primal_variable, kernel) in enumerate(zip(output.primal_variable_history, output.kernel_history), start=1):
+                restored_image = rescale_color(
+                    primal_variable / output.deterministic_components.transmission_map.clamp(min=0.01)
+                )
+                self.tensorboard_log_image(restored_image, f"Test/Output/{iter}", epoch)
+                self.tensorboard_log_image(kernel, f"Test/Kernel/{iter}", epoch)
 
             if epoch == 1:
                 radiance_estimation = rescale_color(
@@ -193,7 +193,10 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
     def tensorboard_log_loss(self, val: float | Tensor, tag: str, epoch: int) -> None:
         if isinstance(val, Tensor):
             val = val.item()
-        return self._tensorboard_logger.add_scalar(tag, val, epoch)
+        last_losses = self.__loss_function.last_losses
+        for loss_name, value in last_losses.items():
+            self._tensorboard_logger.add_scalar(f"{tag}/{loss_name}", value, epoch)
+        self._tensorboard_logger.add_scalar(tag, val, epoch)
 
     def tensorboard_log_text(self, text: str, tag: str) -> None:
         self._tensorboard_logger.add_text(tag, text)
