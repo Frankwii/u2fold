@@ -621,7 +621,8 @@ Initialize dual variables \(\tilde{g}\), \(\tilde{J}\) to 0\;
 \Frank{Xerrar de U2Fold, la implementació en pytorch dels algoritmes d'abans i de la UNET additiva, etc.}
 
 The algorithms detailed above were implemented in the Python programming
-language, version 3.12. The major dependency used was \href{https://pytorch.org/}{\textit{pytorch}}, which
+language, version 3.12. The source code for the program is freely available at \href{https://github.com/Frankwii/u2fold}{https://github.com/Frankwii/u2fold}.
+The major dependency used was \href{https://pytorch.org/}{\textit{pytorch}}, which
 provides a nice programming interface for manipulating multidimensional arrays 
 via the \textit{Tensor} abstraction, automatically performing simple
 optimization algorithms via its \textit{autograd} engine, and, what it is most
@@ -630,7 +631,8 @@ class and a variety of related utilities. A secondary dependency is
 \href{https://pydantic.com.cn/en/}{\textit{pydantic}}, for validating input parameters specified in a JSON file
 such as network hyperparameters or the dataset path.
 
-The source code for the program is freely available at \href{https://github.com/Frankwii/u2fold}{https://github.com/Frankwii/u2fold}.
+The program is controlled via a command-line interface (CLI) and is intended to be run on a Linux machine (it has not been tested on other operating systems). The main subcommand of the program is ``run``, which takes a required argument ``--spec`` that should indicate the path to a JSON file. This file will be referred to as the \textit{configuration file}, since the behavior of the program
+is determined by its contents.
 
 \section{Experimentation}
 \subsection{Algorithmic selection of hyperparameters}

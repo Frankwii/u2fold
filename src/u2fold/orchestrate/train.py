@@ -36,9 +36,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
 
         self.__loss_function = self.train_spec.instantiate_loss()
 
-        self._tensorboard_log_dir = get_tensorboard_log_directory(
-            spec.neural_network_spec
-        )
+        self._tensorboard_log_dir = get_tensorboard_log_directory(spec)
         self._tensorboard_logger = SummaryWriter(self._tensorboard_log_dir)
         self._model_scheduler = (
             self.train_spec.learning_rate_scheduler_spec.instantiate(

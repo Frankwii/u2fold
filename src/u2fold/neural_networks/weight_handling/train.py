@@ -1,5 +1,6 @@
 import math
 from pathlib import Path
+import shutil
 
 import torch
 from .generic import (
@@ -16,12 +17,14 @@ class TrainWeightHandler(WeightHandler):
     def __init__(
         self,
         model_weight_dir: Path,
-        default_greedy_iterations: int = 3,
-        default_stages: int = 3,
+        greedy_iterations: int,
+        stages: int,
     ) -> None:
-        self.__default_greedy_iterations = default_greedy_iterations
-        self.__default_stages = default_stages
-        model_weight_dir.mkdir(parents=True, exist_ok=True)
+        self.__default_greedy_iterations = greedy_iterations
+        self.__default_stages = stages
+        if model_weight_dir.exists():
+            shutil.rmtree(model_weight_dir)
+        model_weight_dir.mkdir(parents=True)
         super().__init__(model_weight_dir)
 
     @staticmethod

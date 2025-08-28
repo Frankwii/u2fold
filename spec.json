@@ -4,15 +4,15 @@
     "mode": "train",
     "losses":[
       {"loss":"ground_truth", "weight": 1.0},
-      {"loss":"fidelity", "weight": 0.2},
-      {"loss":"consistency", "weight": 0.01},
-      {"loss":"color_cosine_similarity", "weight": 0.01}
+      {"loss":"fidelity", "weight": 0.1},
+      {"loss":"consistency", "weight": 0.1},
+      {"loss":"color_cosine_similarity", "weight": 0.1}
     ],
     "dataset_spec":{
       "name":"uieb",
       "path":"uieb/processed",
-      "n_epochs": 50,
-      "batch_size":8
+      "n_epochs": 500,
+      "batch_size":16
     },
     "optimizer_spec":{
       "optimizer": "adam",
@@ -20,7 +20,7 @@
     },
     "learning_rate_scheduler_spec":{
       "scheduler":"step_lr",
-      "step_size":20,
+      "step_size":50,
       "factor":0.5
     }
   },
@@ -29,7 +29,9 @@
     "guided_filter_patch_radius":15,
     "transmission_map_saturation_coefficient":0.5,
     "guided_filter_regularization_coefficient": 0.01,
-    "step_size":0.01
+    "step_size":0.01,
+    "greedy_iterations":3,
+    "stages":1
   },
   "neural_network_spec":{
     "name":"unet",

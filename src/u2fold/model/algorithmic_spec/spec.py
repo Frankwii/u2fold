@@ -54,3 +54,23 @@ class AlgorithmicSpec(BaseModel):
         "and close to 1.",
         examples=[0.5, 0.7],
     )
+
+    greedy_iterations: int = Field(
+        ge=1,
+        title="Number of greedy iterations",
+        description="Number of greedy iterations to perform in the top-level "
+        "minimization scheme. That is, how many times each of the two "
+        "variables is minimized.",
+        examples=[3]
+    )
+
+    stages: int = Field(
+        ge=1,
+        title="Number of stages",
+        description="Number of stages (iterations) to perform inside each "
+        "greedy iteration. This conceptually corresponds to the number of "
+        "iterations the (non-unfolded) primal-dual algorithm would have. "
+        "The total number of neural networks in the overall algorithm is "
+        "the number of greedy iterations times the number of stages.",
+        examples=[3]
+    )

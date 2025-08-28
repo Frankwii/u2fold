@@ -20,16 +20,11 @@ class GroundTruthModule(BaseLossModule):
         result: ForwardPassResult,
         ground_truth: Tensor,
     ) -> Tensor:
-        return torch.stack(
-            [
-                mse(
-                    primal_variable
-                    / result.deterministic_components.transmission_map.clamp(0.1),
-                    ground_truth,
-                )
-                for primal_variable in result.primal_variable_history
-            ]
-        ).mean()
+        clamped_transmission_map = result.deterministic_components.transmission_map.clamp(0.1)
+        return torch.stack([
+            mse(primal_variable / clamped_transmission_map, ground_truth)
+            for primal_variable in result.primal_variable_history[1:]
+        ]).mean()
 
 
 class GroundTruthLossSpec(BaseLossSpec):

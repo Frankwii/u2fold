@@ -37,7 +37,7 @@ def move_directory(current_path: Path, new_path: Path):
 def process_spec(spec) -> dict:  # pyright: ignore[reportUnknownParameterType, reportMissingTypeArgument, reportMissingParameterType]
     spec_model = U2FoldSpec.model_validate(spec)
 
-    model_weight_directory = get_weight_directory(spec_model.neural_network_spec)
+    model_weight_directory = get_weight_directory(spec_model)
 
     new_weight_directory = (
         model_weight_directory.parent
