@@ -5,10 +5,11 @@ from typing import Iterable, cast
 
 import torch
 from torch import Tensor
+from u2fold.math import proximities
 from u2fold.model.neural_network_spec import NeuralNetworkSpec
 from u2fold.model.spec import U2FoldSpec
 import u2fold.orchestrate.functional as F
-from u2fold.math.convolution import convolve
+from u2fold.math.convolution import convolve, double_flip
 from u2fold.neural_networks.generic import NeuralNetwork
 from u2fold.neural_networks.weight_handling.generic import ModelInitBundle, WeightHandler
 from u2fold.orchestrate.functional.initialization import (
@@ -105,12 +106,6 @@ class Orchestrator[W: WeightHandler](ABC):
             algorithmic_spec.guided_filter_regularization_coefficient
         )
 
-        primal_dual_bundle = F.initialize_primal_dual(
-            fidelity=deterministic_components.fidelity,
-            unfolded_step_size=nn_spec.unfolded_step_size,
-            step_size=algorithmic_spec.step_size,
-        )
-
         kernel_bundle = F.initialize_gaussian_kernel(
             batch_size=input.size(0),
             device=get_device(),
@@ -122,11 +117,13 @@ class Orchestrator[W: WeightHandler](ABC):
         kernel = cast(Tensor, None)  # pyright: ignore[reportInvalidCast]
         kernel_iterations = chain((20,), repeat(10))
 
-        primal_variable = primal_dual_bundle.primal_variable
-        dual_variable = primal_dual_bundle.dual_variable
+        primal_variable = deterministic_components.fidelity
+        dual_variable = torch.zeros_like(primal_variable)
 
-        primal_variable_history = []
-        kernel_history = []
+        primal_variable_history = [primal_variable]
+        kernel_history = [kernel]
+        unfolded_step_size = nn_spec.unfolded_step_size
+        step_size = algorithmic_spec.step_size
         for greedy_iter_models, n_kernel_iters in zip(self._models, kernel_iterations):
             # Fix image, estimate kernel
             kernel = optimize_kernel(
@@ -138,19 +135,18 @@ class Orchestrator[W: WeightHandler](ABC):
             kernel_history.append(kernel)
 
             # Fix kernel, estimate image
-            primal_dual_bundle.scheme.with_linear_argument(kernel.detach())
-            primal_variable_subhistory, dual_variable_subhistory = (
-                optimize_primal_dual(
-                    primal_dual_bundle,
-                    greedy_iter_models,
-                    primal_variable,
-                    dual_variable,
+            flipped_kernel = double_flip(kernel)
+            for model in greedy_iter_models:
+                tmp = primal_variable
+                primal_variable = model(primal_variable - unfolded_step_size * convolve(kernel=flipped_kernel, input=dual_variable))
+                overrelaxed_primal_variable = 2 * primal_variable - tmp
+                dual_variable = proximities.conjugate_shifted_square_L2_norm(
+                    input=dual_variable + step_size * convolve(kernel=kernel, input = overrelaxed_primal_variable),
+                    step_size = step_size,
+                    shift = deterministic_components.fidelity
                 )
-            )
 
-            primal_variable_history.extend(primal_variable_subhistory)
-            primal_variable = primal_variable_subhistory[-1]
-            dual_variable = dual_variable_subhistory[-1]
+            primal_variable_history.append(primal_variable)
 
         return ForwardPassResult(
             primal_variable_history, kernel_history, deterministic_components
