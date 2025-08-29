@@ -38,7 +38,7 @@ class ResidualUNetLikeNetwork(NeuralNetwork[Spec], ABC):
                         in_channels,
                         out_channels,
                         spec.sublayers_per_step,
-                        spec.activation,
+                        spec.hidden_layers_activation,
                         device,
                     )
                     for in_channels, out_channels in layer_channel_sizes
@@ -83,6 +83,8 @@ class ResidualUNetLikeNetwork(NeuralNetwork[Spec], ABC):
             spec.channels_per_layer[0], device=device
         )
 
+        self.__final_residual_activation = spec.final_residual_activation.instantiate()
+
     @final
     @override
     def forward(self, input: torch.Tensor, *_) -> torch.Tensor:
@@ -110,4 +112,4 @@ class ResidualUNetLikeNetwork(NeuralNetwork[Spec], ABC):
             )
             x = layer(layer_norm(x))  # pyright: ignore[reportAny]
 
-        return input + torch.nn.functional.leaky_relu(self.__final_convolution(self.__final_normalization(x)))  # pyright: ignore[reportAny]
+        return input + self.__final_residual_activation(self.__final_convolution(self.__final_normalization(x)))  # pyright: ignore[reportAny]

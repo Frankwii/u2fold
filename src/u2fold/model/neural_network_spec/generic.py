@@ -57,7 +57,8 @@ class BaseNeuralNetworkSpec(BaseModel, ABC):  # pyright: ignore[reportUnsafeMult
 
 class UNetLikeSpec(BaseNeuralNetworkSpec, ABC):
     """Config for a UNet-like architecture."""
-    activation: Activation = Field(title="Activation function", discriminator="name")
+    hidden_layers_activation: Activation = Field(title="Activation function", discriminator="name")
+    final_residual_activation: Activation = Field(title="Activation function for the last residual connection", discriminator="name")
     pooling: PoolSpec = Field(
         title="Pooling function specification", discriminator="method"
     )
