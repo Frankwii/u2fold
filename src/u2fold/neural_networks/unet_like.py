@@ -76,9 +76,7 @@ class ResidualUNetLikeNetwork(NeuralNetwork[Spec], ABC):
         self.__final_convolution = torch.nn.Conv2d(
             spec.channels_per_layer[0],
             3,
-            kernel_size=3,
-            padding=1,
-            padding_mode="reflect",
+            kernel_size=1,
             device=device,
         )
         self.__final_normalization = torch.nn.InstanceNorm2d(
