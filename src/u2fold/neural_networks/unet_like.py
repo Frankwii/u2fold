@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from itertools import pairwise
-from typing import cast, final, override
+from typing import TypeVar, cast, final, override
 
 import torch
 
@@ -10,8 +10,8 @@ from .blocks.convlayer import UNetConvolutionalLayer
 from .blocks.upsampling import UpsamplingLayer
 from .generic import NeuralNetwork
 
-
-class ResidualUNetLikeNetwork[Spec: NeuralNetworkSpec](NeuralNetwork[Spec], ABC):
+Spec = TypeVar("Spec", bound = NeuralNetworkSpec, covariant=True)
+class ResidualUNetLikeNetwork(NeuralNetwork[Spec], ABC):
     @classmethod
     @abstractmethod
     def get_layer_channel_sizes(

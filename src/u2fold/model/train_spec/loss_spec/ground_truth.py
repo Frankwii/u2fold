@@ -3,6 +3,7 @@ from typing import Literal, final, override
 from torch import Tensor
 import torch
 
+from u2fold.math.rescale_image import rescale_color
 from u2fold.model.common_namespaces import ForwardPassResult
 from u2fold.neural_networks.metrics_and_losses import mse
 
@@ -22,7 +23,7 @@ class GroundTruthModule(BaseLossModule):
     ) -> Tensor:
         clamped_transmission_map = result.deterministic_components.transmission_map.clamp(0.1)
         return torch.stack([
-            mse(primal_variable / clamped_transmission_map, ground_truth)
+            mse(rescale_color(primal_variable / clamped_transmission_map), ground_truth)
             for primal_variable in result.primal_variable_history[1:]
         ]).mean()
 
