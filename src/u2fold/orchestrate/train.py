@@ -56,7 +56,9 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             desc="Training epochs",
         ):
             train_loss = self.run_train_epoch()
+            self.tensorboard_log_loss(train_loss, "Train loss", epoch)
             validation_loss = self.run_validation_epoch()
+            self.tensorboard_log_loss(validation_loss, "Validation loss", epoch)
             self._model_scheduler.step(validation_loss)
 
             if validation_loss < min_valiation_loss:
@@ -68,9 +70,6 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 self._weight_handler.save_models(self._models)
 
             test_loss = self.run_test_epoch(epoch).item()
-
-            self.tensorboard_log_loss(train_loss, "Train loss", epoch)
-            self.tensorboard_log_loss(validation_loss, "Validation loss", epoch)
             self.tensorboard_log_loss(test_loss, "Test loss", epoch)
 
         return test_loss

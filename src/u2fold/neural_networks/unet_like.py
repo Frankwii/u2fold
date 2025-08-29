@@ -112,4 +112,4 @@ class ResidualUNetLikeNetwork(NeuralNetwork[Spec], ABC):
             )
             x = layer(layer_norm(x))  # pyright: ignore[reportAny]
 
-        return input + self.__final_convolution(self.__final_normalization(x))  # pyright: ignore[reportAny]
+        return input + torch.nn.functional.leaky_relu(self.__final_convolution(self.__final_normalization(x)))  # pyright: ignore[reportAny]
