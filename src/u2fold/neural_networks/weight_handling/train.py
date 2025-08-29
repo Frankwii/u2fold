@@ -17,15 +17,19 @@ class TrainWeightHandler(WeightHandler):
     def __init__(
         self,
         model_weight_dir: Path,
+        share_weights: bool,
         greedy_iterations: int,
         stages: int,
     ) -> None:
-        self.__default_greedy_iterations = greedy_iterations
-        self.__default_stages = stages
         if model_weight_dir.exists():
             shutil.rmtree(model_weight_dir)
         model_weight_dir.mkdir(parents=True)
-        super().__init__(model_weight_dir)
+        super().__init__(
+            model_weight_dir,
+            share_weights,
+            greedy_iterations,
+            stages
+        )
 
     @staticmethod
     def __generate_ranging_file_names(min: int, max: int) -> list[str]:
@@ -36,27 +40,31 @@ class TrainWeightHandler(WeightHandler):
         self._logger.debug(
             f"Found no greedy iteration weight directories under {root_dir}"
             f"when parsing weight tree. Creating "
-            f"{self.__default_greedy_iterations} of them."
+            f"{self._greedy_iterations} of them."
         )
 
+        number_of_directories = 1 if self._share_weights else self._greedy_iterations
+
         dir_names = self.__generate_ranging_file_names(
-            1, self.__default_greedy_iterations
+            1, number_of_directories
         )
 
         for name in dir_names:
             root_dir.joinpath(name).mkdir()
 
-    def _handle_empty_stage_dir(self, stage_dir: Path) -> list[Path]:
+    def _handle_empty_stage_dir(self, stage_dir: Path) -> tuple[Path, ...]:
         self._logger.debug(
             f"Found no weight files at stage level in {stage_dir}. Creating"
-            f" {self.__default_stages} entries in the filetree."
+            f" {self._stages} entries in the filetree."
         )
+
+        number_of_weight_files = 1 if self._share_weights else self._stages
 
         file_names = self.__generate_ranging_file_names(
-            1, self.__default_stages
+            1, number_of_weight_files
         )
 
-        return [stage_dir.joinpath(f"{name}.pt") for name in file_names]
+        return tuple(stage_dir.joinpath(f"{name}.pt") for name in file_names)
 
     def _handle_nonexisting_weight_file[C: NeuralNetworkSpec](
         self, weight_file: Path, model_bundle: ModelInitBundle[C]
@@ -77,6 +85,11 @@ class TrainWeightHandler(WeightHandler):
         torch.save(state_dict, weight_file)
 
     def save_models[C: NeuralNetworkSpec](self, models: WeightTreeStructure[NeuralNetwork[C]]) -> None:
+        if self._share_weights:
+            model = models[0][0]
+            file = self._filetree[0][0]
+            return self.__save_weights(file, model)
+
         assert len(models) == len(self._filetree), (
             "Models and filetree not paired"
         )

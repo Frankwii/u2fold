@@ -1,7 +1,7 @@
 """Create splits randomly (but reproducibly) for a given Dataset."""
 
 from dataclasses import dataclass
-from typing import Callable, Generic, Optional, TypeVar, cast
+from typing import Callable, Generic, TypeVar, cast
 
 from torch import Generator, Tensor
 from torch.utils.data import Dataset, random_split

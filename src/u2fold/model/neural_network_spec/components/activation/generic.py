@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any
 
 from pydantic import BaseModel
 from torch import nn
 
 
-class BaseActivationSpec(BaseModel, ABC):
+class BaseActivationSpec(BaseModel, ABC):  # pyright: ignore[reportUnsafeMultipleInheritance]
 
     @abstractmethod
     def instantiate(self) -> nn.Module: ...

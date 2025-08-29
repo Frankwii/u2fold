@@ -35,3 +35,6 @@ dev = [
     "pytest-xdist>=3.8.0",
     "ruff>=0.12.3",
 ]
+
+[tool.basedpyright]
+reportExplicitAny = "none"

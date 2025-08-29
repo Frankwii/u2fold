@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from torch import nn
 
 
-class BasePoolingMethod(BaseModel, ABC):
+class BasePoolingMethod(BaseModel, ABC):  # pyright: ignore[reportUnsafeMultipleInheritance]
     model_config = ConfigDict(frozen=True)
 
     kernel_size: int = Field(

@@ -1,4 +1,3 @@
-import torch
 from torch import Tensor
 
 from .transmission_map_estimation import estimate_transmission_map

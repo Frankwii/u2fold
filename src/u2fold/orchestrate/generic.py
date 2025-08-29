@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from itertools import chain, repeat
 from logging import getLogger
-from typing import Iterable, cast
+from typing import Any, Iterable
 
 import torch
 from torch import Tensor
@@ -73,9 +73,9 @@ def optimize_primal_dual[Spec: NeuralNetworkSpec](
 
 
 class Orchestrator[W: WeightHandler](ABC):
-    def __init__(self, spec: U2FoldSpec, weigth_handler: W) -> None:
+    def __init__(self, spec: U2FoldSpec[Any], weigth_handler: W) -> None:
         self._logger = getLogger(__name__)
-        self._logger.info(f"Initializing orchestrator.")
+        self._logger.info("Initializing orchestrator.")
         self._spec = spec
         self._device = get_device()
         self._weight_handler = weigth_handler

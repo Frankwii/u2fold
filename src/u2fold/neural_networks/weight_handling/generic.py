@@ -9,7 +9,7 @@ import torch
 from u2fold.model.neural_network_spec import NeuralNetworkSpec
 from u2fold.neural_networks.generic import NeuralNetwork
 
-type WeightTreeStructure[T] = list[list[T]]
+type WeightTreeStructure[T] = tuple[tuple[T, ...], ...]
 type WeightFileTree = WeightTreeStructure[Path]
 
 
@@ -23,7 +23,17 @@ class ModelInitBundle[C: NeuralNetworkSpec]:
 class WeightHandler(ABC):
     """For loading and saving model weights, or first instantiating models."""
 
-    def __init__(self, model_weight_dir: Path) -> None:
+    def __init__(
+        self,
+        model_weight_dir: Path,
+        share_weights: bool,
+        greedy_iterations: int,
+        stages: int
+    ) -> None:
+
+        self._greedy_iterations = greedy_iterations
+        self._stages = stages
+        self._share_weights = share_weights
         self._logger = logging.getLogger(__name__)
 
         self._logger.info(
@@ -41,7 +51,7 @@ class WeightHandler(ABC):
     def _handle_no_greedy_iter_dirs(self, root_dir: Path) -> None: ...
 
     @abstractmethod
-    def _handle_empty_stage_dir(self, stage_dir: Path) -> list[Path]: ...
+    def _handle_empty_stage_dir(self, stage_dir: Path) -> tuple[Path, ...]: ...
 
     @abstractmethod
     def _handle_nonexisting_weight_file[C: NeuralNetworkSpec](
@@ -55,13 +65,13 @@ class WeightHandler(ABC):
             self._handle_no_greedy_iter_dirs(model_weight_dir)
             return self.__build_filetree(model_weight_dir)
 
-        return [
+        return tuple(
             self.__resolve_greedy_iteration(greedy_iter_dir)
             for greedy_iter_dir in sorted_greedy_iteration_dirs
-        ]
+        )
 
-    def __resolve_greedy_iteration(self, dir: Path) -> list[Path]:
-        stage_weight_files = sorted(dir.iterdir())
+    def __resolve_greedy_iteration(self, dir: Path) -> tuple[Path, ...]:
+        stage_weight_files = tuple(sorted(dir.iterdir()))
         if len(stage_weight_files) == 0:
             return self._handle_empty_stage_dir(dir)
 
@@ -101,12 +111,16 @@ class WeightHandler(ABC):
 
     def load_models[C: NeuralNetworkSpec](
         self,
-        image_model_bundle: ModelInitBundle[C],
+        model_bundle: ModelInitBundle[C],
     ) -> WeightTreeStructure[NeuralNetwork[C]]:
-        return [
-            [
-                self._load_model(weight_file, image_model_bundle)
+        if self._share_weights:
+            model = self._load_model(self._filetree[0][0], model_bundle)
+
+            return ((model,) * self._stages,) * self._greedy_iterations
+        return tuple(
+            tuple(
+                self._load_model(weight_file, model_bundle)
                 for weight_file in greedy_iter_dir
-            ]
+            )
             for greedy_iter_dir in self._filetree
-        ]
+        )

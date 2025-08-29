@@ -74,3 +74,10 @@ class AlgorithmicSpec(BaseModel):
         "the number of greedy iterations times the number of stages.",
         examples=[3]
     )
+
+    share_network_weights: bool = Field(
+        title="Share network weights among greedy iterations and stages",
+        description="Whether to share sets of weights among greedy iterations "
+        "and stages in the unfolded primal-dual scheme. Mathematically, this "
+        "corresponds to actually learning a single operator."
+    )

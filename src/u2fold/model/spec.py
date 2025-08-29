@@ -6,13 +6,13 @@ from .train_spec import TrainSpec
 from .exec_spec import ExecSpec
 from .algorithmic_spec import AlgorithmicSpec
 
-class U2FoldSpec(BaseModel):
+class U2FoldSpec[C: NeuralNetworkSpec](BaseModel):
     mode_spec: TrainSpec | ExecSpec = Field(
         title="Mode",
         discriminator="mode"
     )
 
-    neural_network_spec: NeuralNetworkSpec = Field(title="Neural network specification")
+    neural_network_spec: C = Field(title="Neural network specification")
     algorithmic_spec: AlgorithmicSpec = Field(title="Algorithmic specification")
     log_level: Literal["debug", "train", "warning", "error", "critical"] = Field(
         title="Log level"

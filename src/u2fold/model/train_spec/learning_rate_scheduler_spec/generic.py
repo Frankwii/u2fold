@@ -14,7 +14,7 @@ class BaseLRScheduler[Sched: LRScheduler](ABC):
     def step(self, loss: Tensor) -> None: ...
 
 
-class BaseLRSchedulerSpec(BaseModel, ABC):
+class BaseLRSchedulerSpec(BaseModel, ABC):  # pyright: ignore[reportUnsafeMultipleInheritance]
     model_config = ConfigDict(frozen=True)
 
     @abstractmethod

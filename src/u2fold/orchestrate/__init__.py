@@ -10,13 +10,14 @@ from .generic import Orchestrator
 from .train import TrainOrchestrator
 
 
-def get_orchestrator(spec: U2FoldSpec) -> Orchestrator[Any]:
+def get_orchestrator(spec: U2FoldSpec[Any]) -> Orchestrator[Any]:
     weight_dir = get_weight_directory(spec)
     if isinstance(spec.mode_spec, TrainSpec):
         return TrainOrchestrator(
             spec,
             TrainWeightHandler(
                 weight_dir,
+                spec.algorithmic_spec.share_network_weights,
                 spec.algorithmic_spec.greedy_iterations,
                 spec.algorithmic_spec.stages,
             ),
@@ -24,10 +25,15 @@ def get_orchestrator(spec: U2FoldSpec) -> Orchestrator[Any]:
     elif isinstance(spec.mode_spec, ExecSpec):
         return ExecOrchestrator(
             spec,
-            ExecWeightHandler(weight_dir),
+            ExecWeightHandler(
+                weight_dir,
+                spec.algorithmic_spec.share_network_weights,
+                spec.algorithmic_spec.greedy_iterations,
+                spec.algorithmic_spec.stages,
+            ),
         )
     else:
-        raise TypeError(f"Invalid spec class.")
+        raise TypeError("Invalid spec class.")
 
 
 __all__ = ["get_orchestrator", "Orchestrator"]

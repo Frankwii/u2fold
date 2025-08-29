@@ -1,5 +1,4 @@
 from typing import Callable
-import torch
 from torch import Tensor
 
 type ProximityOperator[A] = Callable[[Tensor, float, A], Tensor]

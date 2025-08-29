@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+from u2fold.model.algorithmic_spec.spec import AlgorithmicSpec
+from u2fold.model.neural_network_spec import NeuralNetworkSpec
 from u2fold.model.spec import U2FoldSpec
 
 USER_HOME = os.getenv("HOME")
@@ -16,27 +18,31 @@ def get_project_home() -> Path:
 
     return project_home
 
+def get_algorithmic_spec_subdir(algorithmic_spec: AlgorithmicSpec) -> str:
+    if algorithmic_spec.share_network_weights:
+        return "shared"
+    else:
+        return f"greedyIterations_{algorithmic_spec.greedy_iterations}__stages_{algorithmic_spec.stages}"
 
-def get_tensorboard_log_directory(spec: U2FoldSpec) -> Path:
+
+def get_tensorboard_log_directory[S: NeuralNetworkSpec](spec: U2FoldSpec[S]) -> Path:
     model_spec = spec.neural_network_spec
-    scheme_str = f"greedyIterations_{spec.algorithmic_spec.greedy_iterations}__stages_{spec.algorithmic_spec.stages}"
     return (
         get_project_home()
         / "log"
         / "tensorboard"
         / model_spec.name
         / model_spec.format_self()
-        / scheme_str
+        / get_algorithmic_spec_subdir(spec.algorithmic_spec)
     )
 
 
-def get_weight_directory(spec: U2FoldSpec) -> Path:
+def get_weight_directory[S: NeuralNetworkSpec](spec: U2FoldSpec[S]) -> Path:
     model_spec = spec.neural_network_spec
-    scheme_str = f"greedyIterations_{spec.algorithmic_spec.greedy_iterations}__stages_{spec.algorithmic_spec.stages}"
     return (
         get_project_home()
         / "weight"
         / model_spec.name
         / model_spec.format_self()
-        / scheme_str
+        / get_algorithmic_spec_subdir(spec.algorithmic_spec)
     )

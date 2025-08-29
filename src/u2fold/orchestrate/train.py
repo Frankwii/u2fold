@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import cast, final, override
+from typing import Any, cast, final, override
 
 import torch
 from torch import Tensor
@@ -18,7 +18,7 @@ from .generic import Orchestrator
 
 @final
 class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
-    def __init__(self, spec: U2FoldSpec, weigth_handler: TrainWeightHandler) -> None:
+    def __init__(self, spec: U2FoldSpec[Any], weigth_handler: TrainWeightHandler) -> None:
         super().__init__(spec, weigth_handler)
         self.train_spec = cast(TrainSpec, spec.mode_spec)
 
@@ -43,7 +43,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 self._model_optimizer
             )
         )
-        self._logger.info(f"Finished initializing orchestrator.")
+        self._logger.info("Finished initializing orchestrator.")
 
     @override
     def run(self) -> float | None:

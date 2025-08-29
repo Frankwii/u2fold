@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Callable, NamedTuple, cast
+from typing import Any, Callable, NamedTuple, cast
 
 from torch import Tensor
 from tqdm import tqdm
@@ -25,7 +25,7 @@ def compute_metrics_for_orchestrator_model(
     for input, ground_truth in tqdm(
         test_dataloader,
         desc="Training",
-        total=len(test_dataloader),
+        total=len(test_dataloader)
     ):
         output = orchestrator.forward_pass(input).primal_variable_history[-1]
         for idx, metric in enumerate(supervised_metrics):
@@ -39,7 +39,7 @@ def compute_metrics_for_orchestrator_model(
         unsupervised = [x/len(test_dataloader) for x in unsupervised_metric_values]
     )
 
-def measure_spec(spec: U2FoldSpec) -> float:
+def measure_spec(spec: U2FoldSpec[Any]) -> float:  
     orchestrator = cast(TrainOrchestrator, get_orchestrator(spec))
 
     last_epoch_loss = cast(float, orchestrator.run())

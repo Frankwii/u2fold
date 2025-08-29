@@ -17,7 +17,7 @@ from .dataset import UIEBDataset
 _logger = logging.getLogger(__name__)
 
 
-class UIEBDataLoaderConfig(DataLoaderConfig): ...
+class UIEBDataLoaderConfig[T, U, *Tensors](DataLoaderConfig[T, U, *Tensors]): ...
 
 
 @tag("data/dataloader/uieb")
@@ -30,10 +30,10 @@ class UIEBDataLoader(ToDeviceDataLoader[Tensor, Tensor]):
         dataset_class = dataset.__class__.__name__
         splits = DatasetSplits(0.8, 0.1, 0.1)
 
-        dataset_splits = split_dataset(dataset, splits)
+        dataset_splits = split_dataset(dataset, splits)  # pyright: ignore[reportArgumentType]
 
-        def __instantiate_uieb_dataloader(
-            dataset: UIEBDataset, config: tuple[bool, CollationFunction]
+        def __instantiate_uieb_dataloader[*Tensors](
+            dataset: UIEBDataset, config: tuple[bool, CollationFunction[*Tensors]]
         ) -> UIEBDataLoader:
             _logger.info(f"Instantiating dataloader for {dataset_class}...")
             dataloader_config = UIEBDataLoaderConfig(
@@ -45,7 +45,7 @@ class UIEBDataLoader(ToDeviceDataLoader[Tensor, Tensor]):
                 num_workers=0,
             )
 
-            dataloader = UIEBDataLoader(device, dataloader_config)
+            dataloader = UIEBDataLoader(device, dataloader_config)  # pyright: ignore[reportArgumentType]
             _logger.debug(
                 f"Successfully instantiated dataloader for {dataset_class}."
             )

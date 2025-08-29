@@ -9,14 +9,25 @@ from .generic import (
 
 
 class ExecWeightHandler(WeightHandler):
-    def __init__(self, model_weight_dir: Path) -> None:
-        super().__init__(model_weight_dir)
+    def __init__(
+        self,
+        model_weight_dir: Path,
+        share_weights: bool,
+        greedy_iterations: int,
+        stages: int
+    ) -> None:
+        super().__init__(
+            model_weight_dir,
+            share_weights=share_weights,
+            greedy_iterations=greedy_iterations,
+            stages=stages
+        )
 
     def _handle_no_greedy_iter_dirs(self, root_dir: Path) -> None:
         errmsg = f"Empty global weight directory: {root_dir}"
         raise FileNotFoundError(errmsg)
 
-    def _handle_empty_stage_dir(self, stage_dir: Path) -> list[Path]:
+    def _handle_empty_stage_dir(self, stage_dir: Path) -> tuple[Path, ...]:
         errmsg = f"Empty model weight directory: {stage_dir}"
         raise FileNotFoundError(errmsg)
 

@@ -1,4 +1,3 @@
-import torch
 from torch import Tensor
 from .convolution import convolve, double_flip
 

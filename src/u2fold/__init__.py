@@ -47,7 +47,7 @@ def run(args: Namespace) -> None:
     orchestrator = get_orchestrator(spec)
 
     should_train = isinstance(orchestrator, TrainOrchestrator)
-    print(f"Running!")
+    print("Running!")
     if should_train:
         if orchestrator._tensorboard_log_dir.exists():
             orchestrator._logger.warning(
