@@ -7,6 +7,7 @@ from torch.nn import Parameter
 from torch.optim import Optimizer
 
 from u2fold.math.primal_dual import PrimalDualScheme
+from u2fold.math.rescale_image import rescale_color
 
 @dataclass
 class KernelBundle:
@@ -33,6 +34,9 @@ class DeterministicComponents:
     background_light: Tensor
 
 
+def compute_radiance(primal_variable: Tensor, clamped_transmission_map: Tensor) -> Tensor:
+    return rescale_color(primal_variable / clamped_transmission_map)
+
 @final
 class ForwardPassResult:
     def __init__(
@@ -45,7 +49,7 @@ class ForwardPassResult:
         self.kernel_history = kernel_history
         self.deterministic_components = deterministic_components
 
-        self.radiance = (
-            self.primal_variable_history[-1] /
+        self.radiance = compute_radiance(
+            self.primal_variable_history[-1],
             self.deterministic_components.transmission_map.clamp(0.1)
         )

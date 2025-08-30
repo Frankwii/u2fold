@@ -9,7 +9,7 @@ from .generic import BaseLRScheduler, BaseLRSchedulerSpec
 
 
 class CosineAnnealingLRScheduler(BaseLRScheduler[CosineAnnealingLR]):
-    def step(self, loss: Tensor) -> None:
+    def step(self, loss: Tensor | float) -> None:
         self._scheduler.step()
 
 
