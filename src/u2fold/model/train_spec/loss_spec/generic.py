@@ -36,8 +36,8 @@ class BaseLossSpec(BaseModel, ABC):  # pyright: ignore[reportUnsafeMultipleInher
 class Loss(nn.Module):
     def __init__(self, losses: Sequence[BaseLossModule]):
         super().__init__()  # pyright: ignore[reportUnknownMemberType]
-        self.losses = nn.ModuleList(list(losses))
-        self.last_losses: dict[str, float] = {}
+        self._losses = nn.ModuleList(list(losses))
+        self._last_losses: dict[str, float] = {}
 
     @classmethod
     def __get_module_name(cls, loss_module: BaseLossModule) -> str:
@@ -45,9 +45,9 @@ class Loss(nn.Module):
 
         return name.replace("Module","").lower()
 
-    def __compute_and_log_loss(self, loss_module: BaseLossModule, result: ForwardPassResult, ground_truth: Tensor) -> Tensor:
+    def __compute_and_store_loss(self, loss_module: BaseLossModule, result: ForwardPassResult, ground_truth: Tensor) -> Tensor:
         loss_tensor = loss_module(result, ground_truth)  # pyright: ignore[reportAny]
-        self.last_losses[self.__get_module_name(loss_module)] = loss_tensor.detach().mean().item() # pyright: ignore[reportAny]
+        self._last_losses[self.__get_module_name(loss_module)] = loss_tensor.detach().mean().item() # pyright: ignore[reportAny]
         return loss_tensor
 
 
@@ -58,7 +58,10 @@ class Loss(nn.Module):
         ground_truth: Tensor,
     ) -> Tensor:
 
-        return torch.stack([
-            self.__compute_and_log_loss(l, result, ground_truth)  # pyright: ignore[reportArgumentType]
-            for l in self.losses]
+        return torch.stack(tuple(
+            self.__compute_and_store_loss(l, result, ground_truth)  # pyright: ignore[reportArgumentType]
+            for l in self._losses)
         ).sum(dim=0)
+
+    def get_last_losses(self) -> dict[str, float]:
+        return self._last_losses

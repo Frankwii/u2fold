@@ -13,12 +13,16 @@ from u2fold.model.train_spec.spec import TrainSpec
 from u2fold.neural_networks.weight_handling.train import TrainWeightHandler
 from u2fold.utils.get_device import get_device
 from u2fold.utils.get_directories import get_tensorboard_log_directory
+from u2fold.utils.dict_utils import merge_sum, shallow_dict_map
 
 from .generic import Orchestrator
 
+
 @final
 class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
-    def __init__(self, spec: U2FoldSpec[Any], weigth_handler: TrainWeightHandler) -> None:
+    def __init__(
+        self, spec: U2FoldSpec[Any], weigth_handler: TrainWeightHandler
+    ) -> None:
         super().__init__(spec, weigth_handler)
         self.train_spec = cast(TrainSpec, spec.mode_spec)
 
@@ -49,7 +53,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
     def run(self) -> float | None:
         self._logger.info("Starting training.")
         min_valiation_loss = torch.inf
-        test_loss = None
+        test_loss = Tensor()
         for epoch in tqdm(
             range(1, self.train_spec.dataset_spec.n_epochs + 1),
             total=self.train_spec.dataset_spec.n_epochs,
@@ -59,23 +63,25 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             self.tensorboard_log_loss(train_loss, "Train loss", epoch)
             validation_loss = self.run_validation_epoch()
             self.tensorboard_log_loss(validation_loss, "Validation loss", epoch)
-            self._model_scheduler.step(validation_loss)
+            self._model_scheduler.step(validation_loss[0])
 
-            if validation_loss < min_valiation_loss:
-                min_valiation_loss = validation_loss
+            if validation_loss[0] < min_valiation_loss:
+                min_valiation_loss = validation_loss[0]
                 self._logger.info(
                     f"Validation loss minimum achieved at epoch {epoch}."
                     " saving new weights to disk."
                 )
                 self._weight_handler.save_models(self._models)
 
-            test_loss = self.run_test_epoch(epoch).item()
+            test_loss = self.run_test_epoch(epoch)
             self.tensorboard_log_loss(test_loss, "Test loss", epoch)
 
-        return test_loss
+        return test_loss[0].mean().item()
 
-    def run_test_epoch(self, epoch: int) -> Tensor:
+    def run_test_epoch(self, epoch: int) -> tuple[Tensor, dict[str, float]]:
         cumulative_loss = torch.tensor(0.0)
+        cumulative_granular_loss = {}
+        n_elements = len(self._dataloaders.validation)
 
         with torch.no_grad():
             test_iter = iter(
@@ -92,12 +98,18 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
 
             loss = self.__loss_function(output, first_ground_truth)
             cumulative_loss += loss.detach().item()
+            cumulative_granular_loss = merge_sum(
+                cumulative_granular_loss, self.__loss_function.get_last_losses()
+            )
 
             for iter_, primal_variable in enumerate(output.primal_variable_history):
                 restored_image = rescale_color(
-                    primal_variable / output.deterministic_components.transmission_map.clamp(min=0.1)
+                    primal_variable
+                    / output.deterministic_components.transmission_map.clamp(min=0.1)
                 )
-                self.tensorboard_log_image(restored_image, f"Test/Output/{iter_}", epoch)
+                self.tensorboard_log_image(
+                    restored_image, f"Test/Output/{iter_}", epoch
+                )
 
             for iter_, kernel in enumerate(output.kernel_history):
                 self.tensorboard_log_image(kernel, f"Test/Kernel/{iter_}", epoch)
@@ -134,50 +146,56 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                 loss = self.__loss_function(output, ground_truth)
                 cumulative_loss += loss.detach().item()
 
-        return cumulative_loss / len(self._dataloaders.test)
+        return cumulative_loss / n_elements, shallow_dict_map(lambda n: n/n_elements, cumulative_granular_loss)
 
-    def run_validation_epoch(self) -> Tensor:
+    def run_validation_epoch(self) -> tuple[Tensor, dict[str, float]]:
         cumulative_loss = torch.tensor(0.0)
+        cumulative_granular_loss = {}
+        n_elements = len(self._dataloaders.validation)
 
         with torch.no_grad():
             for input, ground_truth in tqdm(
                 self._dataloaders.validation,
                 desc="Validation",
-                total=len(self._dataloaders.validation),
+                total=n_elements,
             ):
                 output = self.forward_pass(input)
 
                 loss = self.__loss_function(output, ground_truth)
                 cumulative_loss += loss.detach().item()
+                cumulative_granular_loss = merge_sum(
+                    cumulative_granular_loss, self.__loss_function.get_last_losses()
+                )
 
-        return cumulative_loss / len(self._dataloaders.validation)
+        return cumulative_loss / n_elements, shallow_dict_map(lambda n: n/n_elements, cumulative_granular_loss)
 
-    def run_train_epoch(self) -> Tensor:
+    def run_train_epoch(self) -> tuple[Tensor, dict[str, float]]:
         cumulative_loss = torch.tensor(0.0)
+        cumulative_granular_loss = {}
+
+        n_elements = len(self._dataloaders.training)
 
         for input, ground_truth in tqdm(
             self._dataloaders.training,
             desc="Training",
-            total=len(self._dataloaders.training),
+            total=n_elements,
         ):
             self._model_optimizer.zero_grad()
             output = self.forward_pass(input)
 
             loss = self.__loss_function(output, ground_truth)
-
             cumulative_loss += loss.detach().item()
+            cumulative_granular_loss = merge_sum(
+                cumulative_granular_loss, self.__loss_function.get_last_losses()
+            )
 
             loss.backward()
             self._model_optimizer.step()
 
-        return cumulative_loss / len(self._dataloaders.training)
+        return cumulative_loss / n_elements, shallow_dict_map(lambda n: n/n_elements, cumulative_granular_loss)
 
     def tensorboard_log_image(self, image: Tensor, tag: str, epoch: int) -> None:
-        self._tensorboard_logger.add_images(
-            tag,
-            image.detach(),
-            global_step=epoch
-        )
+        self._tensorboard_logger.add_images(tag, image.detach(), global_step=epoch)
 
     def tensorboard_log_hist(self, image: Tensor, tag: str) -> None:
         img = image.detach()
@@ -189,13 +207,12 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
                     global_step=i,
                 )
 
-    def tensorboard_log_loss(self, val: float | Tensor, tag: str, epoch: int) -> None:
-        if isinstance(val, Tensor):
-            val = val.item()
-        last_losses = self.__loss_function.last_losses
-        for loss_name, value in last_losses.items():
+    def tensorboard_log_loss(self, val: tuple[float | Tensor, dict[str, float]], tag: str, epoch: int) -> None:
+        total_loss, grained_losses = val
+        total_loss_val = total_loss.mean().item() if isinstance(total_loss, Tensor) else total_loss
+        for loss_name, value in grained_losses.items():
             self._tensorboard_logger.add_scalar(f"{tag}/{loss_name}", value, epoch)
-        self._tensorboard_logger.add_scalar(tag, val, epoch)
+        self._tensorboard_logger.add_scalar(tag, total_loss_val, epoch)
 
     def tensorboard_log_text(self, text: str, tag: str) -> None:
         self._tensorboard_logger.add_text(tag, text)
