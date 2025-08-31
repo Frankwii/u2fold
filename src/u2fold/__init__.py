@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, Namespace
+import json
 from pathlib import Path
 from enum import Enum
 import shlex
@@ -13,13 +14,14 @@ import orjson
 
 from u2fold.orchestrate.train import TrainOrchestrator
 from u2fold.model.common_namespaces import EpochMetricData
-from u2fold.utils.results_db import get_results_from_spec, save_training_result, spec_is_in_db
+from u2fold.utils.results_db import get_best_result, get_results_from_spec, save_training_result, spec_is_in_db, table_columns
 
 class Mode(Enum):
     run = "run"
     docs = "docs"
     calibrate = "calibrate"
     search = "search-hyperparameters"
+    query_results = "query_results"
 
 def build_parser() -> ArgumentParser:
     parser = ArgumentParser()
@@ -30,14 +32,15 @@ def build_parser() -> ArgumentParser:
         required=True
     )
 
-    run_parser = subparsers.add_parser("run")
-    run_parser.add_argument("--spec", type=Path, default="spec.json")
-    subparsers.add_parser("docs")
+    run_parser = subparsers.add_parser("run", help="Run with given spec.")
+    run_parser.add_argument("--spec", type=Path, default="spec.json", help="Path to spec.")
+    subparsers.add_parser("docs", help="Generate documentation for JSON spec.")
 
-    calibrate_parser = subparsers.add_parser("calibrate")
+    calibrate_parser = subparsers.add_parser("calibrate", help="Calibrate all metrics and loss terms.")
     calibrate_parser.add_argument("path", type=Path)
 
-    subparsers.add_parser("search-hyperparameters")
+    subparsers.add_parser("search-hyperparameters", help="'Grid search' a large set of hyperparameter combinations.")
+    subparsers.add_parser("query_results", help="Query training results obtained so far.")
 
     return parser
 
@@ -53,8 +56,7 @@ def run(args: Namespace) -> None:
     if should_train:
         if spec_is_in_db(spec):
             print("This exact spec was already trained. Results:\n\n")
-            print(orjson.dumps(get_results_from_spec(spec), option = orjson.OPT_INDENT_2))
-            exit(1)
+            print(json.dumps(get_results_from_spec(spec), indent=2))
 
         if orchestrator._tensorboard_log_dir.exists():
             orchestrator._logger.warning(
@@ -78,6 +80,17 @@ def run(args: Namespace) -> None:
         print(msg + " Please kill the process to stop it.")
         tensorboard_process.wait()  # pyright: ignore[reportPossiblyUnboundVariable]
 
+def get_best_spec_in_db():
+    valid_metrics = set(table_columns.keys()) - {"spec"}
+
+    msg = f"Choose a metric or press Ctrl+C to exit. Valid options:\n\t{"\n\t".join(valid_metrics)}\nChoice: "
+    while (metric := input(msg)):
+        if metric not in valid_metrics:
+            print("Unknown metric.")
+            continue
+
+        print(json.dumps(get_best_result(metric), indent=2))
+
 def main() -> None:
     parser = build_parser()
 
@@ -88,3 +101,4 @@ def main() -> None:
         case Mode.docs: show_docs()
         case Mode.calibrate: calibrate_metrics(args.path)
         case Mode.search: search_best_combination()
+        case Mode.query_results: get_best_spec_in_db()

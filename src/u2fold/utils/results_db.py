@@ -1,11 +1,15 @@
 """Manages a small sqlite3 database that stores training results (not weights!)"""
 
 import sqlite3
+from itertools import repeat
+from typing import Any
+
+import orjson
+
+from u2fold.model.common_namespaces import EpochMetricData
 from u2fold.model.neural_network_spec import NeuralNetworkSpec
 from u2fold.model.spec import U2FoldSpec
-from u2fold.model.common_namespaces import EpochMetricData
 from u2fold.utils.get_directories import get_project_home
-
 
 DB_PATH = get_project_home() / "results.db"
 table_columns = {
@@ -21,16 +25,19 @@ table_columns = {
 }
 
 with sqlite3.connect(DB_PATH) as db_connection:
-    if db_connection.execute("""
+    if (
+        db_connection.execute("""
         SELECT name
         FROM sqlite_master
         WHERE type='table' AND name='results'
-     """).fetchone() is None:
+         """).fetchone() is None
+    ):
         _ = db_connection.execute(f"""
             CREATE TABLE results (
-                {",\n".join(f'{k} {v}' for k,v in table_columns.items())}
+                {",\n".join(f"{k} {v}" for k, v in table_columns.items())}
             )
         """)
+
 
 def save_training_result(
     spec: U2FoldSpec[NeuralNetworkSpec], result: EpochMetricData
@@ -38,41 +45,63 @@ def save_training_result(
     """Persists the results into a sqlite database"""
 
     register = {
-        "spec": "?", # need to escape this since it contains especial characters
+        "spec": "?",  # need to escape this since it contains especial characters
         "loss": result.overall_loss,
         **{
-            f'{k.replace(" ", "_").lower()}_loss': v
+            f"{k.replace(' ', '_').lower()}_loss": v
             for k, v in result.granular_loss.items()
         },
-        **{
-            k.replace(" ", "_").lower():v
-            for k, v in result.metrics.items()
-        }
+        **{k.replace(" ", "_").lower(): v for k, v in result.metrics.items()},
     }
 
-    with sqlite3.connect(DB_PATH) as db_connection:
-        _ = db_connection.execute(f"""
-            INSERT INTO results ({",".join(register.keys())})
-            VALUES ({",".join(map(str, register.values()))})
-        """, (spec.model_dump_json(indent=2),))
+    with sqlite3.connect(DB_PATH) as db:
+        _ = db.execute(f"""
+            INSERT INTO results
+            ({','.join(register.keys())})
+            VALUES ({','.join(repeat('?', len(register)))})
+            """,
+            tuple(register.values()),
+        )
+
 
 def spec_is_in_db(spec: U2FoldSpec[NeuralNetworkSpec]) -> bool:
     with sqlite3.connect(DB_PATH) as db_connection:
-        result = db_connection.execute("""
-            SELECT * FROM results
-            WHERE spec=?
-        """, (spec.model_dump_json(indent=2),)).fetchone()
+        result = db_connection.execute(
+            "SELECT 1 FROM results WHERE spec=? LIMIT 1",
+            (spec.model_dump_json(indent=2),),
+        ).fetchone()
 
     return result is not None
 
-def get_results_from_spec(spec: U2FoldSpec[NeuralNetworkSpec]) -> dict[str, float]:
 
+def get_results_from_spec(spec: U2FoldSpec[NeuralNetworkSpec]) -> dict[str, float]:
     metrics = list(set(table_columns.keys()) - {"spec"})
     with sqlite3.connect(DB_PATH) as db_connection:
-        result = db_connection.execute(f"""
-            SELECT {','.join(metrics)}
+        result = db_connection.execute(
+            f"""
+            SELECT {",".join(metrics)}
             FROM results
             WHERE spec=?
-        """, (spec.model_dump_json(indent=2),)).fetchone()
+            LIMIT 1
+        """,
+            (spec.model_dump_json(indent=2),),
+        ).fetchone()
 
     return dict(zip(metrics, result))
+
+
+def get_best_result(metric: str) -> dict[str, Any]:
+    assert metric in table_columns and metric!="spec"
+
+    query = f"""
+    SELECT spec
+    FROM results
+    WHERE {metric} IS NOT NULL
+    ORDER BY {metric} ASC
+    LIMIT 1
+    """
+
+    with sqlite3.connect(DB_PATH) as db_connection:
+        result = db_connection.execute(query).fetchone()
+
+    return {} if result is None else orjson.loads(result[0])
