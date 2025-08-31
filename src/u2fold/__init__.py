@@ -13,7 +13,7 @@ import orjson
 
 from u2fold.orchestrate.train import TrainOrchestrator
 from u2fold.model.common_namespaces import EpochMetricData
-from u2fold.utils.save_training_result import save_training_result
+from u2fold.utils.save_training_result import get_results_from_spec, save_training_result, spec_is_in_db
 
 class Mode(Enum):
     run = "run"
@@ -51,6 +51,11 @@ def run(args: Namespace) -> None:
     should_train = isinstance(orchestrator, TrainOrchestrator)
     print("Running!")
     if should_train:
+        if spec_is_in_db(spec):
+            print("This exact spec was already trained. Results:\n\n")
+            print(orjson.dumps(get_results_from_spec(spec), option = orjson.OPT_INDENT_2))
+            exit(1)
+
         if orchestrator._tensorboard_log_dir.exists():
             orchestrator._logger.warning(
                 "Found an existing tensorboard log directory. Emptying it."

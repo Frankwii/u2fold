@@ -55,3 +55,24 @@ def save_training_result(
             INSERT INTO results ({",".join(register.keys())})
             VALUES ({",".join(map(str, register.values()))})
         """, (spec.model_dump_json(indent=2),))
+
+def spec_is_in_db(spec: U2FoldSpec[NeuralNetworkSpec]) -> bool:
+    with sqlite3.connect(DB_PATH) as db_connection:
+        result = db_connection.execute("""
+            SELECT * FROM results
+            WHERE spec="?"
+        """, spec.model_dump_json(indent=2)).fetchone()
+
+    return result is not None
+
+def get_results_from_spec(spec: U2FoldSpec[NeuralNetworkSpec]) -> dict[str, float]:
+
+    metrics = list(set(table_columns.keys()) - {"spec"})
+    with sqlite3.connect(DB_PATH) as db_connection:
+        result = db_connection.execute(f"""
+            SELECT {','.join(metrics)}
+            FROM results
+            WHERE spec="?"
+        """, spec.model_dump_json(indent=2)).fetchone()
+
+    return dict(zip(metrics, result))
