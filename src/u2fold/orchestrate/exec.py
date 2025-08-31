@@ -18,7 +18,7 @@ class ExecOrchestrator(Orchestrator[ExecWeightHandler]):
         self._logger.info(f"Executing model on {exec_spec.input}")
 
         input_tensors = [
-            to_tensor(Image.open(img).convert("RGB")).to(get_device())
+            to_tensor(Image.open(img).convert("RGB")).to(get_device()).unsqueeze(0)
             for img in exec_spec.input
         ]
 
