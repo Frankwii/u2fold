@@ -13,7 +13,7 @@ table_columns = {
     "spec": "TEXT",
     "loss": "REAL",
     "consistency_loss": "REAL",
-    "color_loss": "REAL",
+    "color_cosine_similarity_loss": "REAL",
     "fidelity_loss": "REAL",
     "ground_truth_loss": "REAL",
     "dssim": "REAL",
