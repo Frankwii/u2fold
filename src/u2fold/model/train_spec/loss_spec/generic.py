@@ -1,16 +1,18 @@
+import re
 from abc import ABC, abstractmethod
-from typing import ClassVar, final, override
 from collections.abc import Sequence
+from typing import ClassVar, final, override
 
+import torch
 from pydantic import BaseModel, ConfigDict, NonNegativeFloat
 from torch import Tensor, nn
-import torch
 
 from u2fold.model.common_namespaces import ForwardPassResult
 
 
 class BaseLossModule(nn.Module, ABC):
     calibration_average: ClassVar[float]
+
     def __init__(self, weight: float) -> None:
         super().__init__()  # pyright: ignore[reportUnknownMemberType]
         self.weight: float = weight
@@ -21,7 +23,9 @@ class BaseLossModule(nn.Module, ABC):
 
     @override
     def forward(self, result: ForwardPassResult, ground_truth: Tensor) -> Tensor:
-        return (self.weight / self.calibration_average) * self._forward(result, ground_truth)
+        return (self.weight / self.calibration_average) * self._forward(
+            result, ground_truth
+        )
 
 
 class BaseLossSpec(BaseModel, ABC):  # pyright: ignore[reportUnsafeMultipleInheritance]
@@ -43,13 +47,19 @@ class Loss(nn.Module):
     def __get_module_name(cls, loss_module: BaseLossModule) -> str:
         name = loss_module.__class__.__name__
 
-        return name.replace("Module","").lower()
+        return re.sub(r"(?<!^)([A-Z])", r"_\1", name.replace("Module", "")).lower()
 
-    def __compute_and_store_loss(self, loss_module: BaseLossModule, result: ForwardPassResult, ground_truth: Tensor) -> Tensor:
+    def __compute_and_store_loss(
+        self,
+        loss_module: BaseLossModule,
+        result: ForwardPassResult,
+        ground_truth: Tensor,
+    ) -> Tensor:
         loss_tensor = loss_module(result, ground_truth)  # pyright: ignore[reportAny]
-        self._last_losses[self.__get_module_name(loss_module)] = loss_tensor.detach().mean().item() # pyright: ignore[reportAny]
+        self._last_losses[self.__get_module_name(loss_module)] = (
+            loss_tensor.detach().mean().item()
+        )  # pyright: ignore[reportAny]
         return loss_tensor
-
 
     @override
     def forward(
@@ -57,10 +67,11 @@ class Loss(nn.Module):
         result: ForwardPassResult,
         ground_truth: Tensor,
     ) -> Tensor:
-
-        return torch.stack(tuple(
-            self.__compute_and_store_loss(l, result, ground_truth)  # pyright: ignore[reportArgumentType]
-            for l in self._losses)
+        return torch.stack(
+            tuple(
+                self.__compute_and_store_loss(l, result, ground_truth)  # pyright: ignore[reportArgumentType]
+                for l in self._losses
+            )
         ).sum(dim=0)
 
     def get_last_losses(self) -> dict[str, float]:
