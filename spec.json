@@ -4,7 +4,7 @@
     "mode": "train",
     "losses":[
       {"loss":"ground_truth", "weight": 1.0},
-      {"loss":"fidelity", "weight": 0.1},
+      {"loss":"fidelity", "weight": 0.01},
       {"loss":"color_cosine_similarity", "weight": 0.1}
     ],
     "dataset_spec":{
@@ -26,11 +26,11 @@
   "algorithmic_spec":{
     "transmission_map_patch_radius":8,
     "guided_filter_patch_radius":15,
-    "transmission_map_saturation_coefficient":0.5,
+    "transmission_map_saturation_coefficient":0.75,
     "guided_filter_regularization_coefficient": 0.01,
     "step_size":0.01,
     "greedy_iterations":3,
-    "stages":1,
+    "stages":3,
     "share_network_weights":true
   },
   "neural_network_spec":{

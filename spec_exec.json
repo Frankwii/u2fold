@@ -28,7 +28,7 @@
     "step_size": 0.01,
     "greedy_iterations": 3,
     "stages": 3,
-    "share_network_weights": false
+    "share_network_weights": true
   },
   "neural_network_spec": {
     "name": "unet",
