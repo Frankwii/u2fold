@@ -7,8 +7,7 @@ from u2fold.model.common_namespaces import EpochMetricData
 from u2fold.utils.get_directories import get_project_home
 
 
-db_connection = sqlite3.connect(get_project_home() / "results.db")
-
+DB_PATH = get_project_home() / "results.db"
 table_columns = {
     "spec": "TEXT",
     "loss": "REAL",
@@ -21,16 +20,17 @@ table_columns = {
     "uciqe_minimizable": "REAL",
 }
 
-if db_connection.execute("""
-    SELECT name
-    FROM sqlite_master
-    WHERE type='table' AND name='results'
- """).fetchone() is None:
-    _ = db_connection.execute(f"""
-        CREATE TABLE results (
-            {",\n".join(f'{k} {v}' for k,v in table_columns.items())}
-        )
-    """)
+with sqlite3.connect(DB_PATH) as db_connection:
+    if db_connection.execute("""
+        SELECT name
+        FROM sqlite_master
+        WHERE type='table' AND name='results'
+     """).fetchone() is None:
+        _ = db_connection.execute(f"""
+            CREATE TABLE results (
+                {",\n".join(f'{k} {v}' for k,v in table_columns.items())}
+            )
+        """)
 
 def save_training_result(
     spec: U2FoldSpec[NeuralNetworkSpec], result: EpochMetricData
@@ -50,7 +50,8 @@ def save_training_result(
         }
     }
 
-    _ = db_connection.execute(f"""
-        INSERT INTO results ({",".join(register.keys())})
-        VALUES ({",".join(map(str, register.values()))})
-    """, (spec.model_dump_json(indent=2),))
+    with sqlite3.connect(DB_PATH) as db_connection:
+        _ = db_connection.execute(f"""
+            INSERT INTO results ({",".join(register.keys())})
+            VALUES ({",".join(map(str, register.values()))})
+        """, (spec.model_dump_json(indent=2),))
