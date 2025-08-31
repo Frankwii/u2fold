@@ -13,7 +13,7 @@ import orjson
 
 from u2fold.orchestrate.train import TrainOrchestrator
 from u2fold.model.common_namespaces import EpochMetricData
-from u2fold.utils.save_training_result import get_results_from_spec, save_training_result, spec_is_in_db
+from u2fold.utils.results_db import get_results_from_spec, save_training_result, spec_is_in_db
 
 class Mode(Enum):
     run = "run"
