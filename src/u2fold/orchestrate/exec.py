@@ -17,22 +17,24 @@ class ExecOrchestrator(Orchestrator[ExecWeightHandler]):
 
         self._logger.info(f"Executing model on {exec_spec.input}")
 
-        input_tensor = torch.stack([
+        input_tensors = [
             to_tensor(Image.open(img).convert("RGB")).to(get_device())
             for img in exec_spec.input
-        ])
+        ]
 
         with torch.no_grad():
-            output = self.forward_pass(input_tensor)
+            output_tensors = [self.forward_pass(t) for t in input_tensors]
 
-        restored_image_tensor = (
+        restored_image_tensors = [
             output.radiance
             .clamp(0, 1)
             .cpu()
-        )
+
+            for output in output_tensors
+        ]
 
         output_paths = compute_output_paths(exec_spec.output_dir, *exec_spec.input)
-        for output_path, restored_image in zip(output_paths, restored_image_tensor):
+        for output_path, restored_image in zip(output_paths, restored_image_tensors):
             output_path.parent.mkdir(exist_ok=True, parents=True)
             to_pil_image(restored_image).save(output_path)
             self._logger.info(f"Saved output to {output_path}")

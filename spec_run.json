@@ -1,0 +1,54 @@
+{
+  "log_level": "debug",
+  "mode_spec": {
+    "mode": "exec",
+    "input": [
+      "/home/frank/builds/u2fold/uieb/processed/input/100_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/10139.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/101_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/102_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/105_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/108_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/109_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/10_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/115_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/118_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/120_img_.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/12324.png",
+      "/home/frank/builds/u2fold/uieb/processed/input/15544.png"
+    ],
+    "output_dir": "/home/frank/builds/u2fold/output",
+    "override_dir_contents": true
+  },
+  "algorithmic_spec": {
+    "transmission_map_patch_radius": 8,
+    "guided_filter_patch_radius": 15,
+    "transmission_map_saturation_coefficient": 0.75,
+    "guided_filter_regularization_coefficient": 0.01,
+    "step_size": 0.01,
+    "greedy_iterations": 3,
+    "stages": 3,
+    "share_network_weights": false
+  },
+  "neural_network_spec": {
+    "name": "unet",
+    "hidden_layers_activation": {
+      "name": "gelu"
+    },
+    "final_residual_activation": {
+      "name": "relu"
+    },
+    "pooling": {
+      "method": "max",
+      "kernel_size": 2,
+      "stride": 2
+    },
+    "channels_per_layer": [
+      4,
+      8,
+      16
+    ],
+    "sublayers_per_step": 3,
+    "unfolded_step_size": 0.01
+  }
+}
