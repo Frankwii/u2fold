@@ -10,6 +10,29 @@ from u2fold.utils.path import compute_output_paths
 
 from .generic import Orchestrator
 
+def compute_closest_multiple(n: int, m: int) -> int:
+    """Computes a minimally close number to n that is a multiple of m.
+
+    Returns the smallest possible number that satisfies the property,
+    meaning that if there is a tie (e.g. with n=6, m=4), it "rounds below"
+    (outputs 4 in the example).
+    """
+
+    r = n % m
+    if r <= (m // 2):
+        d = -r
+    else:
+        d = m - r
+    return n + d
+
+def resize_image_to_closest_multiple(img: Image.Image, m: int) -> Image.Image:
+    width = img.width
+    height = img.height
+    new_width = compute_closest_multiple(width, m)
+    new_height = compute_closest_multiple(height, m)
+
+    return img.resize((new_width, new_height))
+
 
 class ExecOrchestrator(Orchestrator[ExecWeightHandler]):
     def run(self) -> None:
@@ -17,8 +40,10 @@ class ExecOrchestrator(Orchestrator[ExecWeightHandler]):
 
         self._logger.info(f"Executing model on {exec_spec.input}")
 
+        m = 2 ** len(self._spec.neural_network_spec.channels_per_layer)
+
         input_tensors = [
-            to_tensor(Image.open(img).convert("RGB")).to(get_device()).unsqueeze(0)
+            to_tensor(resize_image_to_closest_multiple(Image.open(img).convert("RGB"), m)).to(get_device()).unsqueeze(0)
             for img in exec_spec.input
         ]
 
