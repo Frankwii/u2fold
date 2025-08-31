@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 
-
+@torch.compile
 def psnr(input: Tensor, enhanced: Tensor) -> Tensor:
     batch_size, channels = input.shape[:2]
     eps = 1e-5
@@ -11,9 +11,11 @@ def psnr(input: Tensor, enhanced: Tensor) -> Tensor:
 
     return 10 * torch.mean(2 * max.log10() - mse.log10())
 
+@torch.compile
 def psnr_minimizable(input: Tensor, enhanced: Tensor) -> Tensor:
     return 1 / psnr(input, enhanced)
 
+@torch.compile
 def psnr_minimazible_calibrated(input: Tensor, enhanced: Tensor) -> Tensor:
     uieb_average = 0.05976884812116623
     return psnr_minimizable(input, enhanced) / uieb_average

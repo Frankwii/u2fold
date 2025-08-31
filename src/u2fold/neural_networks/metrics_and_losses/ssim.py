@@ -78,6 +78,7 @@ def _compute_local_metrics(input: Tensor, enhanced: Tensor) -> LocalMetrics:
     )
 
 
+@torch.compile
 def ssim(input: Tensor, enhanced: Tensor) -> Tensor:
     data_range = _compute_data_range(input, enhanced)
     c_1 = (0.01 * data_range) ** 2
@@ -98,9 +99,11 @@ def ssim(input: Tensor, enhanced: Tensor) -> Tensor:
     return local_ssim.mean()
 
 
+@torch.compile
 def dssim(input: Tensor, enhanced: Tensor) -> Tensor:
     return (1 - ssim(input, enhanced)) / 2
 
+@torch.compile
 def dssim_calibrated(input: Tensor, enhanced: Tensor) -> Tensor:
     uieb_average = 0.11068128794431686
     return dssim(input, enhanced) / uieb_average
