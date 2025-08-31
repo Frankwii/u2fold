@@ -14,6 +14,6 @@ class U2FoldSpec[C: NeuralNetworkSpec](BaseModel):
 
     neural_network_spec: C = Field(title="Neural network specification")
     algorithmic_spec: AlgorithmicSpec = Field(title="Algorithmic specification")
-    log_level: Literal["debug", "train", "warning", "error", "critical"] = Field(
+    log_level: Literal["debug", "info", "warning", "error", "critical"] = Field(
         title="Log level"
     )
