@@ -41,9 +41,13 @@ def save_training_result(
         "spec": "?", # need to escape this since it contains especial characters
         "loss": result.overall_loss,
         **{
-            k.replace(" ", "_").lower(): v
-            for k, v in (result.granular_loss | result.metrics).items()
+            f'{k.replace(" ", "_").lower()}_loss': v
+            for k, v in result.granular_loss.items()
         },
+        **{
+            k.replace(" ", "_").lower():v
+            for k, v in result.metrics.items()
+        }
     }
 
     _ = db_connection.execute(f"""
