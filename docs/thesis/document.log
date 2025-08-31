@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.8.27)  28 AUG 2025 14:24
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.8.27)  31 AUG 2025 15:45
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -540,7 +540,7 @@ Package hyperref Info: Link coloring OFF on input line 55.
 \openout2 = `titlepage.aux'.
 
  (./titlepage.tex
-<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=108, 1401.235pt x 517.935pt>
+<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=112, 1401.235pt x 517.935pt>
 File: figures/logos/UIB_UniversitasBalearica_horizontal.png Graphic file (type png)
 <use figures/logos/UIB_UniversitasBalearica_horizontal.png>
 Package pdftex.def Info: figures/logos/UIB_UniversitasBalearica_horizontal.png  used on input line 13.
@@ -664,31 +664,15 @@ File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 )
 
 
-Underfull \hbox (badness 3009) in paragraph at lines 623--633
-[]\T1/ptm/m/n/10 The al-go-rithms de-tailed above were im-ple-mented in
- []
-
-
-Underfull \hbox (badness 4726) in paragraph at lines 623--633
-\T1/ptm/m/n/10 the Python pro-gram-ming lan-guage, ver-sion 3.12. The
- []
-
-
-Underfull \hbox (badness 6542) in paragraph at lines 623--633
-\T1/ptm/m/n/10 source code for the pro-gram is freely avail-able at
- []
-
-
-Underfull \hbox (badness 1924) in paragraph at lines 623--633
-[]\T1/ptm/m/n/10 https://github.com/Frankwii/u2fold[]. The ma-jor de-pen-dency
- []
-
-
 
 [9]
 
+LaTeX Warning: `h' float specifier changed to `ht'.
 
-Underfull \hbox (badness 1924) in paragraph at lines 684--684
+
+
+
+Underfull \hbox (badness 1924) in paragraph at lines 690--690
 []\T1/ptm/m/n/10 Probar con otros tipos de re-des neu-ronales (ViT,
  []
 
@@ -697,7 +681,7 @@ Underfull \hbox (badness 1924) in paragraph at lines 684--684
 [10]
 
 
-Underfull \hbox (badness 1881) in paragraph at lines 759--761
+Underfull \hbox (badness 1881) in paragraph at lines 765--767
 \T1/ptm/m/n/10 This de-fines a func-tion $\OML/cmm/m/it/10 ^^^$ \T1/ptm/m/n/10 by $\OML/cmm/m/it/10 ^^^\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) = [][] \OML/cmm/m/it/10 ^^^[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) =
  []
 
@@ -734,21 +718,21 @@ L3 programming layer <2025-01-18>
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `document.out' has not changed.
-(rerunfilecheck)             Checksum: 8EA93405532E7E594D7FE1DBFC1A51E0;4628.
+(rerunfilecheck)             Checksum: 8AD2A40DBA9FF0303B00A2C2B25735B1;4736.
  ) 
 Here is how much of TeX's memory you used:
- 16012 strings out of 474463
- 265310 string characters out of 5747970
- 781059 words of memory out of 5000000
- 38682 multiletter control sequences out of 15000+600000
+ 16014 strings out of 474463
+ 265350 string characters out of 5747970
+ 780062 words of memory out of 5000000
+ 38683 multiletter control sequences out of 15000+600000
  704070 words of font info for 200 fonts, out of 8000000 for 9000
  398 hyphenation exceptions out of 8191
  79i,17n,93p,814b,598s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/share/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on document.pdf (14 pages, 436711 bytes).
+Output written on document.pdf (14 pages, 437832 bytes).
 PDF statistics:
- 510 PDF objects out of 1000 (max. 8388607)
- 443 compressed objects within 5 object streams
- 132 named destinations out of 1000 (max. 500000)
- 214 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 517 PDF objects out of 1000 (max. 8388607)
+ 450 compressed objects within 5 object streams
+ 133 named destinations out of 1000 (max. 500000)
+ 222 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -3,7 +3,6 @@ import torch
 from torch import Tensor
 
 # As defined in https://doi.org/10.1109/TIP.2015.2491020
-@torch.compile
 def uciqe(input: Tensor) -> Tensor:
     batch_size = input.size(0)
     lab_input = rgb_to_lab(input)
@@ -40,12 +39,10 @@ def uciqe(input: Tensor) -> Tensor:
 
     return torch.sum(coefficients * submetrics, dim = 1).mean()
 
-@torch.compile
 def uciqe_minimizable(input: Tensor) -> Tensor:
     """One minus the UCIQE metric for the input"""
     return 1 - uciqe(input)
 
-@torch.compile
 def uciqe_minimizable_calibrated(input: Tensor) -> Tensor:
     uieb_average = 10.590411186218262
 

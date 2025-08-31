@@ -620,19 +620,25 @@ Initialize dual variables \(\tilde{g}\), \(\tilde{J}\) to 0\;
 \subsection{Implementation}
 \Frank{Xerrar de U2Fold, la implementació en pytorch dels algoritmes d'abans i de la UNET additiva, etc.}
 
+\subsubsection{u2fold}
 The algorithms detailed above were implemented in the Python programming
-language, version 3.12. The source code for the program is freely available at \href{https://github.com/Frankwii/u2fold}{https://github.com/Frankwii/u2fold}.
-The major dependency used was \href{https://pytorch.org/}{\textit{pytorch}}, which
-provides a nice programming interface for manipulating multidimensional arrays 
-via the \textit{Tensor} abstraction, automatically performing simple
+language, version 3.12. The program is called u2fold (from Underwater UnFOLDing). The source code for the program is freely available at \href{https://github.com/Frankwii/u2fold}{https://github.com/Frankwii/u2fold}.
+The major dependency used was \href{https://pytorch.org/}{\textit{pytorch}},
+which provides a nice programming interface for manipulating multidimensional 
+arrays via the \textit{Tensor} abstraction, automatically performing simple
 optimization algorithms via its \textit{autograd} engine, and, what it is most
 popular for, implementing neural networks with the \textit{torch.nn.Module}
 class and a variety of related utilities. A secondary dependency is
-\href{https://pydantic.com.cn/en/}{\textit{pydantic}}, for validating input parameters specified in a JSON file
+\href{https://pydantic.com.cn/en/}{\textit{pydantic}}, for validating input
+parameters specified in a JSON file
 such as network hyperparameters or the dataset path.
 
 The program is controlled via a command-line interface (CLI) and is intended to be run on a Linux machine (it has not been tested on other operating systems). The main subcommand of the program is ``run``, which takes a required argument ``--spec`` that should indicate the path to a JSON file. This file will be referred to as the \textit{configuration file}, since the behavior of the program
-is determined by its contents.
+is determined by its contents. Example files for this can be found at the root of the repository: \verb|spec_train.json| for training a neural networ, and \verb|spec_exec.json| for executing that previously trained network. Additionally, a subcommand ``docs'' is provided. This opens a simple website in
+the system's default browser (as specified in the ``\$BROWSER'' environment variable) with a visual documentation of the fields that can or should be included in the configuration file. The page is very similar to those that are
+often generated via tools like \href{https://editor.swagger.io/}{Swagger} or \href{https://fastapi.tiangolo.com/}{fastAPI} for RESTful APIs. \Frank{screenshots are included in the appendix}
+
+
 
 \section{Experimentation}
 \subsection{Algorithmic selection of hyperparameters}
@@ -682,7 +688,7 @@ Ideas:
   \item Probar de compartir los pesos de la red (aunque esto probablemente vaya peor)
 \end{enumerate}
 }
-\subsection{Use of AI in this work}
+\subsection{Use of LLMs in this work}
 Large Language Models (LLMs) were used mostly as a consult material helpful to build early intuition. Concretely, the Gemini 2.5 Pro model available for free at \href{https://aistudio.google.com}{https://aistudio.google.com} (at the moment of writing this) was used. Personally, I find the base model useful for scientific tasks and the lack of memory across chats by default to be an advantage instead of otherwise, since it forced me to write specific prompts for the concrete task I was interested in early on, instead of having a long, ongoing conversation. That often led me to realizing the solution to the problem myself while articulating the question.
 
 Almost every line of code under the ``src/u2fold'' directory of the provided repository was written by me and not automatically generated. I generally strongly dislike AI-generated code since it tends to contain very verbose comments, many unnecessary checks or early returns and generic names that do not reflect the intention behind the code. I subscribe to the philosophy that inline comments (not docstrings) tend to get outdated extremely quickly on relatively large codebases such as this thesis', and that the programmer should name their abstractions and structure their code in such a way that, generally speaking, it is understandable to someone external but fluent in the language just by reading it, with no need for intercalated explanations.
