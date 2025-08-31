@@ -1,53 +1,66 @@
 {
-  "log_level":"debug",
-  "mode_spec":{
+  "log_level": "info",
+  "mode_spec": {
     "mode": "train",
-    "losses":[
-      {"loss":"ground_truth", "weight": 1.0},
-      {"loss":"fidelity", "weight": 0.01},
-      {"loss":"color_cosine_similarity", "weight": 0.1}
+    "losses": [
+      {
+        "loss": "ground_truth",
+        "weight": 1.0
+      },
+      {
+        "loss": "fidelity",
+        "weight": 0.01
+      },
+      {
+        "loss": "color_cosine_similarity",
+        "weight": 0.1
+      }
     ],
-    "dataset_spec":{
-      "name":"uieb",
-      "path":"uieb/processed",
-      "n_epochs": 500,
-      "batch_size":16
+    "dataset_spec": {
+      "name": "uieb",
+      "path": "uieb/processed",
+      "n_epochs": 100,
+      "batch_size": 4
     },
-    "optimizer_spec":{
+    "optimizer_spec": {
       "optimizer": "adam",
       "learning_rate": 0.002
     },
-    "learning_rate_scheduler_spec":{
-      "scheduler":"step_lr",
-      "step_size":25,
-      "factor":0.5
+    "learning_rate_scheduler_spec": {
+      "scheduler": "step_lr",
+      "step_size": 25,
+      "factor": 0.5
     }
   },
-  "algorithmic_spec":{
-    "transmission_map_patch_radius":8,
-    "guided_filter_patch_radius":15,
-    "transmission_map_saturation_coefficient":0.75,
+  "algorithmic_spec": {
+    "transmission_map_patch_radius": 8,
+    "guided_filter_patch_radius": 15,
+    "transmission_map_saturation_coefficient": 0.75,
     "guided_filter_regularization_coefficient": 0.01,
-    "step_size":0.01,
-    "greedy_iterations":3,
-    "stages":3,
-    "share_network_weights":true
+    "step_size": 0.01,
+    "greedy_iterations": 3,
+    "stages": 3,
+    "share_network_weights": true
   },
-  "neural_network_spec":{
-    "name":"unet",
+  "neural_network_spec": {
+    "name": "unet",
     "hidden_layers_activation": {
-      "name":"gelu"
+      "name": "gelu"
     },
     "final_residual_activation": {
-      "name":"relu"
+      "name": "relu"
     },
     "pooling": {
       "method": "max",
       "kernel_size": 2,
       "stride": 2
     },
-    "channels_per_layer":[8, 16, 32],
+    "channels_per_layer": [
+      8,
+      16,
+      32
+    ],
     "sublayers_per_step": 3,
-    "unfolded_step_size":0.01
+    "unfolded_step_size": 0.01
   }
 }
