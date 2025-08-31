@@ -25,9 +25,9 @@ if db_connection.execute("""
     SELECT name
     FROM sqlite_master
     WHERE type='table' AND name='results'
- """).fetchone() is not None:
+ """).fetchone() is None:
     _ = db_connection.execute(f"""
-        CREATE TABLE results(
+        CREATE TABLE results (
             {",\n".join(f'{k} {v}' for k,v in table_columns.items())}
         )
     """)
