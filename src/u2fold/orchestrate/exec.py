@@ -61,5 +61,5 @@ class ExecOrchestrator(Orchestrator[ExecWeightHandler]):
         output_paths = compute_output_paths(exec_spec.output_dir, *exec_spec.input)
         for output_path, restored_image in zip(output_paths, restored_image_tensors):
             output_path.parent.mkdir(exist_ok=True, parents=True)
-            to_pil_image(restored_image).save(output_path)
+            to_pil_image(restored_image.squeeze(0)).save(output_path)
             self._logger.info(f"Saved output to {output_path}")
