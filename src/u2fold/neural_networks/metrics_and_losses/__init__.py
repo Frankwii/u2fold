@@ -14,5 +14,5 @@ __all__ = [
     "color_minimizable",
     "color_minimizable_calibrated",
     "dssim_calibrated",
-    "uciqe_minimizable_calibrated"
+    "uciqe_minimizable_calibrated",
 ]
