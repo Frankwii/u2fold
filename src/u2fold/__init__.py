@@ -21,7 +21,7 @@ class Mode(Enum):
     docs = "docs"
     calibrate = "calibrate"
     search = "search-hyperparameters"
-    query_results = "query_results"
+    query = "query-results"
 
 def build_parser() -> ArgumentParser:
     parser = ArgumentParser()
@@ -40,7 +40,7 @@ def build_parser() -> ArgumentParser:
     calibrate_parser.add_argument("path", type=Path)
 
     subparsers.add_parser("search-hyperparameters", help="'Grid search' a large set of hyperparameter combinations.")
-    subparsers.add_parser("query_results", help="Query training results obtained so far.")
+    subparsers.add_parser("query-results", help="Query training results obtained so far.")
 
     return parser
 
@@ -101,4 +101,4 @@ def main() -> None:
         case Mode.docs: show_docs()
         case Mode.calibrate: calibrate_metrics(args.path)
         case Mode.search: search_best_combination()
-        case Mode.query_results: get_best_spec_in_db()
+        case Mode.query: get_best_spec_in_db()

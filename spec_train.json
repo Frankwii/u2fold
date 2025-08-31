@@ -19,7 +19,7 @@
     "dataset_spec": {
       "name": "uieb",
       "path": "uieb/processed",
-      "n_epochs": 100,
+      "n_epochs": 500,
       "batch_size": 4
     },
     "optimizer_spec": {
@@ -28,7 +28,7 @@
     },
     "learning_rate_scheduler_spec": {
       "scheduler": "step_lr",
-      "step_size": 25,
+      "step_size": 50,
       "factor": 0.5
     }
   },
@@ -40,7 +40,7 @@
     "step_size": 0.01,
     "greedy_iterations": 3,
     "stages": 3,
-    "share_network_weights": true
+    "share_network_weights": false
   },
   "neural_network_spec": {
     "name": "unet",
