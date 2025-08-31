@@ -42,7 +42,7 @@ def save_training_result(
         "loss": result.overall_loss,
         **{
             k.replace(" ", "_").lower(): v
-            for k, v in result.granular_loss | result.metrics
+            for k, v in (result.granular_loss | result.metrics).items()
         },
     }
 
