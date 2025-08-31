@@ -24,12 +24,12 @@ def wrap_supervised_metric(metric: Callable[[Tensor, Tensor], Tensor]) -> Callab
     return wrapper
 
 unsupervised_minimizable_calibrated = {
-    "uciqe": uciqe_minimizable_calibrated,
+    "uciqe_minimizable": uciqe_minimizable_calibrated,
 }
 
 supervised_minimizable_calibrated = {
     "dssim": dssim_calibrated,
-    "psnr": psnr_minimazible_calibrated
+    "psnr_minimizable": psnr_minimazible_calibrated
 }
 
 metrics_to_log = (

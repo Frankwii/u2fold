@@ -42,7 +42,7 @@ def compute_metrics_for_orchestrator_model(
 def measure_spec(spec: U2FoldSpec[Any]) -> float:  
     orchestrator = cast(TrainOrchestrator, get_orchestrator(spec))
 
-    last_epoch_loss = cast(float, orchestrator.run())
+    last_epoch_loss = cast(float, orchestrator.run().overall_loss)
 
     supervised_metrics = [dssim_calibrated, psnr_minimazible_calibrated]
     unsupervised_metrics = [uciqe_minimizable_calibrated]

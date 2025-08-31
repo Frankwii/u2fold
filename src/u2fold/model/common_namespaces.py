@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, final
+from typing import Callable, NamedTuple, final
 
 from torch import Tensor
 
@@ -32,6 +32,11 @@ class DeterministicComponents:
     fidelity: Tensor
     transmission_map: Tensor
     background_light: Tensor
+
+class EpochMetricData(NamedTuple):
+    overall_loss: float
+    granular_loss: dict[str, float]
+    metrics: dict[str, float]
 
 
 def compute_radiance(primal_variable: Tensor, clamped_transmission_map: Tensor) -> Tensor:

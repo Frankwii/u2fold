@@ -12,6 +12,8 @@ from u2fold.orchestrate import get_orchestrator
 import orjson
 
 from u2fold.orchestrate.train import TrainOrchestrator
+from u2fold.model.common_namespaces import EpochMetricData
+from u2fold.utils.save_training_result import save_training_result
 
 class Mode(Enum):
     run = "run"
@@ -62,8 +64,10 @@ def run(args: Namespace) -> None:
                 f"tensorboard --port 6066 --logdir {orchestrator._tensorboard_log_dir}"
             )
         )
-    orchestrator.run()
+    res = orchestrator.run()
     if should_train:
+        assert isinstance(res, EpochMetricData)
+        save_training_result(spec, res)
         msg = "Traning has finished, but the tensorboard process will be kept running."
         orchestrator._logger.warning(msg)
         print(msg + " Please kill the process to stop it.")

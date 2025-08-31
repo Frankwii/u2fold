@@ -2,7 +2,7 @@ from typing import Any, NamedTuple
 
 from torch import Tensor
 
-from u2fold.model.common_namespaces import ForwardPassResult
+from u2fold.model.common_namespaces import EpochMetricData, ForwardPassResult
 from u2fold.utils.dict_utils import merge_sum, shallow_dict_map
 
 
@@ -14,12 +14,6 @@ class MetricRegister(NamedTuple):
     overall_loss: Tensor
     granular_loss: dict[str, float]
     metrics: dict[str, float]
-
-class EpochMetricData(NamedTuple):
-    overall_loss: float
-    granular_loss: dict[str, float]
-    metrics: dict[str, float]
-
 
 class MetricAccumulator:
     def __init__(self):

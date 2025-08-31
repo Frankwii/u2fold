@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from itertools import chain, repeat
 from logging import getLogger
-from typing import Any, Iterable
+from typing import Any
 
 import torch
 from torch import Tensor
@@ -24,6 +25,7 @@ from u2fold.neural_networks.weight_handling.generic import (
 from u2fold.orchestrate.functional.initialization import (
     initialize_square_matrix_with_square_distances_to_center,
 )
+from u2fold.model.common_namespaces import EpochMetricData
 from u2fold.utils.get_device import get_device
 from u2fold.utils.track import get_from_tag
 
@@ -147,7 +149,9 @@ class Orchestrator[W: WeightHandler](ABC):
                 )
                 overrelaxed_primal_variable = 2 * primal_variable - tmp
                 dual_variable = proximities.conjugate_shifted_square_L2_norm(
-                    input=dual_variable + step_size * convolve(kernel=kernel, input=overrelaxed_primal_variable),
+                    input=dual_variable
+                    + step_size
+                    * convolve(kernel=kernel, input=overrelaxed_primal_variable),
                     step_size=step_size,
                     shift=deterministic_components.fidelity,
                 )
@@ -159,4 +163,4 @@ class Orchestrator[W: WeightHandler](ABC):
         )
 
     @abstractmethod
-    def run(self) -> float | None: ...
+    def run(self) -> EpochMetricData | None: ...

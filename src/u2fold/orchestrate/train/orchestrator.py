@@ -13,7 +13,8 @@ from u2fold.model.train_spec.spec import TrainSpec
 from u2fold.neural_networks.weight_handling.train import TrainWeightHandler
 from .metric_log_computing import compute_metrics_to_log
 from u2fold.orchestrate.train.tensorboard_logger import TensorboardLogger
-from .auxiliary_methods_and_classes import EpochMetricData, LossComputingData, MetricAccumulator, MetricRegister, no_op
+from .auxiliary_methods_and_classes import LossComputingData, MetricAccumulator, MetricRegister, no_op
+from u2fold.model.common_namespaces import EpochMetricData
 from u2fold.utils.func_utils import chain_calls
 from u2fold.utils.get_device import get_device
 from u2fold.utils.get_directories import get_tensorboard_log_directory
@@ -52,7 +53,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
         self._logger.info("Finished initializing orchestrator.")
 
     @override
-    def run(self) -> float | None:
+    def run(self) -> EpochMetricData:
         self._logger.info("Starting training.")
         min_valiation_loss = torch.inf
         test_metrics = cast(EpochMetricData, None)  # pyright: ignore[reportInvalidCast]
@@ -78,7 +79,7 @@ class TrainOrchestrator(Orchestrator[TrainWeightHandler]):
             test_metrics = self.run_test_epoch(epoch)
             self._tensorboard_logger.log_metrics(test_metrics, "Test loss", epoch)
 
-        return test_metrics.overall_loss
+        return test_metrics
 
     def run_train_epoch(self, epoch: int) -> EpochMetricData:
         def refresh_gradients():
