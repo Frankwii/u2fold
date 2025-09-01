@@ -3,6 +3,7 @@ from torch import Tensor
 
 _DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+
 LINEAR_RGB_TO_CIEXYZ_MATRIX = torch.Tensor(
     [
         [0.4124564, 0.3575761, 0.1804375],
@@ -56,9 +57,9 @@ def XYZ_AND_LAB_f_inv(t: Tensor) -> Tensor:
 
 def channelwise_matrix_multiplication(
     image: Tensor,  # (B, C, H, W),
-    matrix: Tensor,  # (C, C)
-) -> Tensor:  # matrix @ image, over dim=1; (B, C, H, W)
-    return torch.einsum("bchw, cd -> bdhw", image, matrix)
+    matrix: Tensor,  # (D, C)
+) -> Tensor:  # matrix @ image, over dim=1; (B, D, H, W)
+    return torch.einsum("dc, bchw -> bdhw", matrix, image)
 
 
 def xyz_to_lab(image: Tensor) -> Tensor:
