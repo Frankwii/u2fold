@@ -64,7 +64,7 @@ def estimate_coarse_red_transmission_map(
 
     all_data[:, 0, :, :] = 1 - all_data[:, 0, :, :]
 
-    patch_minima = -torch.nn.functional.max_pool2d(
+    patch_minima = -torch.max_pool2d(
         -all_data,
         kernel_size=2 * patch_radius + 1,
         stride=1,
@@ -79,9 +79,9 @@ def estimate_coarse_red_transmission_map(
         (
             copy_background_lights,  # (B, 3, 1, 1)
             torch.tensor([saturation_coefficient])  # CPU
-            .to(copy_background_lights.device)  # GPU
-            .view(1, 1, 1, 1)
-            .expand(batch_size, 1, 1, 1),  # (B, 1, 1, 1)
+                .to(copy_background_lights.device)  # GPU
+                .view(1, 1, 1, 1)
+                .expand(batch_size, 1, 1, 1),  # (B, 1, 1, 1)
         ),
         dim=1,  # (B, 4)
     ).view(batch_size, 4, 1, 1)  # (B, 4, 1, 1)
@@ -146,7 +146,7 @@ def estimate_transmission_map(
 
     divisions = coefficients / (background_light + 1e-4)
 
-    exponents = divisions / divisions[:, 0:1, :, :]
+    exponents = divisions / divisions[:, :1, :, :]
 
     return torch.pow(
         input=fine_red_transmission_map.clamp(0.1),

@@ -117,7 +117,6 @@ class Orchestrator[W: WeightHandler](ABC):
             learning_rate=algorithmic_spec.step_size,
         )
 
-        # silence "possibly unbound" type-checker complaints
         kernel = kernel_bundle.compute_kernel()
         kernel_iterations = chain((20,), repeat(10))
 

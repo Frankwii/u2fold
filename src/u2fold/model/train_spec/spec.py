@@ -10,6 +10,7 @@ from .optimizer_spec import OptimizerSpec
 
 
 class TrainSpec(BaseModel):
+    """Specification to train a neural network."""
     model_config = ConfigDict(frozen=True)
     mode: Literal["train"]
 

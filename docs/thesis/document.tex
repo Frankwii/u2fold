@@ -636,12 +636,33 @@ such as network hyperparameters or the dataset path.
 The program is controlled via a command-line interface (CLI) and is intended to be run on a Linux machine (it has not been tested on other operating systems). The main subcommand of the program is ``run``, which takes a required argument ``--spec`` that should indicate the path to a JSON file. This file will be referred to as the \textit{configuration file}, since the behavior of the program
 is determined by its contents. Example files for this can be found at the root of the repository: \verb|spec_train.json| for training a neural networ, and \verb|spec_exec.json| for executing that previously trained network. Additionally, a subcommand ``docs'' is provided. This opens a simple website in
 the system's default browser (as specified in the ``\$BROWSER'' environment variable) with a visual documentation of the fields that can or should be included in the configuration file. The page is very similar to those that are
-often generated via tools like \href{https://editor.swagger.io/}{Swagger} or \href{https://fastapi.tiangolo.com/}{fastAPI} for RESTful APIs. \Frank{screenshots are included in the appendix}
+often generated via tools like \href{https://editor.swagger.io/}{Swagger} or \href{https://fastapi.tiangolo.com/}{fastAPI} for RESTful APIs. A screenshot of the generated configuration is included in \cref{pic:docs}.
 
+\subsection{Algorithms}
+Algorithms \ref{al:background-light}, \ref{al:I1} and \ref{al:I2-estimation} were implemented using \textit{pytorch} primitives, including the guided filter.
+Although not explicited in the figures, the implementations work for batched images.
+
+Algorithm \ref{al:background-light} is implemented in the source file \textit{src/u2fold/math/background\_light\_estimation.py}. The code is structured slightly differently than in \ref{al:background-light} since the image batching required the usage of the \textit{torch.gather} method.
+
+Algorithm \ref{al:I1} is implemented in the \textit{src/u2fold/math/transmission\_map\_estimation.py} module. The implementation efficiently computes patch minima in parallel by leveraging \textit{pytorch}'s \textit{torch.max\_pool2d} builtin.
+
+Algorithm \ref{al:I2-estimation} is implemented in the method \textit{forward\_pass} of the \textit{Orchestrator} class in the \textit{src/u2fold/orchestrate/generic.py} module. The reason for using an object-oriented
+approach instead of a sequential one was that the logic required for secondary tasks needed in the program (logging results to visualize training, or loading model weights from disk into an array of the dimensions required by the number of greedy iterations and stages) was relatively coupled to the algorithm execution
+and more comfortable to implement in a stateful class than via dependency injection. A relevant implementation detail is that the gradient updates done
+to the kernel \(g\) were done with an ADAM optimizer which took \(20\) steps for
+the first greedy iteration and \(10\) for the subsequent ones. This empirically
+seemed to be a good criterion; performing more updates, especially during the first
+greedy iteration, would result in \(g\) converging to a Dirac delta (i.e. the standard deviation converged to \(0\)) since \(J_0\) is first initialized following \cref{eq:simplified-physical-model}, which is equivalent to setting
+\(g\) to be a Dirac delta.
+
+\subsection{Neural networks}
+Two neural network architectures were trained to optimize the output of
+algorithm \ref{al:I2-estimation}, both of which are relatively simple modifications
+of the original UNet.
 
 
 \section{Experimentation}
-\subsection{Algorithmic selection of hyperparameters}
+\subsection{Metric calibration}
 Given the high computational costs of training neural networks, it is unfeasible to perform a grid search on a substantial set of hyperparameter choices and train a network from scratch for each choice.
 
 As an attempt to overcome this limitation, the following approach is proposed. For a given neural network architecture:
@@ -738,7 +759,7 @@ of colorspace conversions was consulted, specifically for the coefficients of
 the conversion matrices.
 
 \section{Appendix}
-
+\subsection{Auxliary proofs}
 \begin{proposition}\label{prop:closed-sets}
   The sets \(\mathcal{K}\), \(\mathcal{S}_r\) and \(\mathcal{D}\) are all closed.
 \end{proposition}
@@ -850,6 +871,13 @@ where \(\overline{\varphi}(x) = \varphi(-x)\). Therefore,
 .\]
 
 Thus, \(K^*\) is simply given by \(K^*b = b\ast \overline{y}\). \qed
+
+\subsection{Screeshots}
+\begin{figure}[h!]\label{pic:docs}
+\centering
+\includegraphics[width=0.4\textwidth]{figures/config_docs2.png}
+\caption{Screenshot of a fragment of the generated documentation}
+\end{figure}
 
 \bibliographystyle{abbrv}
 \bibliography{bibliography} % EDIT THE FILE `bibliography.bib` WITH YOUR REFERENCES

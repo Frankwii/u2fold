@@ -45,7 +45,7 @@ def save_training_result(
     """Persists the results into a sqlite database"""
 
     register = {
-        "spec": "?",  # need to escape this since it contains especial characters
+        "spec": spec.model_dump_json(indent=2),
         "loss": result.overall_loss,
         **{
             f"{k.replace(' ', '_').lower()}_loss": v

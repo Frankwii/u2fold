@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.8.27)  31 AUG 2025 15:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2026/dev/Arch Linux) (preloaded format=pdflatex 2025.8.27)  1 SEP 2025 19:52
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -540,7 +540,7 @@ Package hyperref Info: Link coloring OFF on input line 55.
 \openout2 = `titlepage.aux'.
 
  (./titlepage.tex
-<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=112, 1401.235pt x 517.935pt>
+<figures/logos/UIB_UniversitasBalearica_horizontal.png, id=128, 1401.235pt x 517.935pt>
 File: figures/logos/UIB_UniversitasBalearica_horizontal.png Graphic file (type png)
 <use figures/logos/UIB_UniversitasBalearica_horizontal.png>
 Package pdftex.def Info: figures/logos/UIB_UniversitasBalearica_horizontal.png  used on input line 13.
@@ -666,32 +666,55 @@ File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 
 
 [9]
+Underfull \hbox (badness 10000) in paragraph at lines 645--646
+[]\T1/ptm/m/n/10 Algorithm []1[] is im-ple-mented in the source file
+ []
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+
+Underfull \hbox (badness 10000) in paragraph at lines 645--646
+\T1/ptm/m/it/10 src/u2fold/math/background_light_estimation.py\T1/ptm/m/n/10 . The code
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 647--648
+[]\T1/ptm/m/n/10 Algorithm []2[] is im-ple-mented in the
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 647--648
+\T1/ptm/m/it/10 src/u2fold/math/transmission_map_estimation.py \T1/ptm/m/n/10 mod-ule.
+ []
 
 
 
 
-Underfull \hbox (badness 1924) in paragraph at lines 690--690
+
+[10]
+Underfull \hbox (badness 1924) in paragraph at lines 711--711
 []\T1/ptm/m/n/10 Probar con otros tipos de re-des neu-ronales (ViT,
  []
 
 
 
-[10]
 
 
-Underfull \hbox (badness 1881) in paragraph at lines 765--767
+[11]
+Underfull \hbox (badness 1881) in paragraph at lines 786--788
 \T1/ptm/m/n/10 This de-fines a func-tion $\OML/cmm/m/it/10 ^^^$ \T1/ptm/m/n/10 by $\OML/cmm/m/it/10 ^^^\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) = [][] \OML/cmm/m/it/10 ^^^[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 t\OT1/cmr/m/n/10 ) =
  []
 
 
 
-[11]
 
-(./document.bbl
 
 [12]
+<figures/config_docs2.png, id=415, 1545.775pt x 932.48375pt>
+File: figures/config_docs2.png Graphic file (type png)
+<use figures/config_docs2.png>
+Package pdftex.def Info: figures/config_docs2.png  used on input line 878.
+(pdftex.def)             Requested size: 206.39685pt x 124.4997pt.
+ (./document.bbl
+
 ./document.bbl:144: Misplaced alignment tab character &.
 l.144 ...block Abc-net: Avoiding blocking effect &
                                                    color shift network for s...
@@ -704,11 +727,7 @@ might try typing `S' now just to see what is salvageable.
 
 )
 
-
-
-[13
-
-] (./document.aux (./titlepage.aux))
+[13 <./figures/config_docs2.png>] (./document.aux (./titlepage.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -718,21 +737,21 @@ L3 programming layer <2025-01-18>
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `document.out' has not changed.
-(rerunfilecheck)             Checksum: 8AD2A40DBA9FF0303B00A2C2B25735B1;4736.
+(rerunfilecheck)             Checksum: B27E989CCFBD80A93F48C17D1AEF5319;5108.
  ) 
 Here is how much of TeX's memory you used:
- 16014 strings out of 474463
- 265350 string characters out of 5747970
- 780062 words of memory out of 5000000
- 38683 multiletter control sequences out of 15000+600000
+ 16034 strings out of 474463
+ 265775 string characters out of 5747970
+ 778174 words of memory out of 5000000
+ 38698 multiletter control sequences out of 15000+600000
  704070 words of font info for 200 fonts, out of 8000000 for 9000
  398 hyphenation exceptions out of 8191
- 79i,17n,93p,814b,598s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 79i,17n,93p,814b,575s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm7.pfb></usr/share/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on document.pdf (14 pages, 437832 bytes).
+Output written on document.pdf (14 pages, 491946 bytes).
 PDF statistics:
- 517 PDF objects out of 1000 (max. 8388607)
- 450 compressed objects within 5 object streams
- 133 named destinations out of 1000 (max. 500000)
- 222 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 546 PDF objects out of 1000 (max. 8388607)
+ 477 compressed objects within 5 object streams
+ 138 named destinations out of 1000 (max. 500000)
+ 259 words of extra memory for PDF output out of 10000 (max. 10000000)
 
