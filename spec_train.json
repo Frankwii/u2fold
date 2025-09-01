@@ -13,7 +13,7 @@
       },
       {
         "loss": "color_cosine_similarity",
-        "weight": 0.1
+        "weight": 1.0
       }
     ],
     "dataset_spec": {
@@ -24,7 +24,7 @@
     },
     "optimizer_spec": {
       "optimizer": "adam",
-      "learning_rate": 0.01
+      "learning_rate": 0.002
     },
     "learning_rate_scheduler_spec": {
       "scheduler": "step_lr",
