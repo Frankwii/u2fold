@@ -17,22 +17,19 @@ def uciqe(input: Tensor) -> Tensor:
         .reshape(batch_size, 1, 1, 1)
     )
 
-    chroma_std = (
-        (lab_input[:, 1:, :, :] ** 2)
-        .sum(dim=1)  # a**2 + b**2
-        .sqrt()
-        .std(dim=(-2, -1))
-        .reshape_as(luminance_contrast)
-    )
+    # sqrt(a ** 2 + b ** 2)
+    chroma = (lab_input[:, 1:, :, :] ** 2).sum(dim=1).sqrt()
+
+    chroma_std = chroma.std(dim=(-2, -1,)).reshape_as(luminance_contrast)
 
     saturation_mean = (
-        (chroma_std / lab_input[:, :1, :, :].clamp(0.1))
+        (chroma / lab_input[:, :1, :, :].clamp(0.1))
         .mean(dim=(-2, -1))
         .reshape_as(luminance_contrast)
     )
 
     submetrics = torch.stack(
-        (saturation_mean, luminance_contrast, chroma_std), dim=1
+        (chroma_std, luminance_contrast, saturation_mean), dim=1
     )
 
     coefficients = torch.Tensor([0.468, 0.2745, 0.2576]).reshape(1, 3, 1, 1, 1).to(input.device)
@@ -40,8 +37,8 @@ def uciqe(input: Tensor) -> Tensor:
     return torch.sum(coefficients * submetrics, dim = 1).mean()
 
 def uciqe_minimizable(input: Tensor) -> Tensor:
-    """One minus the UCIQE metric for the input"""
-    return 1 - uciqe(input)
+    """One over the UCIQE metric for the input"""
+    return 1 / uciqe(input).clamp(0.1)
 
 def uciqe_minimizable_calibrated(input: Tensor) -> Tensor:
     uieb_average = 10.590411186218262
