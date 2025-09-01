@@ -41,6 +41,6 @@ def uciqe_minimizable(input: Tensor) -> Tensor:
     return 1 / uciqe(input).clamp(0.1)
 
 def uciqe_minimizable_calibrated(input: Tensor) -> Tensor:
-    uieb_average = 10.590411186218262
+    uieb_average = 0.03628702089190483
 
     return uciqe_minimizable(input) / uieb_average
