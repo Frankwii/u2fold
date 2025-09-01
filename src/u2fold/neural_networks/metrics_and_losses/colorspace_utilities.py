@@ -3,7 +3,7 @@ from torch import Tensor
 
 _DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-
+# As specified in https://www.tdx.cat/handle/10803/9409#page=1
 LINEAR_RGB_TO_CIEXYZ_MATRIX = torch.Tensor(
     [
         [0.4124564, 0.3575761, 0.1804375],
@@ -13,10 +13,11 @@ LINEAR_RGB_TO_CIEXYZ_MATRIX = torch.Tensor(
 ).to(_DEVICE)
 CIEXYZ_TO_LINEAR_RGB_MATRIX = LINEAR_RGB_TO_CIEXYZ_MATRIX.inverse()
 
+# CIEXYZ to CIELAB conversion is the one specified in https://en.wikipedia.org/wiki/CIELAB_color_space
 # X_n, Y_n, Z_n
 CIEXYZ_AND_CIELAB_COEFFICIENTS = torch.Tensor(
     [95.0489, 100, 108.8840]
-).reshape(1, 3, 1, 1).to(_DEVICE)
+).reshape(1, 3, 1, 1).to(_DEVICE) / 100.0
 
 CIEXYZ_AND_CIELAB_DELTA = 6 / 29
 
@@ -95,7 +96,7 @@ def linear_rgb_to_lab(image: Tensor) -> Tensor:
 def lab_to_linear_rgb(image: Tensor) -> Tensor:
     return xyz_to_linear_rgb(lab_to_xyz(image))
 
-
+# As specified in https://en.wikipedia.org/wiki/SRGB
 def rgb_to_linear_rgb(image: Tensor) -> Tensor:
     return torch.where(
         image > 0.04045, torch.pow((image + 0.055) / 1.055, 2.4), image / 12.92

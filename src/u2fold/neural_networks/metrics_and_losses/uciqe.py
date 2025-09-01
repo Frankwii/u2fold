@@ -26,7 +26,7 @@ def uciqe(input: Tensor) -> Tensor:
     )
 
     saturation_mean = (
-        (chroma_std / lab_input[:, :1, :, :])
+        (chroma_std / lab_input[:, :1, :, :].clamp(0.1))
         .mean(dim=(-2, -1))
         .reshape_as(luminance_contrast)
     )
